@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +35,7 @@ fun DeckDetailScreen(
     onStudyClick: (Long) -> Unit
 ) {
     val decks by deckViewModel.decks.collectAsState()
+    val isLoading by deckViewModel.isLoading.collectAsState()
     val cardCount by deckViewModel.selectedDeckCardCount.collectAsState()
     val dueCount by deckViewModel.selectedDeckDueCount.collectAsState()
     val currentDeck = decks.find { it.id == deckId }
@@ -54,7 +56,17 @@ fun DeckDetailScreen(
             )
         }
     ) { padding ->
-        if (currentDeck == null) {
+        if (currentDeck == null && isLoading) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (currentDeck == null) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

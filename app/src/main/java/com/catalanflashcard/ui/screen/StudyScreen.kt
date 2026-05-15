@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
+import com.catalanflashcard.ui.theme.Blue
 import com.catalanflashcard.ui.theme.Green
 import com.catalanflashcard.ui.theme.Orange
 import com.catalanflashcard.ui.theme.Red
@@ -174,7 +175,7 @@ fun StudyScreen(
                         )
                         ReviewButton(
                             label = stringResource(R.string.easy),
-                            color = Color(0xFF1976D2),
+                            color = Blue,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(5) },
                             enabled = !isSavingAnswer

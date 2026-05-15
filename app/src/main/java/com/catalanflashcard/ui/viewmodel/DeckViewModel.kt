@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
@@ -35,9 +36,16 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
 
     private fun loadDecks() {
         viewModelScope.launch {
-            repository.getAllDecks().collect { deckList ->
-                _decks.value = deckList
-            }
+            _isLoading.value = true
+            repository.getAllDecks()
+                .catch { e ->
+                    _error.value = e.message ?: "Failed to load decks"
+                    _isLoading.value = false
+                }
+                .collect { deckList ->
+                    _decks.value = deckList
+                    _isLoading.value = false
+                }
         }
     }
 

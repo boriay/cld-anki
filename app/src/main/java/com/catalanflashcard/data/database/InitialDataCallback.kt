@@ -1,87 +1,96 @@
 package com.catalanflashcard.data.database
 
+import android.content.ContentValues
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.catalanflashcard.data.entity.Card
-import com.catalanflashcard.data.entity.Deck
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 
 class InitialDataCallback : RoomDatabase.Callback() {
-
-    // SupervisorJob so a failure here doesn't cancel other coroutines
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     override fun onCreate(db: SupportSQLiteDatabase) {
         super.onCreate(db)
-        // INSTANCE is set before the DB is first opened (which triggers this callback),
-        // so this is safe. The coroutine is async, giving INSTANCE time to be assigned.
-        scope.launch {
-            val database = FlashcardDatabase.INSTANCE ?: return@launch
-            seed(database)
-        }
+        seed(db)
     }
 
-    private suspend fun seed(db: FlashcardDatabase) {
+    private fun seed(db: SupportSQLiteDatabase) {
+        db.beginTransaction()
         try {
-            val deckId = db.deckDao().insert(
-                Deck(name = "Basic Catalan", description = "Основной каталанский язык")
-            )
-            db.cardDao().insertAll(buildInitialCards(deckId))
-        } catch (_: Exception) {
-            // DB already seeded — no-op
+            val now = System.currentTimeMillis()
+
+            val deckValues = ContentValues().apply {
+                put("name", "Basic Catalan")
+                put("description", "Основной каталанский язык")
+                put("createdAt", now)
+                put("updatedAt", now)
+            }
+            val deckId = db.insert("decks", 0, deckValues)
+
+            buildInitialCards().forEach { (front, back) ->
+                val cardValues = ContentValues().apply {
+                    put("deckId", deckId)
+                    put("front", front)
+                    put("back", back)
+                    put("interval", 1)
+                    put("easeFactor", 2.5f)
+                    put("repetitions", 0)
+                    put("nextReviewTime", now)
+                    put("createdAt", now)
+                    put("updatedAt", now)
+                }
+                db.insert("cards", 0, cardValues)
+            }
+
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
-    private fun buildInitialCards(deckId: Long) = listOf(
-        Card(deckId = deckId, front = "Hola", back = "Привет"),
-        Card(deckId = deckId, front = "Adiós", back = "До свидания"),
-        Card(deckId = deckId, front = "Gràcies", back = "Спасибо"),
-        Card(deckId = deckId, front = "Si us plau", back = "Пожалуйста"),
-        Card(deckId = deckId, front = "Sí", back = "Да"),
-        Card(deckId = deckId, front = "No", back = "Нет"),
-        Card(deckId = deckId, front = "Bon dia", back = "Доброе утро"),
-        Card(deckId = deckId, front = "Bona tarda", back = "Добрый день"),
-        Card(deckId = deckId, front = "Bona nit", back = "Добрый вечер"),
-        Card(deckId = deckId, front = "Perdona", back = "Извините"),
-        Card(deckId = deckId, front = "Com estàs?", back = "Как дела?"),
-        Card(deckId = deckId, front = "Molt bé", back = "Очень хорошо"),
-        Card(deckId = deckId, front = "Jo soc...", back = "Я..."),
-        Card(deckId = deckId, front = "Tu ets...", back = "Ты..."),
-        Card(deckId = deckId, front = "Ell és...", back = "Он..."),
-        Card(deckId = deckId, front = "Ella és...", back = "Она..."),
-        Card(deckId = deckId, front = "Nosaltres som...", back = "Мы..."),
-        Card(deckId = deckId, front = "Vosaltres sou...", back = "Вы (множ.)..."),
-        Card(deckId = deckId, front = "Ells són...", back = "Они..."),
-        Card(deckId = deckId, front = "Un", back = "Один"),
-        Card(deckId = deckId, front = "Dos", back = "Два"),
-        Card(deckId = deckId, front = "Tres", back = "Три"),
-        Card(deckId = deckId, front = "Quatre", back = "Четыре"),
-        Card(deckId = deckId, front = "Cinc", back = "Пять"),
-        Card(deckId = deckId, front = "Sis", back = "Шесть"),
-        Card(deckId = deckId, front = "Set", back = "Семь"),
-        Card(deckId = deckId, front = "Vuit", back = "Восемь"),
-        Card(deckId = deckId, front = "Nou", back = "Девять"),
-        Card(deckId = deckId, front = "Deu", back = "Десять"),
-        Card(deckId = deckId, front = "Home", back = "Мужчина"),
-        Card(deckId = deckId, front = "Dona", back = "Женщина"),
-        Card(deckId = deckId, front = "Nena", back = "Девочка"),
-        Card(deckId = deckId, front = "Nen", back = "Мальчик"),
-        Card(deckId = deckId, front = "Gat", back = "Кот"),
-        Card(deckId = deckId, front = "Gos", back = "Собака"),
-        Card(deckId = deckId, front = "Casa", back = "Дом"),
-        Card(deckId = deckId, front = "Porta", back = "Дверь"),
-        Card(deckId = deckId, front = "Finestra", back = "Окно"),
-        Card(deckId = deckId, front = "Taula", back = "Стол"),
-        Card(deckId = deckId, front = "Cadira", back = "Стул"),
-        Card(deckId = deckId, front = "Llit", back = "Кровать"),
-        Card(deckId = deckId, front = "Pa", back = "Хлеб"),
-        Card(deckId = deckId, front = "Aigua", back = "Вода"),
-        Card(deckId = deckId, front = "Vi", back = "Вино"),
-        Card(deckId = deckId, front = "Formatge", back = "Сыр"),
-        Card(deckId = deckId, front = "Carn", back = "Мясо"),
-        Card(deckId = deckId, front = "Peix", back = "Рыба")
+    private fun buildInitialCards() = listOf(
+        "Hola" to "Привет",
+        "Adiós" to "До свидания",
+        "Gràcies" to "Спасибо",
+        "Si us plau" to "Пожалуйста",
+        "Sí" to "Да",
+        "No" to "Нет",
+        "Bon dia" to "Доброе утро",
+        "Bona tarda" to "Добрый день",
+        "Bona nit" to "Добрый вечер",
+        "Perdona" to "Извините",
+        "Com estàs?" to "Как дела?",
+        "Molt bé" to "Очень хорошо",
+        "Jo soc..." to "Я...",
+        "Tu ets..." to "Ты...",
+        "Ell és..." to "Он...",
+        "Ella és..." to "Она...",
+        "Nosaltres som..." to "Мы...",
+        "Vosaltres sou..." to "Вы (множ.)...",
+        "Ells són..." to "Они...",
+        "Un" to "Один",
+        "Dos" to "Два",
+        "Tres" to "Три",
+        "Quatre" to "Четыре",
+        "Cinc" to "Пять",
+        "Sis" to "Шесть",
+        "Set" to "Семь",
+        "Vuit" to "Восемь",
+        "Nou" to "Девять",
+        "Deu" to "Десять",
+        "Home" to "Мужчина",
+        "Dona" to "Женщина",
+        "Nena" to "Девочка",
+        "Nen" to "Мальчик",
+        "Gat" to "Кот",
+        "Gos" to "Собака",
+        "Casa" to "Дом",
+        "Porta" to "Дверь",
+        "Finestra" to "Окно",
+        "Taula" to "Стол",
+        "Cadira" to "Стул",
+        "Llit" to "Кровать",
+        "Pa" to "Хлеб",
+        "Aigua" to "Вода",
+        "Vi" to "Вино",
+        "Formatge" to "Сыр",
+        "Carn" to "Мясо",
+        "Peix" to "Рыба"
     )
 }
