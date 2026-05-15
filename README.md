@@ -88,19 +88,25 @@ The app follows **MVVM** (Model-View-ViewModel) pattern:
 ### Prerequisites
 
 - Android Studio Flamingo or later
-- Gradle 8.0+
+- Gradle 8.0+ (included via wrapper)
 - Android SDK 26+
 - JDK 11+
 
 ### Building
 
+Detailed build instructions are in [BUILD.md](BUILD.md)
+
+Quick start:
+
 1. Clone the repository
-2. Open in Android Studio
-3. Build and run on an emulator or device:
+2. Install Android SDK and set `ANDROID_HOME`
+3. Build and run:
    ```bash
-   ./gradlew build
-   ./gradlew installDebug
+   ./gradlew build              # Build APK
+   ./gradlew installDebug       # Install on emulator/device
    ```
+
+For complete setup guide, see [BUILD.md](BUILD.md)
 
 ## Learning Algorithm
 
