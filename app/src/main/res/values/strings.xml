@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Catalan Flashcard</string>
+    <string name="deck_title">Decks</string>
+    <string name="add_deck">Add Deck</string>
+    <string name="study">Study</string>
+    <string name="front">Front</string>
+    <string name="back">Back</string>
+    <string name="again">Again</string>
+    <string name="hard">Hard</string>
+    <string name="good">Good</string>
+    <string name="easy">Easy</string>
+    <string name="no_cards">No cards to study</string>
+    <string name="card_count">Cards: %d</string>
+    <string name="progress">Progress: %d/%d</string>
+</resources>

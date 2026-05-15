@@ -1,0 +1,35 @@
+package com.catalanflashcard.data.database
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.catalanflashcard.data.dao.CardDao
+import com.catalanflashcard.data.dao.DeckDao
+import com.catalanflashcard.data.entity.Card
+import com.catalanflashcard.data.entity.Deck
+
+@Database(entities = [Deck::class, Card::class], version = 1, exportSchema = false)
+abstract class FlashcardDatabase : RoomDatabase() {
+    abstract fun deckDao(): DeckDao
+    abstract fun cardDao(): CardDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: FlashcardDatabase? = null
+
+        fun getDatabase(context: Context): FlashcardDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    FlashcardDatabase::class.java,
+                    "flashcard_database"
+                )
+                    .addCallback(InitialDataCallback(context))
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
