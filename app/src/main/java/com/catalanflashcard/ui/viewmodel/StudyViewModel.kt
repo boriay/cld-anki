@@ -36,15 +36,11 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
                 val cards = repository.getDueCards(deckId)
                 _dueCards.value = cards
                 _currentIndex.value = 0
-                if (cards.isNotEmpty()) {
-                    _currentCard.value = cards[0]
-                    _isFlipped.value = false
-                } else {
-                    _currentCard.value = null
-                }
+                _currentCard.value = cards.firstOrNull()
+                _isFlipped.value = false
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = e.message ?: "Failed to load cards"
             } finally {
                 _isLoading.value = false
             }
@@ -74,7 +70,7 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
                 }
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = e.message ?: "Failed to save answer"
             }
         }
     }

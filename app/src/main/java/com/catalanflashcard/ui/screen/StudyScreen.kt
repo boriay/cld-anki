@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +34,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.catalanflashcard.R
 import com.catalanflashcard.ui.theme.Green
 import com.catalanflashcard.ui.theme.Orange
 import com.catalanflashcard.ui.theme.Red
@@ -68,10 +71,10 @@ fun StudyScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Study") },
+                title = { Text(stringResource(R.string.study)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -96,13 +99,13 @@ fun StudyScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "🎉 No more cards to study!",
+                        text = stringResource(R.string.no_cards),
                         style = MaterialTheme.typography.headlineLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onBackClick) {
-                        Text("Back to Decks")
+                        Text(stringResource(R.string.back_to_decks))
                     }
                 }
             } else {
@@ -113,7 +116,7 @@ fun StudyScreen(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Card ${currentIndex + 1}/${dueCards.size}",
+                        text = stringResource(R.string.card_progress, currentIndex + 1, dueCards.size),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
@@ -123,47 +126,18 @@ fun StudyScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Card(
+                        FlashCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(300.dp)
                                 .clickable { viewModel.flipCard() }
-                                .animateContentSize()
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = RoundedCornerShape(16.dp)
-                                ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(24.dp),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = if (isFlipped) "Back" else "Front",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.7f)
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = if (isFlipped) currentCard!!.back else currentCard!!.front,
-                                        style = MaterialTheme.typography.displaySmall,
-                                        color = Color.White,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
+                                .animateContentSize(),
+                            label = if (isFlipped) stringResource(R.string.back) else stringResource(R.string.front),
+                            text = if (isFlipped) currentCard!!.back else currentCard!!.front
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Tap to flip",
+                            text = stringResource(R.string.tap_to_flip),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -176,26 +150,26 @@ fun StudyScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         ReviewButton(
-                            label = "Again",
+                            label = stringResource(R.string.again),
                             color = Red,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(1) }
                         )
                         ReviewButton(
-                            label = "Hard",
+                            label = stringResource(R.string.hard),
                             color = Orange,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(2) }
                         )
                         ReviewButton(
-                            label = "Good",
-                            color = Color(0xFF4CAF50),
+                            label = stringResource(R.string.good),
+                            color = Green,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(4) }
                         )
                         ReviewButton(
-                            label = "Easy",
-                            color = Green,
+                            label = stringResource(R.string.easy),
+                            color = Color(0xFF1976D2),
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(5) }
                         )
@@ -207,19 +181,38 @@ fun StudyScreen(
 }
 
 @Composable
-fun Card(
+fun FlashCard(
     modifier: Modifier = Modifier,
-    shape: RoundedCornerShape = RoundedCornerShape(16.dp),
-    content: @Composable () -> Unit
+    label: String,
+    text: String
 ) {
     Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = shape
-            )
+        modifier = modifier.background(
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(16.dp)
+        ),
+        contentAlignment = Alignment.Center
     ) {
-        content()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -234,9 +227,7 @@ fun ReviewButton(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
-        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-            containerColor = color
-        )
+        colors = ButtonDefaults.buttonColors(containerColor = color)
     ) {
         Text(label, color = Color.White)
     }

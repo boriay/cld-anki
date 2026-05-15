@@ -35,7 +35,7 @@ choco install openjdk17
 
 **Или**: Только Android SDK (без IDE)
 - Загрузите с https://developer.android.com/tools
-- Распакуйте и установите SDK командлиями `sdkmanager`
+- Распакуйте и установите SDK командами `sdkmanager`
 
 ### 3. Переменные окружения
 

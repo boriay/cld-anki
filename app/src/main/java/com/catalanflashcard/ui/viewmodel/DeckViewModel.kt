@@ -44,7 +44,7 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
                 repository.createDeck(name, description)
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = e.message ?: "Failed to create deck"
             } finally {
                 _isLoading.value = false
             }
@@ -57,7 +57,7 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
                 repository.deleteDeck(deckId)
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = e.message ?: "Failed to delete deck"
             }
         }
     }

@@ -10,8 +10,20 @@
     <string name="hard">Hard</string>
     <string name="good">Good</string>
     <string name="easy">Easy</string>
-    <string name="no_cards">No cards to study</string>
+    <string name="no_cards">No more cards to study!</string>
+    <string name="no_decks">No decks yet. Create one to get started!</string>
     <string name="card_count">Cards: %d</string>
+    <string name="card_progress">Card %1$d / %2$d</string>
     <string name="progress">Progress: %d/%d</string>
     <string name="delete">Delete</string>
+    <string name="tap_to_flip">Tap to flip</string>
+    <string name="back_to_decks">Back to Decks</string>
+    <string name="deck_not_found">Deck not found</string>
+    <string name="go_back">Go Back</string>
+    <string name="start_study">Start Study Session</string>
+    <string name="create_deck_title">Create New Deck</string>
+    <string name="deck_name_hint">Deck Name</string>
+    <string name="deck_description_hint">Description</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
 </resources>

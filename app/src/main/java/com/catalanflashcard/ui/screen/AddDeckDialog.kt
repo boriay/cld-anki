@@ -15,7 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.catalanflashcard.R
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
 
 @Composable
@@ -28,20 +30,20 @@ fun AddDeckDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create New Deck") },
+        title = { Text(stringResource(R.string.create_deck_title)) },
         text = {
             Column {
                 TextField(
                     value = deckName,
                     onValueChange = { deckName = it },
-                    label = { Text("Deck Name") },
+                    label = { Text(stringResource(R.string.deck_name_hint)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 TextField(
                     value = deckDescription,
                     onValueChange = { deckDescription = it },
-                    label = { Text("Description") },
+                    label = { Text(stringResource(R.string.deck_description_hint)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -55,12 +57,12 @@ fun AddDeckDialog(
                     }
                 }
             ) {
-                Text("Create")
+                Text(stringResource(R.string.create))
             }
         },
         dismissButton = {
             Button(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
