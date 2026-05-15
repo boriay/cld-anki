@@ -29,6 +29,9 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _isSavingAnswer = MutableStateFlow(false)
+    val isSavingAnswer: StateFlow<Boolean> = _isSavingAnswer.asStateFlow()
+
     fun loadDueCards(deckId: Long) {
         viewModelScope.launch {
             try {
@@ -40,6 +43,10 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
                 _isFlipped.value = false
                 _error.value = null
             } catch (e: Exception) {
+                _dueCards.value = emptyList()
+                _currentCard.value = null
+                _currentIndex.value = 0
+                _isFlipped.value = false
                 _error.value = e.message ?: "Failed to load cards"
             } finally {
                 _isLoading.value = false
@@ -52,10 +59,12 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
     }
 
     fun answerCard(quality: Int) {
+        if (_isSavingAnswer.value) return
         val card = _currentCard.value ?: return
 
         viewModelScope.launch {
             try {
+                _isSavingAnswer.value = true
                 repository.updateCardReview(card.id, quality)
 
                 val currentIdx = _currentIndex.value
@@ -71,6 +80,8 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to save answer"
+            } finally {
+                _isSavingAnswer.value = false
             }
         }
     }

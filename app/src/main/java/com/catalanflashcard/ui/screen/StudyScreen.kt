@@ -54,6 +54,7 @@ fun StudyScreen(
     val currentIndex by viewModel.currentIndex.collectAsState()
     val isFlipped by viewModel.isFlipped.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isSavingAnswer by viewModel.isSavingAnswer.collectAsState()
     val error by viewModel.error.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -154,25 +155,29 @@ fun StudyScreen(
                             label = stringResource(R.string.again),
                             color = Red,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(1) }
+                            onClick = { viewModel.answerCard(1) },
+                            enabled = !isSavingAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.hard),
                             color = Orange,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(3) }
+                            onClick = { viewModel.answerCard(3) },
+                            enabled = !isSavingAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.good),
                             color = Green,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(4) }
+                            onClick = { viewModel.answerCard(4) },
+                            enabled = !isSavingAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.easy),
                             color = Color(0xFF1976D2),
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(5) }
+                            onClick = { viewModel.answerCard(5) },
+                            enabled = !isSavingAnswer
                         )
                     }
                 }
@@ -222,13 +227,15 @@ fun ReviewButton(
     label: String,
     color: Color,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = color)
+        colors = ButtonDefaults.buttonColors(containerColor = color),
+        enabled = enabled
     ) {
         Text(label, color = Color.White)
     }

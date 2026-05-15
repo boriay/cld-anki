@@ -43,6 +43,8 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
 
     fun loadDeckStats(deckId: Long) {
         statsJob?.cancel()
+        _selectedDeckCardCount.value = 0
+        _selectedDeckDueCount.value = 0
         statsJob = viewModelScope.launch {
             launch {
                 repository.getCardCount(deckId).collect { _selectedDeckCardCount.value = it }

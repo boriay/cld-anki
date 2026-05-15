@@ -112,8 +112,8 @@ For complete setup guide, see [BUILD.md](BUILD.md)
 
 The app implements SM-2 (Spaced Repetition) algorithm with four quality ratings:
 
-- **Again** (1): Failed the card, will show tomorrow
-- **Hard** (2): Difficult, will show in 3 days
+- **Again** (1): Failed the card, interval resets to 1 day
+- **Hard** (3): Correct but difficult, reduces interval growth
 - **Good** (4): Correct answer, normal spacing applied
 - **Easy** (5): Very easy, longest interval applied
 
