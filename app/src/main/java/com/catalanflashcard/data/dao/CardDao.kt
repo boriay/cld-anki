@@ -13,6 +13,9 @@ interface CardDao {
     @Insert
     suspend fun insert(card: Card): Long
 
+    @Insert
+    suspend fun insertAll(cards: List<Card>)
+
     @Update
     suspend fun update(card: Card)
 
@@ -32,7 +35,7 @@ interface CardDao {
     fun getCardCount(deckId: Long): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM cards WHERE deckId = :deckId AND nextReviewTime <= :now")
-    suspend fun getDueCardCount(deckId: Long, now: Long = System.currentTimeMillis()): Int
+    fun getDueCardCount(deckId: Long, now: Long): Flow<Int>
 
     @Query("DELETE FROM cards WHERE deckId = :deckId")
     suspend fun deleteCardsByDeck(deckId: Long)

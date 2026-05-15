@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -23,12 +24,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,12 +52,36 @@ fun DeckListScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var deckToDelete by remember { mutableStateOf<Deck?>(null) }
 
     LaunchedEffect(error) {
         error?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearError()
         }
+    }
+
+    deckToDelete?.let { deck ->
+        AlertDialog(
+            onDismissRequest = { deckToDelete = null },
+            title = { Text(stringResource(R.string.delete_deck_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_deck_confirm_message, deck.name)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteDeck(deck.id)
+                        deckToDelete = null
+                    }
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deckToDelete = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -93,7 +121,7 @@ fun DeckListScreen(
                         DeckListItem(
                             deck = deck,
                             onDeckClick = onDeckClick,
-                            onDeleteClick = { viewModel.deleteDeck(deck.id) }
+                            onDeleteClick = { deckToDelete = deck }
                         )
                     }
                 }

@@ -39,11 +39,12 @@ class MainActivity : ComponentActivity() {
         val deckViewModelFactory = DeckViewModelFactory(repository)
         val studyViewModelFactory = StudyViewModelFactory(repository)
 
+        val deckViewModel = ViewModelProvider(this, deckViewModelFactory)[DeckViewModel::class.java]
+        val studyViewModel = ViewModelProvider(this, studyViewModelFactory)[StudyViewModel::class.java]
+
         setContent {
             CatalanFlashcardTheme {
                 val navController = rememberNavController()
-                val deckViewModel = ViewModelProvider(this, deckViewModelFactory)[DeckViewModel::class.java]
-                val studyViewModel = ViewModelProvider(this, studyViewModelFactory)[StudyViewModel::class.java]
 
                 var showAddDeckDialog by remember { mutableStateOf(false) }
 

@@ -9,7 +9,7 @@ import com.catalanflashcard.data.dao.DeckDao
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 
-@Database(entities = [Deck::class, Card::class], version = 1, exportSchema = false)
+@Database(entities = [Deck::class, Card::class], version = 1, exportSchema = true)
 abstract class FlashcardDatabase : RoomDatabase() {
     abstract fun deckDao(): DeckDao
     abstract fun cardDao(): CardDao
@@ -21,15 +21,14 @@ abstract class FlashcardDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): FlashcardDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+                INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     FlashcardDatabase::class.java,
                     "flashcard_database"
                 )
                     .addCallback(InitialDataCallback())
                     .build()
-                INSTANCE = instance
-                instance
+                    .also { INSTANCE = it }
             }
         }
     }

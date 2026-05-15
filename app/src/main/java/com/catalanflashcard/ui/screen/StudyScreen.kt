@@ -109,6 +109,7 @@ fun StudyScreen(
                     }
                 }
             } else {
+                val card = checkNotNull(currentCard)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -133,7 +134,7 @@ fun StudyScreen(
                                 .clickable { viewModel.flipCard() }
                                 .animateContentSize(),
                             label = if (isFlipped) stringResource(R.string.back) else stringResource(R.string.front),
-                            text = if (isFlipped) currentCard!!.back else currentCard!!.front
+                            text = if (isFlipped) card.back else card.front
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
@@ -159,7 +160,7 @@ fun StudyScreen(
                             label = stringResource(R.string.hard),
                             color = Orange,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(2) }
+                            onClick = { viewModel.answerCard(3) }
                         )
                         ReviewButton(
                             label = stringResource(R.string.good),

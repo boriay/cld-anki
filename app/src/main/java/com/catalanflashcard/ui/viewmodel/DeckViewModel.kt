@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +21,14 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _selectedDeckCardCount = MutableStateFlow(0)
+    val selectedDeckCardCount: StateFlow<Int> = _selectedDeckCardCount.asStateFlow()
+
+    private val _selectedDeckDueCount = MutableStateFlow(0)
+    val selectedDeckDueCount: StateFlow<Int> = _selectedDeckDueCount.asStateFlow()
+
+    private var statsJob: Job? = null
+
     init {
         loadDecks()
     }
@@ -32,12 +41,19 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
         }
     }
 
-    fun createDeck(name: String, description: String = "") {
-        if (name.isBlank()) {
-            _error.value = "Deck name cannot be empty"
-            return
+    fun loadDeckStats(deckId: Long) {
+        statsJob?.cancel()
+        statsJob = viewModelScope.launch {
+            launch {
+                repository.getCardCount(deckId).collect { _selectedDeckCardCount.value = it }
+            }
+            launch {
+                repository.getDueCardCount(deckId).collect { _selectedDeckDueCount.value = it }
+            }
         }
+    }
 
+    fun createDeck(name: String, description: String = "") {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
