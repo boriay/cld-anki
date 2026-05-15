@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -23,6 +24,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.catalanflashcard.R
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,12 +60,12 @@ fun DeckListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Decks") }
+                title = { Text(stringResource(R.string.deck_title)) }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddDeckClick) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Deck")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_deck))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -78,7 +81,7 @@ fun DeckListScreen(
                 )
             } else if (decks.isEmpty()) {
                 Text(
-                    text = "No decks. Create one to get started!",
+                    text = stringResource(R.string.no_cards),
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
@@ -110,25 +113,34 @@ fun DeckListItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { onDeckClick(deck.id) }
     ) {
-        Column(
+        androidx.compose.foundation.layout.Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .clickable { onDeckClick(deck.id) }
+                .padding(16.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
-            Text(
-                text = deck.name,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            if (deck.description.isNotEmpty()) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
-                    text = deck.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 4.dp)
+                    text = deck.name,
+                    style = MaterialTheme.typography.headlineSmall
                 )
+                if (deck.description.isNotEmpty()) {
+                    Text(
+                        text = deck.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+            IconButton(onClick = onDeleteClick) {
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
             }
         }
     }

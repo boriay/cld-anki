@@ -1,28 +1,28 @@
 package com.catalanflashcard.data.database
 
-import android.content.Context
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
-class InitialDataCallback(private val context: Context) : RoomDatabase.Callback() {
-    override fun onCreate(db: RoomDatabase) {
+class InitialDataCallback : RoomDatabase.Callback() {
+    override fun onCreate(db: SupportSQLiteDatabase) {
         super.onCreate(db)
-        GlobalScope.launch(Dispatchers.IO) {
-            val database = FlashcardDatabase.getDatabase(context)
-            initializeData(database)
-        }
+        Thread {
+            val database = FlashcardDatabase.INSTANCE ?: return@Thread
+            Thread {
+                initializeDataSync(database)
+            }.start()
+        }.start()
     }
 
-    private suspend fun initializeData(db: FlashcardDatabase) {
-        val deckDao = db.deckDao()
-        val cardDao = db.cardDao()
+    private fun initializeDataSync(db: FlashcardDatabase) {
+        try {
+            val deckDao = db.deckDao()
+            val cardDao = db.cardDao()
 
-        val catalogueDeck = Deck(name = "Basic Catalan", description = "Основной каталанский язык")
-        val deckId = deckDao.insert(catalogueDeck)
+            val catalogueDeck = Deck(name = "Basic Catalan", description = "Основной каталанский язык")
+            val deckId = deckDao.insert(catalogueDeck)
 
         val initialCards = listOf(
             Card(deckId = deckId, front = "Hola", back = "Привет"),
@@ -74,8 +74,11 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
             Card(deckId = deckId, front = "Peix", back = "Рыба")
         )
 
-        initialCards.forEach { card ->
-            cardDao.insert(card)
+            initialCards.forEach { card ->
+                cardDao.insert(card)
+            }
+        } catch (e: Exception) {
+            // Database already has data
         }
     }
 }

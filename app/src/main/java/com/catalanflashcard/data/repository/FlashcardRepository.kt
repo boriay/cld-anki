@@ -54,7 +54,7 @@ class FlashcardRepository(
             interval = newInterval,
             easeFactor = newEaseFactor,
             repetitions = newRepetitions,
-            nextReviewTime = System.currentTimeMillis() + (newInterval * 86400000),
+            nextReviewTime = System.currentTimeMillis() + (newInterval.toLong() * 86400000L),
             updatedAt = System.currentTimeMillis()
         )
         cardDao.update(updatedCard)

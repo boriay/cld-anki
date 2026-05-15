@@ -233,7 +233,10 @@ fun ReviewButton(
     Button(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+            containerColor = color
+        )
     ) {
         Text(label, color = Color.White)
     }

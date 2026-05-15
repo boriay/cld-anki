@@ -16,7 +16,8 @@ abstract class FlashcardDatabase : RoomDatabase() {
 
     companion object {
         @Volatile
-        private var INSTANCE: FlashcardDatabase? = null
+        var INSTANCE: FlashcardDatabase? = null
+            private set
 
         fun getDatabase(context: Context): FlashcardDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -25,7 +26,7 @@ abstract class FlashcardDatabase : RoomDatabase() {
                     FlashcardDatabase::class.java,
                     "flashcard_database"
                 )
-                    .addCallback(InitialDataCallback(context))
+                    .addCallback(InitialDataCallback())
                     .build()
                 INSTANCE = instance
                 instance

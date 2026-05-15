@@ -10,3 +10,6 @@ local.properties
 *.apk
 *.aab
 .vscode
+
+# Gradle wrapper JAR is automatically downloaded on first run
+# If not present, run: ./gradlew --version (on macOS/Linux) or gradlew.bat --version (on Windows)

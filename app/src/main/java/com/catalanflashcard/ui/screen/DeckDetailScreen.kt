@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -56,13 +57,24 @@ fun DeckDetailScreen(
         }
     ) { padding ->
         if (currentDeck == null) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                CircularProgressIndicator()
+                Text(
+                    text = "Deck not found",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Button(
+                    onClick = onBackClick,
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text("Go Back")
+                }
             }
         } else {
             Column(

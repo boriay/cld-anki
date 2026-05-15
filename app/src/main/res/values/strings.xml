@@ -13,4 +13,5 @@
     <string name="no_cards">No cards to study</string>
     <string name="card_count">Cards: %d</string>
     <string name="progress">Progress: %d/%d</string>
+    <string name="delete">Delete</string>
 </resources>
