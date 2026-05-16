@@ -22,6 +22,9 @@ class InitialDataCallback : RoomDatabase.Callback() {
                 put("updatedAt", now)
             }
             val deckId = db.insert("decks", 0, deckValues)
+            if (deckId == -1L) {
+                throw IllegalStateException("Failed to insert initial deck")
+            }
 
             buildInitialCards().forEach { (front, back) ->
                 val cardValues = ContentValues().apply {
