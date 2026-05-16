@@ -90,7 +90,7 @@ The app follows **MVVM** (Model-View-ViewModel) pattern:
 - Android Studio Flamingo or later
 - Gradle 8.0+ (included via wrapper)
 - Android SDK 26+
-- JDK 11+
+- JDK 17+
 
 ### Building
 

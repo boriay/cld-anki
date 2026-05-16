@@ -50,7 +50,7 @@ fun DeckDetailScreen(
                 title = { Text(currentDeck?.name ?: stringResource(R.string.deck_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
                     }
                 }
             )

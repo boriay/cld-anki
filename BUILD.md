@@ -2,7 +2,7 @@
 
 ## Системные требования
 
-- **Java Development Kit (JDK)**: версия 11 или выше
+- **Java Development Kit (JDK)**: версия 17 или выше
 - **Android SDK**: обязателен для сборки
 - **Gradle**: 8.0 и выше (включен в проект через wrapper)
 - **macOS/Linux/Windows** с bash/cmd
