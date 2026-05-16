@@ -64,9 +64,9 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
     }
 
     fun createDeck(name: String, description: String = "") {
+        _isLoading.value = true
         viewModelScope.launch {
             try {
-                _isLoading.value = true
                 repository.createDeck(name, description)
                 _error.value = null
             } catch (e: Exception) {

@@ -33,9 +33,9 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
     val isSavingAnswer: StateFlow<Boolean> = _isSavingAnswer.asStateFlow()
 
     fun loadDueCards(deckId: Long) {
+        _isLoading.value = true
         viewModelScope.launch {
             try {
-                _isLoading.value = true
                 val cards = repository.getDueCards(deckId)
                 _dueCards.value = cards
                 _currentIndex.value = 0
