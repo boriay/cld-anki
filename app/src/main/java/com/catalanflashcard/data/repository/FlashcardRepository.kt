@@ -6,6 +6,7 @@ import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.domain.SpacedRepetition
 import kotlinx.coroutines.flow.Flow
+import java.util.concurrent.TimeUnit
 
 class FlashcardRepository(
     private val deckDao: DeckDao,
@@ -54,7 +55,7 @@ class FlashcardRepository(
                 interval = result.interval,
                 easeFactor = result.easeFactor,
                 repetitions = result.repetitions,
-                nextReviewTime = System.currentTimeMillis() + result.interval.toLong() * 86400000L,
+                nextReviewTime = System.currentTimeMillis() + result.interval.toLong() * TimeUnit.DAYS.toMillis(1),
                 updatedAt = System.currentTimeMillis()
             )
         )
