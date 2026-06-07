@@ -13,6 +13,9 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.times
+import org.mockito.kotlin.any
 
 class StudyViewModelTest {
     @Mock private lateinit var repository: FlashcardRepository
@@ -32,7 +35,7 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun loadDueCards_setsCardsAndCurrentCard() = runTest(testDispatcher) {
+    fun loadDueCards_setsCardsAndCurrentCard() = runTest {
         val cards = listOf(
             Card(id = 1, deckId = 1, front = "Front1", back = "Back1"),
             Card(id = 2, deckId = 1, front = "Front2", back = "Back2")
@@ -40,6 +43,7 @@ class StudyViewModelTest {
         whenever(repository.getDueCards(1)).thenReturn(cards)
 
         viewModel.loadDueCards(1)
+        advanceUntilIdle()
 
         org.junit.Assert.assertEquals(cards, viewModel.dueCards.value)
         org.junit.Assert.assertEquals(cards[0], viewModel.currentCard.value)
@@ -55,30 +59,25 @@ class StudyViewModelTest {
     }
 
     @Test
-    fun answerCard_setsIsSavingAnswerBeforeLaunch() = runTest {
-        val card = Card(id = 1, deckId = 1, front = "Front", back = "Back")
-        viewModel = StudyViewModel(repository)
-        viewModel.loadDueCards(1)
-
-        whenever(repository.getDueCards(1)).thenReturn(listOf(card))
-        whenever(repository.updateCardReview(1, 4)).thenReturn(Unit)
-
-        viewModel.answerCard(4)
-
-        org.junit.Assert.assertFalse(viewModel.isSavingAnswer.value)
-    }
-
-    @Test
     fun answerCard_preventsDoubleTap() = runTest {
         val card = Card(id = 1, deckId = 1, front = "Front", back = "Back")
-        viewModel = StudyViewModel(repository)
+        val card2 = Card(id = 2, deckId = 1, front = "Front2", back = "Back2")
 
-        whenever(repository.getDueCards(1)).thenReturn(listOf(card))
-        whenever(repository.updateCardReview(1, 4)).thenReturn(Unit)
+        whenever(repository.getDueCards(1)).thenReturn(listOf(card, card2))
+        whenever(repository.updateCardReview(any(), any())).thenReturn(Unit)
 
+        viewModel.loadDueCards(1)
+        advanceUntilIdle()
+
+        // Call answerCard twice rapidly to test double-tap guard
         viewModel.answerCard(4)
         viewModel.answerCard(4)
 
+        // Advance scheduler to allow coroutines to run
+        advanceUntilIdle()
+
+        // Verify updateCardReview was only called once despite two answerCard calls
+        verify(repository, times(1)).updateCardReview(1, 4)
         org.junit.Assert.assertFalse(viewModel.isSavingAnswer.value)
     }
 }

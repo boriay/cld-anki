@@ -32,23 +32,27 @@ class DeckViewModelTest {
     }
 
     @Test
-    fun init_loadsDecks() = runTest(testDispatcher) {
+    fun init_loadsDecks() = runTest {
         val decks = listOf(Deck(id = 1, name = "Test"))
         whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
 
         viewModel = DeckViewModel(repository)
+        advanceUntilIdle()
 
         org.junit.Assert.assertTrue(viewModel.decks.value.isNotEmpty())
+        org.junit.Assert.assertFalse(viewModel.isLoading.value)
     }
 
     @Test
-    fun loadDeckStats_resetsCountsBeforeLoading() = runTest(testDispatcher) {
+    fun loadDeckStats_resetsCountsBeforeLoading() = runTest {
         val decks = emptyList<Deck>()
         whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
         whenever(repository.getCardCount(1)).thenReturn(flowOf(5))
         whenever(repository.getDueCardCount(1)).thenReturn(flowOf(3))
 
         viewModel = DeckViewModel(repository)
+        advanceUntilIdle()
+
         viewModel.loadDeckStats(1)
 
         org.junit.Assert.assertEquals(0, viewModel.selectedDeckCardCount.value)
@@ -56,14 +60,16 @@ class DeckViewModelTest {
     }
 
     @Test
-    fun createDeck_setIsLoadingFalseOnSuccess() = runTest(testDispatcher) {
+    fun createDeck_setIsLoadingFalseOnSuccess() = runTest {
         val decks = emptyList<Deck>()
         whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
         whenever(repository.createDeck("Test", "Desc")).thenReturn(1)
 
         viewModel = DeckViewModel(repository)
-        val initialLoading = viewModel.isLoading.value
+        advanceUntilIdle()
+
         viewModel.createDeck("Test", "Desc")
+        advanceUntilIdle()
 
         org.junit.Assert.assertFalse(viewModel.isLoading.value)
     }
