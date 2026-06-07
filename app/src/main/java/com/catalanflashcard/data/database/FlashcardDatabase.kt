@@ -26,7 +26,7 @@ abstract class FlashcardDatabase : RoomDatabase() {
                     FlashcardDatabase::class.java,
                     "flashcard_database"
                 )
-                    .addCallback(InitialDataCallback())
+                    .addCallback(InitialDataCallback(context.applicationContext))
                     .build()
                     .also { INSTANCE = it }
             }

@@ -20,7 +20,6 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 
     composeOptions {
@@ -28,7 +27,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 
     buildTypes {
@@ -42,8 +41,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -83,8 +82,11 @@ dependencies {
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.room:room-testing:2.6.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")

@@ -1,10 +1,12 @@
 package com.catalanflashcard.data.database
 
 import android.content.ContentValues
+import android.content.Context
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.catalanflashcard.R
 
-class InitialDataCallback : RoomDatabase.Callback() {
+class InitialDataCallback(private val context: Context) : RoomDatabase.Callback() {
     override fun onCreate(db: SupportSQLiteDatabase) {
         super.onCreate(db)
         seed(db)
@@ -16,8 +18,8 @@ class InitialDataCallback : RoomDatabase.Callback() {
             val now = System.currentTimeMillis()
 
             val deckValues = ContentValues().apply {
-                put("name", "Basic Catalan")
-                put("description", "Основной каталанский язык")
+                put("name", context.getString(R.string.initial_deck_name))
+                put("description", context.getString(R.string.initial_deck_description))
                 put("createdAt", now)
                 put("updatedAt", now)
             }
