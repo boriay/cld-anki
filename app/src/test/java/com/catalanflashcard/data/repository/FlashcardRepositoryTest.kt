@@ -5,6 +5,7 @@ import com.catalanflashcard.data.dao.DeckDao
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test

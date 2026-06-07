@@ -5,10 +5,7 @@ import com.catalanflashcard.data.dao.DeckDao
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.domain.SpacedRepetition
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import java.util.concurrent.TimeUnit
 
 class FlashcardRepository(
@@ -33,14 +30,7 @@ class FlashcardRepository(
     fun getCardCount(deckId: Long): Flow<Int> = cardDao.getCardCount(deckId)
 
     fun getDueCardCount(deckId: Long): Flow<Int> =
-        flow {
-            while (true) {
-                emit(System.currentTimeMillis())
-                delay(1000)
-            }
-        }.flatMapLatest { now ->
-            cardDao.getDueCardCount(deckId, now)
-        }
+        cardDao.getDueCardCount(deckId, System.currentTimeMillis())
 
     suspend fun getDueCards(deckId: Long): List<Card> = cardDao.getDueCards(deckId)
 
