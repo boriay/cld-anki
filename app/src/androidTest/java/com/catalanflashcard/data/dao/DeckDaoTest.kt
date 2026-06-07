@@ -38,8 +38,8 @@ class DeckDaoTest {
         val deckId = deckDao.insert(deck)
 
         val retrieved = deckDao.getDeck(deckId)
-        assert(retrieved != null)
-        assert(retrieved?.name == "Test Deck")
+        org.junit.Assert.assertNotNull(retrieved)
+        org.junit.Assert.assertEquals("Test Deck", retrieved?.name)
     }
 
     @Test
@@ -50,7 +50,7 @@ class DeckDaoTest {
         deckDao.insert(deck2)
 
         val decks = deckDao.getAllDecks().first()
-        assert(decks.size == 2)
+        org.junit.Assert.assertEquals(2, decks.size)
     }
 
     @Test
@@ -62,7 +62,7 @@ class DeckDaoTest {
         deckDao.update(updated)
 
         val retrieved = deckDao.getDeck(deckId)
-        assert(retrieved?.name == "Updated Name")
+        org.junit.Assert.assertEquals("Updated Name", retrieved?.name)
     }
 
     @Test
@@ -73,6 +73,6 @@ class DeckDaoTest {
         deckDao.deleteDeck(deckId)
 
         val retrieved = deckDao.getDeck(deckId)
-        assert(retrieved == null)
+        org.junit.Assert.assertNull(retrieved)
     }
 }

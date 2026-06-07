@@ -44,8 +44,8 @@ class CardDaoTest {
         val cardId = cardDao.insert(card)
 
         val retrieved = cardDao.getCard(cardId)
-        assert(retrieved != null)
-        assert(retrieved?.front == "Test")
+        org.junit.Assert.assertNotNull(retrieved)
+        org.junit.Assert.assertEquals("Test", retrieved?.front)
     }
 
     @Test
@@ -59,7 +59,7 @@ class CardDaoTest {
         cardDao.insert(card2)
 
         val cards = cardDao.getAllCards(deckId).first()
-        assert(cards.size == 2)
+        org.junit.Assert.assertEquals(2, cards.size)
     }
 
     @Test
@@ -73,7 +73,7 @@ class CardDaoTest {
         cardDao.delete(card.copy(id = cardId))
 
         val retrieved = cardDao.getCard(cardId)
-        assert(retrieved == null)
+        org.junit.Assert.assertNull(retrieved)
     }
 
     @Test
@@ -89,8 +89,8 @@ class CardDaoTest {
         cardDao.insert(futureCard)
 
         val dueCards = cardDao.getDueCards(deckId, now)
-        assert(dueCards.size == 1)
-        assert(dueCards[0].front == "Due")
+        org.junit.Assert.assertEquals(1, dueCards.size)
+        org.junit.Assert.assertEquals("Due", dueCards[0].front)
     }
 
     @Test
@@ -105,6 +105,6 @@ class CardDaoTest {
         cardDao.updateCardReview(updatedCard)
 
         val retrieved = cardDao.getCard(cardId)
-        assert(retrieved?.interval == 3)
+        org.junit.Assert.assertEquals(3, retrieved?.interval)
     }
 }

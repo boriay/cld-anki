@@ -63,6 +63,12 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
         }
     }
 
+    fun clearDeckStats() {
+        statsJob?.cancel()
+        _selectedDeckCardCount.value = 0
+        _selectedDeckDueCount.value = 0
+    }
+
     fun createDeck(name: String, description: String = "") {
         _isLoading.value = true
         viewModelScope.launch {
