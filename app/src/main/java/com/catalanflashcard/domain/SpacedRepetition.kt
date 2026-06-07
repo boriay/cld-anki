@@ -35,7 +35,11 @@ object SpacedRepetition {
             val newInterval = when (repetitions) {
                 0 -> 1
                 1 -> 3
-                else -> (interval * newEaseFactor).toInt().coerceAtLeast(1)
+                else -> {
+                    // Compute in Double and clamp to avoid Int overflow on long-learned cards.
+                    val raw = interval.toDouble() * newEaseFactor
+                    raw.coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
+                }
             }
             ReviewResult(
                 interval = newInterval,

@@ -61,10 +61,12 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
     fun answerCard(quality: Int) {
         if (_isSavingAnswer.value) return
         val card = _currentCard.value ?: return
+        // Set the guard synchronously on the main thread before launching so rapid
+        // double-taps can't enqueue multiple coroutines for the same card.
+        _isSavingAnswer.value = true
 
         viewModelScope.launch {
             try {
-                _isSavingAnswer.value = true
                 repository.updateCardReview(card.id, quality)
 
                 val currentIdx = _currentIndex.value

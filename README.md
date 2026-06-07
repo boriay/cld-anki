@@ -87,7 +87,7 @@ The app follows **MVVM** (Model-View-ViewModel) pattern:
 
 ### Prerequisites
 
-- Android Studio Flamingo or later
+- Android Studio Giraffe (2022.3.1) or later (required for AGP 8.1)
 - Gradle 8.0+ (included via wrapper)
 - Android SDK 26+
 - JDK 17+
