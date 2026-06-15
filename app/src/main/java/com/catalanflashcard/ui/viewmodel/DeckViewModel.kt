@@ -65,7 +65,10 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
         statsJob = viewModelScope.launch {
             launch {
                 repository.getDeckFlow(deckId)
-                    .catch { e -> _error.value = e.message ?: "Failed to load deck" }
+                    .catch { e ->
+                        _error.value = e.message ?: "Failed to load deck"
+                        _isLoadingDeck.value = false
+                    }
                     .collect { deck ->
                         _selectedDeck.value = deck
                         _isLoadingDeck.value = false

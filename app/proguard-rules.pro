@@ -5,24 +5,15 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# Keep data classes
+# Data entities: Room uses reflection to instantiate these and read field names.
 -keep class com.catalanflashcard.data.entity.** { *; }
 
-# Keep Room database
--keep class androidx.room.** { *; }
--keepclassmembers class androidx.room.** { *; }
-
-# Keep Kotlin metadata
+# Keep public API of app classes for debugging convenience.
+# Room, Compose, and Lifecycle bundle their own consumer ProGuard rules.
 -keepclassmembers class com.catalanflashcard.** {
     public <methods>;
     public <fields>;
 }
-
-# Keep Compose runtime
--keep class androidx.compose.** { *; }
-
-# Keep ViewModel
--keep class androidx.lifecycle.** { *; }
 
 # If you keep line number information, uncomment this to
 # hide the original source file name.
