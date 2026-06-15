@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.catalanflashcard.data.database.FlashcardDatabase
 import com.catalanflashcard.data.entity.Deck
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -37,7 +38,7 @@ class DeckDaoTest {
         val deck = Deck(name = "Test Deck", description = "Test Description")
         val deckId = deckDao.insert(deck)
 
-        val retrieved = deckDao.getDeck(deckId)
+        val retrieved = deckDao.getDeckFlow(deckId).firstOrNull()
         org.junit.Assert.assertNotNull(retrieved)
         org.junit.Assert.assertEquals("Test Deck", retrieved?.name)
     }
@@ -61,7 +62,7 @@ class DeckDaoTest {
         val updated = deck.copy(id = deckId, name = "Updated Name")
         deckDao.update(updated)
 
-        val retrieved = deckDao.getDeck(deckId)
+        val retrieved = deckDao.getDeckFlow(deckId).firstOrNull()
         org.junit.Assert.assertEquals("Updated Name", retrieved?.name)
     }
 
@@ -72,7 +73,7 @@ class DeckDaoTest {
 
         deckDao.deleteDeck(deckId)
 
-        val retrieved = deckDao.getDeck(deckId)
+        val retrieved = deckDao.getDeckFlow(deckId).firstOrNull()
         org.junit.Assert.assertNull(retrieved)
     }
 }
