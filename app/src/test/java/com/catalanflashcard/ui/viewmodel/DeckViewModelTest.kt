@@ -3,6 +3,7 @@ package com.catalanflashcard.ui.viewmodel
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -16,6 +17,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DeckViewModelTest {
     @Mock private lateinit var repository: FlashcardRepository
     private lateinit var viewModel: DeckViewModel

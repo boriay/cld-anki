@@ -3,6 +3,7 @@ package com.catalanflashcard.ui.viewmodel
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.repository.FlashcardRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -18,6 +19,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.times
 import org.mockito.kotlin.any
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class StudyViewModelTest {
     @Mock private lateinit var repository: FlashcardRepository
     private lateinit var viewModel: StudyViewModel
