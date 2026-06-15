@@ -44,7 +44,7 @@ class SyncRepository(
             val pushedAt = System.currentTimeMillis()
             val changedDecks = deckDao.getChangedSince(pushSince)
             val changedCards = cardDao.getChangedSince(pushSince)
-            Log.d(TAG, "uid=${user.uid} sending decks=${changedDecks.size} cards=${changedCards.size} since=$lastSyncedAtIso")
+            Log.d(TAG, "sending decks=${changedDecks.size} cards=${changedCards.size} since=$lastSyncedAtIso")
 
             val response = ApiClient.syncApi.sync(
                 request = SyncRequest(

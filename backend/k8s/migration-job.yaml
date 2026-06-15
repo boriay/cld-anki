@@ -1,7 +1,10 @@
-# Run once per migration:
+# Run once per migration. The Job mounts SQL from the cld-anki-migrations
+# ConfigMap, so create it from the migrations/ dir first:
+#   kubectl create configmap cld-anki-migrations -n cld-anki --from-file=backend/migrations/
 #   kubectl apply -f k8s/migration-job.yaml
 #   kubectl wait --for=condition=complete job/cld-anki-migrate -n cld-anki
 #   kubectl delete -f k8s/migration-job.yaml
+#   kubectl delete configmap cld-anki-migrations -n cld-anki
 
 apiVersion: batch/v1
 kind: Job

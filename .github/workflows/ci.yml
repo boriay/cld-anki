@@ -41,7 +41,7 @@ jobs:
                 },
                 "oauth_client": [],
                 "api_key": [
-                  { "current_key": "AIzaSyDUMMY0000000000000000000000000000000" }
+                  { "current_key": "DUMMY_KEY_FOR_CI_BUILD_ONLY" }
                 ],
                 "services": {
                   "appinvite_service": { "other_platform_oauth_client": [] }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -19,13 +20,13 @@ func Middleware(client *firebaseauth.Client) func(http.Handler) http.Handler {
 			header := r.Header.Get("Authorization")
 			if !strings.HasPrefix(header, "Bearer ") {
 				slog.Warn("auth rejected: missing bearer token", "path", r.URL.Path)
-				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				writeUnauthorized(w, "unauthorized")
 				return
 			}
 			token, err := client.VerifyIDToken(r.Context(), strings.TrimPrefix(header, "Bearer "))
 			if err != nil {
 				slog.Warn("auth rejected: token verification failed", "path", r.URL.Path, "err", err)
-				http.Error(w, `{"error":"invalid token"}`, http.StatusUnauthorized)
+				writeUnauthorized(w, "invalid token")
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), uidKey, token.UID)))
@@ -36,4 +37,10 @@ func Middleware(client *firebaseauth.Client) func(http.Handler) http.Handler {
 func UserIDFromCtx(ctx context.Context) string {
 	uid, _ := ctx.Value(uidKey).(string)
 	return uid
+}
+
+func writeUnauthorized(w http.ResponseWriter, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }

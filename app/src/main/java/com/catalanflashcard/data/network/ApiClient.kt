@@ -10,9 +10,15 @@ object ApiClient {
     private val BASE_URL = BuildConfig.SYNC_BASE_URL
 
     private val httpClient = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
-        })
+        .apply {
+            // Network logging only in debug builds — avoids leaking endpoints
+            // and request metadata into release logs.
+            if (BuildConfig.DEBUG) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BASIC
+                })
+            }
+        }
         .build()
 
     val syncApi: SyncApi = Retrofit.Builder()

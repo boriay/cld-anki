@@ -8,6 +8,10 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// Sync backend URL — override per environment via -PsyncBaseUrl=... or
+// gradle.properties, instead of hard-coding it in the build types.
+val syncBaseUrl = (project.findProperty("syncBaseUrl") as String?) ?: "http://34.62.20.204/"
+
 android {
     namespace = "com.catalanflashcard"
     compileSdk = 37
@@ -29,7 +33,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "SYNC_BASE_URL", "\"http://34.62.20.204/\"")
+            buildConfigField("String", "SYNC_BASE_URL", "\"$syncBaseUrl\"")
         }
         release {
             isMinifyEnabled = true
@@ -38,7 +42,7 @@ android {
                 "proguard-rules.pro"
             )
             // TODO: switch to https:// once a domain + TLS cert is provisioned.
-            buildConfigField("String", "SYNC_BASE_URL", "\"http://34.62.20.204/\"")
+            buildConfigField("String", "SYNC_BASE_URL", "\"$syncBaseUrl\"")
         }
     }
 

@@ -104,7 +104,7 @@ fun DeckListScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Icon(Icons.Filled.Sync, contentDescription = "Синхронизировать")
+                            Icon(Icons.Filled.Sync, contentDescription = stringResource(R.string.sync))
                         }
                     }
                 }

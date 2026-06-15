@@ -49,7 +49,8 @@ func (r *CardRepo) Upsert(ctx context.Context, c *model.Card) error {
 			next_review_time = EXCLUDED.next_review_time,
 			updated_at       = EXCLUDED.updated_at,
 			deleted_at       = EXCLUDED.deleted_at
-		WHERE cards.updated_at < EXCLUDED.updated_at`,
+		WHERE cards.user_id = EXCLUDED.user_id
+		  AND cards.updated_at < EXCLUDED.updated_at`,
 		c.ID, c.DeckID, c.UserID, c.Front, c.Back,
 		c.Interval, c.EaseFactor, c.Repetitions, c.NextReviewTime,
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt,

@@ -38,6 +38,9 @@ type syncResponse struct {
 // Decks are upserted before cards to satisfy the FK constraint.
 func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
+	// Cap the request body to bound memory/CPU per sync (10 MiB is far above a
+	// realistic flashcard delta).
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 	var req syncRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		jsonError(w, "invalid body", http.StatusBadRequest)

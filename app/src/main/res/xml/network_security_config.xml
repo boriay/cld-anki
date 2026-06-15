@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Default: no cleartext anywhere. -->
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!-- Narrow allowlist: cleartext only to the sync backend, until it gets a
+         domain + TLS cert. Everything else (Firebase, etc.) stays HTTPS-only. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">34.62.20.204</domain>
+    </domain-config>
+</network-security-config>

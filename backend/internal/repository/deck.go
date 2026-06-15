@@ -49,7 +49,8 @@ func (r *DeckRepo) Upsert(ctx context.Context, d *model.Deck) error {
 			name       = EXCLUDED.name,
 			updated_at = EXCLUDED.updated_at,
 			deleted_at = EXCLUDED.deleted_at
-		WHERE decks.updated_at < EXCLUDED.updated_at`,
+		WHERE decks.user_id = EXCLUDED.user_id
+		  AND decks.updated_at < EXCLUDED.updated_at`,
 		d.ID, d.UserID, d.Name, d.CreatedAt, d.UpdatedAt, d.DeletedAt,
 	)
 	return err
