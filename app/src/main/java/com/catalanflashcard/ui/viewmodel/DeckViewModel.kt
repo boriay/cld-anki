@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
@@ -54,12 +55,14 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
         _selectedDeckCardCount.value = 0
         _selectedDeckDueCount.value = 0
         statsJob = viewModelScope.launch {
-            launch {
-                repository.getCardCount(deckId).collect { _selectedDeckCardCount.value = it }
-            }
-            launch {
-                repository.getDueCardCount(deckId).collect { _selectedDeckDueCount.value = it }
-            }
+            combine(
+                repository.getCardCount(deckId),
+                repository.getDueCardCount(deckId)
+            ) { total, due -> total to due }
+                .collect { (total, due) ->
+                    _selectedDeckCardCount.value = total
+                    _selectedDeckDueCount.value = due
+                }
         }
     }
 
@@ -70,15 +73,14 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
     }
 
     fun createDeck(name: String, description: String = "") {
-        _isLoading.value = true
+        // No manual _isLoading toggling here: the decks Flow re-emits after insert and
+        // drives the loading state, avoiding a race with loadDecks' collector.
         viewModelScope.launch {
             try {
                 repository.createDeck(name, description)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to create deck"
-            } finally {
-                _isLoading.value = false
             }
         }
     }

@@ -7,6 +7,24 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.catalanflashcard.R
 
 class InitialDataCallback(private val context: Context) : RoomDatabase.Callback() {
+
+    private companion object {
+        const val TABLE_DECKS = "decks"
+        const val TABLE_CARDS = "cards"
+
+        const val COL_NAME = "name"
+        const val COL_DESCRIPTION = "description"
+        const val COL_DECK_ID = "deckId"
+        const val COL_FRONT = "front"
+        const val COL_BACK = "back"
+        const val COL_INTERVAL = "interval"
+        const val COL_EASE_FACTOR = "easeFactor"
+        const val COL_REPETITIONS = "repetitions"
+        const val COL_NEXT_REVIEW_TIME = "nextReviewTime"
+        const val COL_CREATED_AT = "createdAt"
+        const val COL_UPDATED_AT = "updatedAt"
+    }
+
     override fun onCreate(db: SupportSQLiteDatabase) {
         super.onCreate(db)
         seed(db)
@@ -18,29 +36,32 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
             val now = System.currentTimeMillis()
 
             val deckValues = ContentValues().apply {
-                put("name", context.getString(R.string.initial_deck_name))
-                put("description", context.getString(R.string.initial_deck_description))
-                put("createdAt", now)
-                put("updatedAt", now)
+                put(COL_NAME, context.getString(R.string.initial_deck_name))
+                put(COL_DESCRIPTION, context.getString(R.string.initial_deck_description))
+                put(COL_CREATED_AT, now)
+                put(COL_UPDATED_AT, now)
             }
-            val deckId = db.insert("decks", 0, deckValues)
+            val deckId = db.insert(TABLE_DECKS, 0, deckValues)
             if (deckId == -1L) {
                 throw IllegalStateException("Failed to insert initial deck")
             }
 
             buildInitialCards().forEach { (front, back) ->
                 val cardValues = ContentValues().apply {
-                    put("deckId", deckId)
-                    put("front", front)
-                    put("back", back)
-                    put("interval", 1)
-                    put("easeFactor", 2.5f)
-                    put("repetitions", 0)
-                    put("nextReviewTime", now)
-                    put("createdAt", now)
-                    put("updatedAt", now)
+                    put(COL_DECK_ID, deckId)
+                    put(COL_FRONT, front)
+                    put(COL_BACK, back)
+                    put(COL_INTERVAL, 1)
+                    put(COL_EASE_FACTOR, 2.5f)
+                    put(COL_REPETITIONS, 0)
+                    put(COL_NEXT_REVIEW_TIME, now)
+                    put(COL_CREATED_AT, now)
+                    put(COL_UPDATED_AT, now)
                 }
-                db.insert("cards", 0, cardValues)
+                val cardId = db.insert(TABLE_CARDS, 0, cardValues)
+                if (cardId == -1L) {
+                    throw IllegalStateException("Failed to insert initial card: $front")
+                }
             }
 
             db.setTransactionSuccessful()

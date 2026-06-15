@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import com.catalanflashcard.data.entity.Card
 import kotlinx.coroutines.flow.Flow
@@ -40,9 +39,4 @@ interface CardDao {
 
     @Query("DELETE FROM cards WHERE deckId = :deckId")
     suspend fun deleteCardsByDeck(deckId: Long)
-
-    @Transaction
-    suspend fun updateCardReview(card: Card) {
-        update(card)
-    }
 }

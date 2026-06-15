@@ -94,7 +94,7 @@ class CardDaoTest {
     }
 
     @Test
-    fun updateCardReview_updatesCardInTransaction() = runTest {
+    fun update_updatesCard() = runTest {
         val deck = Deck(name = "Test Deck")
         val deckId = deckDao.insert(deck)
 
@@ -102,7 +102,7 @@ class CardDaoTest {
         val cardId = cardDao.insert(card)
 
         val updatedCard = card.copy(id = cardId, interval = 3)
-        cardDao.updateCardReview(updatedCard)
+        cardDao.update(updatedCard)
 
         val retrieved = cardDao.getCard(cardId)
         org.junit.Assert.assertEquals(3, retrieved?.interval)

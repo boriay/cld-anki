@@ -58,11 +58,11 @@ class FlashcardRepositoryTest {
     fun updateCardReview_updatesCardWithSpacedRepetition() = runTest {
         val card = Card(id = 1, deckId = 1, front = "Front", back = "Back")
         whenever(cardDao.getCard(1)).thenReturn(card)
-        whenever(cardDao.updateCardReview(org.mockito.kotlin.any())).thenReturn(Unit)
+        whenever(cardDao.update(org.mockito.kotlin.any())).thenReturn(Unit)
 
         repository.updateCardReview(1, 4)
 
         verify(cardDao).getCard(1)
-        verify(cardDao).updateCardReview(org.mockito.kotlin.any())
+        verify(cardDao).update(org.mockito.kotlin.any())
     }
 }

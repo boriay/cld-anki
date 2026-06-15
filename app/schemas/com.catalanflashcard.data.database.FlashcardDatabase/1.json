@@ -2,19 +2,17 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e",
+    "identityHash": "67f2870a0d1877db0c04a56f01677010",
     "entities": [
       {
         "tableName": "decks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `decks` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL DEFAULT '', `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
-            "notNull": true,
-            "primaryKey": true,
-            "autoGenerate": true
+            "notNull": true
           },
           {
             "fieldPath": "name",
@@ -26,8 +24,7 @@
             "fieldPath": "description",
             "columnName": "description",
             "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "''"
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
@@ -43,23 +40,23 @@
           }
         ],
         "primaryKey": {
-          "columnNames": ["id"],
-          "autoGenerate": true
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
         },
         "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "cards",
-        "createSql": "CREATE TABLE IF NOT EXISTS `cards` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deckId` INTEGER NOT NULL, `front` TEXT NOT NULL, `back` TEXT NOT NULL, `interval` INTEGER NOT NULL DEFAULT 1, `easeFactor` REAL NOT NULL DEFAULT 2.5, `repetitions` INTEGER NOT NULL DEFAULT 0, `nextReviewTime` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`deckId`) REFERENCES `decks`(`id`) ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deckId` INTEGER NOT NULL, `front` TEXT NOT NULL, `back` TEXT NOT NULL, `interval` INTEGER NOT NULL, `easeFactor` REAL NOT NULL, `repetitions` INTEGER NOT NULL, `nextReviewTime` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`deckId`) REFERENCES `decks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
-            "notNull": true,
-            "primaryKey": true,
-            "autoGenerate": true
+            "notNull": true
           },
           {
             "fieldPath": "deckId",
@@ -83,22 +80,19 @@
             "fieldPath": "interval",
             "columnName": "interval",
             "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "1"
+            "notNull": true
           },
           {
             "fieldPath": "easeFactor",
             "columnName": "easeFactor",
             "affinity": "REAL",
-            "notNull": true,
-            "defaultValue": "2.5"
+            "notNull": true
           },
           {
             "fieldPath": "repetitions",
             "columnName": "repetitions",
             "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "0"
+            "notNull": true
           },
           {
             "fieldPath": "nextReviewTime",
@@ -120,23 +114,30 @@
           }
         ],
         "primaryKey": {
-          "columnNames": ["id"],
-          "autoGenerate": true
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
         },
         "indices": [
           {
             "name": "index_cards_deckId",
             "unique": false,
-            "columnNames": ["deckId"],
+            "columnNames": [
+              "deckId"
+            ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_cards_deckId` ON `cards` (`deckId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cards_deckId` ON `${TABLE_NAME}` (`deckId`)"
           },
           {
             "name": "index_cards_deckId_nextReviewTime",
             "unique": false,
-            "columnNames": ["deckId", "nextReviewTime"],
+            "columnNames": [
+              "deckId",
+              "nextReviewTime"
+            ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_cards_deckId_nextReviewTime` ON `cards` (`deckId`, `nextReviewTime`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cards_deckId_nextReviewTime` ON `${TABLE_NAME}` (`deckId`, `nextReviewTime`)"
           }
         ],
         "foreignKeys": [
@@ -144,8 +145,12 @@
             "table": "decks",
             "onDelete": "CASCADE",
             "onUpdate": "NO ACTION",
-            "columns": ["deckId"],
-            "referencedColumns": ["id"]
+            "columns": [
+              "deckId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
           }
         ]
       }
@@ -153,7 +158,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '67f2870a0d1877db0c04a56f01677010')"
     ]
   }
 }

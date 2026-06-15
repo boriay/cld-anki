@@ -17,7 +17,7 @@ class FlashcardRepository(
     suspend fun getDeck(id: Long): Deck? = deckDao.getDeck(id)
 
     suspend fun createDeck(name: String, description: String = ""): Long {
-        return deckDao.insert(Deck(name = name, description = description))
+        return deckDao.insert(Deck(name = name.trim(), description = description.trim()))
     }
 
     suspend fun updateDeck(deck: Deck) = deckDao.update(deck)
@@ -50,7 +50,7 @@ class FlashcardRepository(
             card.repetitions,
             quality
         )
-        cardDao.updateCardReview(
+        cardDao.update(
             card.copy(
                 interval = result.interval,
                 easeFactor = result.easeFactor,
