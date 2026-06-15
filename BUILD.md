@@ -2,9 +2,9 @@
 
 ## Системные требования
 
-- **Java Development Kit (JDK)**: версия 17 или выше
-- **Android SDK**: обязателен для сборки
-- **Gradle**: 8.0 и выше (включен в проект через wrapper)
+- **Java Development Kit (JDK)**: версия 21 или выше
+- **Android SDK**: обязателен для сборки (compileSdk 37)
+- **Gradle**: 9.4 и выше (включен в проект через wrapper)
 - **macOS/Linux/Windows** с bash/cmd
 
 ## Установка зависимостей
@@ -13,18 +13,18 @@
 
 **macOS:**
 ```bash
-brew install openjdk@17
+brew install openjdk@21
 ```
 
 **Ubuntu/Debian:**
 ```bash
-sudo apt-get install openjdk-17-jdk
+sudo apt-get install openjdk-21-jdk
 ```
 
 **Windows:**
 Скачайте с https://adoptium.net/ или используйте Chocolatey:
 ```powershell
-choco install openjdk17
+choco install openjdk21
 ```
 
 ### 2. Установка Android SDK
@@ -63,8 +63,8 @@ setx ANDROID_HOME "C:\Users\YourUsername\AppData\Local\Android\Sdk"
 ```bash
 $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
   "platform-tools" \
-  "platforms;android-34" \
-  "build-tools;34.0.0" \
+  "platforms;android-37" \
+  "build-tools;37.0.0" \
   "cmdline-tools;latest"
 ```
 
@@ -143,7 +143,7 @@ adb shell am start -n com.catalanflashcard/.MainActivity
 
 ### Ошибка: "Android SDK not found"
 - Проверьте, что `ANDROID_HOME` установлена правильно
-- Проверьте наличие файла `$ANDROID_HOME/platforms/android-34/android.jar`
+- Проверьте наличие файла `$ANDROID_HOME/platforms/android-37/android.jar`
 
 ### Ошибка: "Build failed"
 - Очистите кэш: `./gradlew clean`

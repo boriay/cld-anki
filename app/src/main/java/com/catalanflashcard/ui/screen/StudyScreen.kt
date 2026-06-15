@@ -159,28 +159,28 @@ fun StudyScreen(
                             color = Red,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(1) },
-                            enabled = !isSavingAnswer
+                            enabled = isFlipped && !isSavingAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.hard),
                             color = Orange,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(3) },
-                            enabled = !isSavingAnswer
+                            enabled = isFlipped && !isSavingAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.good),
                             color = Green,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(4) },
-                            enabled = !isSavingAnswer
+                            enabled = isFlipped && !isSavingAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.easy),
                             color = Blue,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(5) },
-                            enabled = !isSavingAnswer
+                            enabled = isFlipped && !isSavingAnswer
                         )
                     }
                 }

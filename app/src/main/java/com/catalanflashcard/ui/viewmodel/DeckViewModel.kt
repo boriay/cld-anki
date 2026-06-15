@@ -59,6 +59,7 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
                 repository.getCardCount(deckId),
                 repository.getDueCardCount(deckId)
             ) { total, due -> total to due }
+                .catch { e -> _error.value = e.message ?: "Failed to load stats" }
                 .collect { (total, due) ->
                     _selectedDeckCardCount.value = total
                     _selectedDeckDueCount.value = due

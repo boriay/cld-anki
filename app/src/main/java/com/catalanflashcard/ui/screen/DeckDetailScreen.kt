@@ -15,6 +15,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -42,10 +44,19 @@ fun DeckDetailScreen(
     val isLoading by deckViewModel.isLoading.collectAsState()
     val cardCount by deckViewModel.selectedDeckCardCount.collectAsState()
     val dueCount by deckViewModel.selectedDeckDueCount.collectAsState()
+    val error by deckViewModel.error.collectAsState()
     val currentDeck = remember(decks, deckId) { decks.find { it.id == deckId } }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(deckId) {
         deckViewModel.loadDeckStats(deckId)
+    }
+
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarHostState.showSnackbar(it)
+            deckViewModel.clearError()
+        }
     }
 
     DisposableEffect(deckId) {
@@ -64,7 +75,8 @@ fun DeckDetailScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         if (currentDeck == null && isLoading) {
             Column(
