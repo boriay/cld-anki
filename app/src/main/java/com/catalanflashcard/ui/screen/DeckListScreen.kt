@@ -13,7 +13,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,11 +49,12 @@ import com.catalanflashcard.ui.viewmodel.DeckViewModel
 @Composable
 fun DeckListScreen(
     viewModel: DeckViewModel,
-    onDeckClick: (Long) -> Unit,
+    onDeckClick: (String) -> Unit,
     onAddDeckClick: () -> Unit
 ) {
     val decks by viewModel.decks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isSyncing by viewModel.isSyncing.collectAsState()
     val error by viewModel.error.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var deckToDelete by remember { mutableStateOf<Deck?>(null) }
@@ -89,7 +92,22 @@ fun DeckListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.deck_title)) }
+                title = { Text(stringResource(R.string.deck_title)) },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.sync() },
+                        enabled = !isSyncing
+                    ) {
+                        if (isSyncing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Filled.Sync, contentDescription = "Синхронизировать")
+                        }
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -135,7 +153,7 @@ fun DeckListScreen(
 @Composable
 fun DeckListItem(
     deck: Deck,
-    onDeckClick: (Long) -> Unit,
+    onDeckClick: (String) -> Unit,
     onDeleteClick: () -> Unit
 ) {
     Card(

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cld-anki-backend
+  namespace: cld-anki
+spec:
+  selector:
+    app: cld-anki-backend
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer

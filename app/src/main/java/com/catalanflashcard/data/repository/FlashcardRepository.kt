@@ -14,36 +14,45 @@ class FlashcardRepository(
 ) {
     fun getAllDecks(): Flow<List<Deck>> = deckDao.getAllDecks()
 
-    fun getDeckFlow(id: Long): Flow<Deck?> = deckDao.getDeckFlow(id)
+    fun getDeckFlow(id: String): Flow<Deck?> = deckDao.getDeckFlow(id)
 
-    suspend fun createDeck(name: String, description: String = ""): Long {
-        return deckDao.insert(Deck(name = name.trim(), description = description.trim()))
+    suspend fun createDeck(name: String, description: String = ""): String {
+        val deck = Deck(name = name.trim(), description = description.trim())
+        deckDao.insert(deck)
+        return deck.id
     }
 
     suspend fun updateDeck(deck: Deck) = deckDao.update(deck)
 
-    // Cards are deleted automatically by SQLite's CASCADE constraint on deckId FK.
-    suspend fun deleteDeck(id: Long) = deckDao.deleteDeck(id)
+    // Soft delete: tombstone the deck and its cards so the removal syncs to the
+    // backend. The FK CASCADE only fires on physical deletes, so cascade manually.
+    suspend fun deleteDeck(id: String) {
+        val now = System.currentTimeMillis()
+        cardDao.softDeleteByDeck(id, now)
+        deckDao.softDelete(id, now)
+    }
 
-    fun getCards(deckId: Long): Flow<List<Card>> = cardDao.getAllCards(deckId)
+    fun getCards(deckId: String): Flow<List<Card>> = cardDao.getAllCards(deckId)
 
-    fun getCardCount(deckId: Long): Flow<Int> = cardDao.getCardCount(deckId)
+    fun getCardCount(deckId: String): Flow<Int> = cardDao.getCardCount(deckId)
 
     // COUNT(*) over the (deckId, nextReviewTime) index instead of loading the whole table.
-    fun getDueCardCount(deckId: Long): Flow<Int> =
+    fun getDueCardCount(deckId: String): Flow<Int> =
         cardDao.getDueCardCount(deckId, System.currentTimeMillis())
 
-    suspend fun getDueCards(deckId: Long): List<Card> = cardDao.getDueCards(deckId)
+    suspend fun getDueCards(deckId: String): List<Card> = cardDao.getDueCards(deckId)
 
-    suspend fun createCard(deckId: Long, front: String, back: String): Long {
-        return cardDao.insert(Card(deckId = deckId, front = front, back = back))
+    suspend fun createCard(deckId: String, front: String, back: String): String {
+        val card = Card(deckId = deckId, front = front, back = back)
+        cardDao.insert(card)
+        return card.id
     }
 
     suspend fun updateCard(card: Card) = cardDao.update(card)
 
-    suspend fun deleteCard(card: Card) = cardDao.delete(card)
+    suspend fun deleteCard(card: Card) = cardDao.softDelete(card.id)
 
-    suspend fun updateCardReview(cardId: Long, quality: Int) {
+    suspend fun updateCardReview(cardId: String, quality: Int) {
         val card = cardDao.getCard(cardId) ?: return
         val result = SpacedRepetition.calculate(
             card.interval,

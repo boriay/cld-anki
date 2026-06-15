@@ -32,7 +32,7 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
     private val _isSavingAnswer = MutableStateFlow(false)
     val isSavingAnswer: StateFlow<Boolean> = _isSavingAnswer.asStateFlow()
 
-    fun loadDueCards(deckId: Long) {
+    fun loadDueCards(deckId: String) {
         _isLoading.value = true
         viewModelScope.launch {
             try {

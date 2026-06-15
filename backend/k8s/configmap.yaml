@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cld-anki-config
+  namespace: cld-anki
+data:
+  PORT: "8080"
+  FIREBASE_PROJECT_ID: "cld-anki-3505c"
+  CLOUD_SQL_INSTANCE: "cld-anki:europe-west1:cld-anki-db"

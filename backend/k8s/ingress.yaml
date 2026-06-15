@@ -1,0 +1,34 @@
+# GKE uses the GCE Ingress controller by default.
+# Replace HOST with your domain (e.g. api.example.com).
+# For HTTPS: provision a ManagedCertificate or use cert-manager.
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cld-anki-backend
+  namespace: cld-anki
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.allow-http: "false"
+    networking.gke.io/managed-certificates: "cld-anki-cert"
+spec:
+  rules:
+    - host: api.YOUR_DOMAIN.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cld-anki-backend
+                port:
+                  number: 80
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: cld-anki-cert
+  namespace: cld-anki
+spec:
+  domains:
+    - api.YOUR_DOMAIN.com

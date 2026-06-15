@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.catalanflashcard.R
+import java.util.UUID
 
 class InitialDataCallback(private val context: Context) : RoomDatabase.Callback() {
 
@@ -12,6 +13,7 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
         const val TABLE_DECKS = "decks"
         const val TABLE_CARDS = "cards"
 
+        const val COL_ID = "id"
         const val COL_NAME = "name"
         const val COL_DESCRIPTION = "description"
         const val COL_DECK_ID = "deckId"
@@ -30,24 +32,31 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
         seed(db)
     }
 
+    override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+        super.onDestructiveMigration(db)
+        seed(db)
+    }
+
     private fun seed(db: SupportSQLiteDatabase) {
         db.beginTransaction()
         try {
             val now = System.currentTimeMillis()
+            val deckId = UUID.randomUUID().toString()
 
             val deckValues = ContentValues().apply {
+                put(COL_ID, deckId)
                 put(COL_NAME, context.getString(R.string.initial_deck_name))
                 put(COL_DESCRIPTION, context.getString(R.string.initial_deck_description))
                 put(COL_CREATED_AT, now)
                 put(COL_UPDATED_AT, now)
             }
-            val deckId = db.insert(TABLE_DECKS, 0, deckValues)
-            if (deckId == -1L) {
+            if (db.insert(TABLE_DECKS, 0, deckValues) == -1L) {
                 throw IllegalStateException("Failed to insert initial deck")
             }
 
             buildInitialCards().forEach { (front, back) ->
                 val cardValues = ContentValues().apply {
+                    put(COL_ID, UUID.randomUUID().toString())
                     put(COL_DECK_ID, deckId)
                     put(COL_FRONT, front)
                     put(COL_BACK, back)
@@ -58,8 +67,7 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
                     put(COL_CREATED_AT, now)
                     put(COL_UPDATED_AT, now)
                 }
-                val cardId = db.insert(TABLE_CARDS, 0, cardValues)
-                if (cardId == -1L) {
+                if (db.insert(TABLE_CARDS, 0, cardValues) == -1L) {
                     throw IllegalStateException("Failed to insert initial card: $front")
                 }
             }

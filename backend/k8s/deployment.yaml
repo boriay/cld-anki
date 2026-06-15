@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cld-anki-backend
+  namespace: cld-anki
+  labels:
+    app: cld-anki-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cld-anki-backend
+  template:
+    metadata:
+      labels:
+        app: cld-anki-backend
+    spec:
+      serviceAccountName: cld-anki-backend
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: app
+          image: europe-west1-docker.pkg.dev/cld-anki/cld-anki/cld-anki-backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: cld-anki-config
+                  key: PORT
+            - name: FIREBASE_PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: cld-anki-config
+                  key: FIREBASE_PROJECT_ID
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cld-anki-secret
+                  key: DATABASE_URL
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+
+        # Cloud SQL Auth Proxy v2 — connects via Unix socket is also possible,
+        # but TCP on 127.0.0.1:5432 is simpler for configuration.
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+          args:
+            - "--structured-logs"
+            - "--port=5432"
+            - "$(CLOUD_SQL_INSTANCE)"
+          env:
+            - name: CLOUD_SQL_INSTANCE
+              valueFrom:
+                configMapKeyRef:
+                  name: cld-anki-config
+                  key: CLOUD_SQL_INSTANCE
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "50m"
+              memory: "64Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true

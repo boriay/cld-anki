@@ -2,6 +2,7 @@ package com.catalanflashcard.ui.viewmodel
 
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
+import com.catalanflashcard.data.repository.SyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -20,8 +21,13 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeckViewModelTest {
     @Mock private lateinit var repository: FlashcardRepository
+    @Mock private lateinit var syncRepository: SyncRepository
     private lateinit var viewModel: DeckViewModel
     private val testDispatcher = StandardTestDispatcher()
+
+    companion object {
+        const val DECK_ID = "deck-uuid-1"
+    }
 
     @Before
     fun setup() {
@@ -36,10 +42,10 @@ class DeckViewModelTest {
 
     @Test
     fun init_loadsDecks() = runTest {
-        val decks = listOf(Deck(id = 1, name = "Test"))
+        val decks = listOf(Deck(id = DECK_ID, name = "Test"))
         whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
 
-        viewModel = DeckViewModel(repository)
+        viewModel = DeckViewModel(repository, syncRepository)
         advanceUntilIdle()
 
         org.junit.Assert.assertTrue(viewModel.decks.value.isNotEmpty())
@@ -48,15 +54,14 @@ class DeckViewModelTest {
 
     @Test
     fun loadDeckStats_resetsCountsBeforeLoading() = runTest {
-        val decks = emptyList<Deck>()
-        whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
-        whenever(repository.getCardCount(1)).thenReturn(flowOf(5))
-        whenever(repository.getDueCardCount(1)).thenReturn(flowOf(3))
+        whenever(repository.getAllDecks()).thenReturn(flowOf(emptyList()))
+        whenever(repository.getCardCount(DECK_ID)).thenReturn(flowOf(5))
+        whenever(repository.getDueCardCount(DECK_ID)).thenReturn(flowOf(3))
 
-        viewModel = DeckViewModel(repository)
+        viewModel = DeckViewModel(repository, syncRepository)
         advanceUntilIdle()
 
-        viewModel.loadDeckStats(1)
+        viewModel.loadDeckStats(DECK_ID)
 
         org.junit.Assert.assertEquals(0, viewModel.selectedDeckCardCount.value)
         org.junit.Assert.assertEquals(0, viewModel.selectedDeckDueCount.value)
@@ -64,11 +69,10 @@ class DeckViewModelTest {
 
     @Test
     fun createDeck_setIsLoadingFalseOnSuccess() = runTest {
-        val decks = emptyList<Deck>()
-        whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
-        whenever(repository.createDeck("Test", "Desc")).thenReturn(1)
+        whenever(repository.getAllDecks()).thenReturn(flowOf(emptyList()))
+        whenever(repository.createDeck("Test", "Desc")).thenReturn(DECK_ID)
 
-        viewModel = DeckViewModel(repository)
+        viewModel = DeckViewModel(repository, syncRepository)
         advanceUntilIdle()
 
         viewModel.createDeck("Test", "Desc")

@@ -26,6 +26,12 @@ class StudyViewModelTest {
     private lateinit var viewModel: StudyViewModel
     private val testDispatcher = StandardTestDispatcher()
 
+    companion object {
+        const val DECK_ID = "deck-uuid-1"
+        const val CARD_ID_1 = "card-uuid-1"
+        const val CARD_ID_2 = "card-uuid-2"
+    }
+
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -41,12 +47,12 @@ class StudyViewModelTest {
     @Test
     fun loadDueCards_setsCardsAndCurrentCard() = runTest {
         val cards = listOf(
-            Card(id = 1, deckId = 1, front = "Front1", back = "Back1"),
-            Card(id = 2, deckId = 1, front = "Front2", back = "Back2")
+            Card(id = CARD_ID_1, deckId = DECK_ID, front = "Front1", back = "Back1"),
+            Card(id = CARD_ID_2, deckId = DECK_ID, front = "Front2", back = "Back2")
         )
-        whenever(repository.getDueCards(1)).thenReturn(cards)
+        whenever(repository.getDueCards(DECK_ID)).thenReturn(cards)
 
-        viewModel.loadDueCards(1)
+        viewModel.loadDueCards(DECK_ID)
         advanceUntilIdle()
 
         org.junit.Assert.assertEquals(cards, viewModel.dueCards.value)
@@ -64,24 +70,23 @@ class StudyViewModelTest {
 
     @Test
     fun answerCard_preventsDoubleTap() = runTest {
-        val card = Card(id = 1, deckId = 1, front = "Front", back = "Back")
-        val card2 = Card(id = 2, deckId = 1, front = "Front2", back = "Back2")
+        val card1 = Card(id = CARD_ID_1, deckId = DECK_ID, front = "Front", back = "Back")
+        val card2 = Card(id = CARD_ID_2, deckId = DECK_ID, front = "Front2", back = "Back2")
 
-        whenever(repository.getDueCards(1)).thenReturn(listOf(card, card2))
+        whenever(repository.getDueCards(DECK_ID)).thenReturn(listOf(card1, card2))
         whenever(repository.updateCardReview(any(), any())).thenReturn(Unit)
 
-        viewModel.loadDueCards(1)
+        viewModel.loadDueCards(DECK_ID)
         advanceUntilIdle()
 
         // Call answerCard twice rapidly to test double-tap guard
         viewModel.answerCard(Quality.GOOD)
         viewModel.answerCard(Quality.GOOD)
 
-        // Advance scheduler to allow coroutines to run
         advanceUntilIdle()
 
         // Verify updateCardReview was only called once despite two answerCard calls
-        verify(repository, times(1)).updateCardReview(1, 4)
+        verify(repository, times(1)).updateCardReview(CARD_ID_1, Quality.GOOD.value)
         org.junit.Assert.assertFalse(viewModel.isSavingAnswer.value)
     }
 }
