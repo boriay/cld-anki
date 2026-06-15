@@ -111,7 +111,7 @@ fun StudyScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onBackClick) {
-                        Text(stringResource(R.string.back_to_decks))
+                        Text(stringResource(R.string.back_to_deck))
                     }
                 }
             } else {
