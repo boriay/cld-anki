@@ -23,6 +23,12 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _selectedDeck = MutableStateFlow<Deck?>(null)
+    val selectedDeck: StateFlow<Deck?> = _selectedDeck.asStateFlow()
+
+    private val _isLoadingDeck = MutableStateFlow(false)
+    val isLoadingDeck: StateFlow<Boolean> = _isLoadingDeck.asStateFlow()
+
     private val _selectedDeckCardCount = MutableStateFlow(0)
     val selectedDeckCardCount: StateFlow<Int> = _selectedDeckCardCount.asStateFlow()
 
@@ -52,9 +58,19 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
 
     fun loadDeckStats(deckId: Long) {
         statsJob?.cancel()
+        _selectedDeck.value = null
+        _isLoadingDeck.value = true
         _selectedDeckCardCount.value = 0
         _selectedDeckDueCount.value = 0
         statsJob = viewModelScope.launch {
+            launch {
+                repository.getDeckFlow(deckId)
+                    .catch { e -> _error.value = e.message ?: "Failed to load deck" }
+                    .collect { deck ->
+                        _selectedDeck.value = deck
+                        _isLoadingDeck.value = false
+                    }
+            }
             combine(
                 repository.getCardCount(deckId),
                 repository.getDueCardCount(deckId)
@@ -69,6 +85,8 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
 
     fun clearDeckStats() {
         statsJob?.cancel()
+        _selectedDeck.value = null
+        _isLoadingDeck.value = false
         _selectedDeckCardCount.value = 0
         _selectedDeckDueCount.value = 0
     }

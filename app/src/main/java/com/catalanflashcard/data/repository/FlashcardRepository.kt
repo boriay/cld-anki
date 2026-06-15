@@ -14,7 +14,7 @@ class FlashcardRepository(
 ) {
     fun getAllDecks(): Flow<List<Deck>> = deckDao.getAllDecks()
 
-    suspend fun getDeck(id: Long): Deck? = deckDao.getDeck(id)
+    fun getDeckFlow(id: Long): Flow<Deck?> = deckDao.getDeckFlow(id)
 
     suspend fun createDeck(name: String, description: String = ""): Long {
         return deckDao.insert(Deck(name = name.trim(), description = description.trim()))

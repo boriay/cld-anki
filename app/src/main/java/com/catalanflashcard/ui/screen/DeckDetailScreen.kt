@@ -40,12 +40,11 @@ fun DeckDetailScreen(
     onBackClick: () -> Unit,
     onStudyClick: (Long) -> Unit
 ) {
-    val decks by deckViewModel.decks.collectAsState()
-    val isLoading by deckViewModel.isLoading.collectAsState()
+    val currentDeck by deckViewModel.selectedDeck.collectAsState()
+    val isLoadingDeck by deckViewModel.isLoadingDeck.collectAsState()
     val cardCount by deckViewModel.selectedDeckCardCount.collectAsState()
     val dueCount by deckViewModel.selectedDeckDueCount.collectAsState()
     val error by deckViewModel.error.collectAsState()
-    val currentDeck = remember(decks, deckId) { decks.find { it.id == deckId } }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(deckId) {
@@ -78,7 +77,7 @@ fun DeckDetailScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        if (currentDeck == null && isLoading) {
+        if (isLoadingDeck) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -109,6 +108,7 @@ fun DeckDetailScreen(
                 }
             }
         } else {
+            val deck = checkNotNull(currentDeck)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -116,9 +116,9 @@ fun DeckDetailScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (currentDeck.description.isNotEmpty()) {
+                if (deck.description.isNotEmpty()) {
                     Text(
-                        text = currentDeck.description,
+                        text = deck.description,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
