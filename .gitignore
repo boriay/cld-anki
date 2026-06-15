@@ -1,0 +1,15 @@
+*.iml
+/.gradle/
+.idea
+local.properties
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+.vscode
+
+# Gradle wrapper JAR is automatically downloaded on first run
+# If not present, run: ./gradlew --version (on macOS/Linux) or gradlew.bat --version (on Windows)
