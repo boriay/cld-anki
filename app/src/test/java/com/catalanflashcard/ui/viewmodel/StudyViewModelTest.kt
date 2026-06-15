@@ -2,6 +2,7 @@ package com.catalanflashcard.ui.viewmodel
 
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.repository.FlashcardRepository
+import com.catalanflashcard.domain.Quality
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -73,8 +74,8 @@ class StudyViewModelTest {
         advanceUntilIdle()
 
         // Call answerCard twice rapidly to test double-tap guard
-        viewModel.answerCard(4)
-        viewModel.answerCard(4)
+        viewModel.answerCard(Quality.GOOD)
+        viewModel.answerCard(Quality.GOOD)
 
         // Advance scheduler to allow coroutines to run
         advanceUntilIdle()

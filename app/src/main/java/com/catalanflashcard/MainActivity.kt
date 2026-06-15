@@ -23,9 +23,8 @@ import com.catalanflashcard.ui.screen.DeckListScreen
 import com.catalanflashcard.ui.screen.StudyScreen
 import com.catalanflashcard.ui.theme.CatalanFlashcardTheme
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
-import com.catalanflashcard.ui.viewmodel.DeckViewModelFactory
 import com.catalanflashcard.ui.viewmodel.StudyViewModel
-import com.catalanflashcard.ui.viewmodel.StudyViewModelFactory
+import com.catalanflashcard.ui.viewmodel.ViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,8 +37,8 @@ class MainActivity : ComponentActivity() {
             database.cardDao()
         )
 
-        val deckViewModelFactory = DeckViewModelFactory(repository)
-        val studyViewModelFactory = StudyViewModelFactory(repository)
+        val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository) }
+        val studyViewModelFactory = ViewModelFactory { StudyViewModel(repository) }
 
         setContent {
             CatalanFlashcardTheme {

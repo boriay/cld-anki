@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
+import com.catalanflashcard.domain.Quality
 import com.catalanflashcard.ui.theme.Blue
 import com.catalanflashcard.ui.theme.Green
 import com.catalanflashcard.ui.theme.Orange
@@ -90,11 +91,12 @@ fun StudyScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            val card = currentCard
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
-            } else if (currentCard == null) {
+            } else if (card == null) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -113,7 +115,7 @@ fun StudyScreen(
                     }
                 }
             } else {
-                val card = checkNotNull(currentCard)
+                val canAnswer = isFlipped && !isSavingAnswer
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -158,29 +160,29 @@ fun StudyScreen(
                             label = stringResource(R.string.again),
                             color = Red,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(1) },
-                            enabled = isFlipped && !isSavingAnswer
+                            onClick = { viewModel.answerCard(Quality.AGAIN) },
+                            enabled = canAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.hard),
                             color = Orange,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(3) },
-                            enabled = isFlipped && !isSavingAnswer
+                            onClick = { viewModel.answerCard(Quality.HARD) },
+                            enabled = canAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.good),
                             color = Green,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(4) },
-                            enabled = isFlipped && !isSavingAnswer
+                            onClick = { viewModel.answerCard(Quality.GOOD) },
+                            enabled = canAnswer
                         )
                         ReviewButton(
                             label = stringResource(R.string.easy),
                             color = Blue,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.answerCard(5) },
-                            enabled = isFlipped && !isSavingAnswer
+                            onClick = { viewModel.answerCard(Quality.EASY) },
+                            enabled = canAnswer
                         )
                     }
                 }

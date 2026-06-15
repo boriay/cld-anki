@@ -36,7 +36,4 @@ interface CardDao {
 
     @Query("SELECT COUNT(*) FROM cards WHERE deckId = :deckId AND nextReviewTime <= :now")
     fun getDueCardCount(deckId: Long, now: Long): Flow<Int>
-
-    @Query("DELETE FROM cards WHERE deckId = :deckId")
-    suspend fun deleteCardsByDeck(deckId: Long)
 }

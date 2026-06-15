@@ -1,10 +1,10 @@
 package com.catalanflashcard.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.repository.FlashcardRepository
+import com.catalanflashcard.domain.Quality
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +58,7 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
         _isFlipped.value = !_isFlipped.value
     }
 
-    fun answerCard(quality: Int) {
+    fun answerCard(quality: Quality) {
         if (_isSavingAnswer.value) return
         val card = _currentCard.value ?: return
         // Set the guard synchronously on the main thread before launching so rapid
@@ -67,7 +67,7 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
 
         viewModelScope.launch {
             try {
-                repository.updateCardReview(card.id, quality)
+                repository.updateCardReview(card.id, quality.value)
 
                 val currentIdx = _currentIndex.value
                 if (currentIdx < _dueCards.value.size - 1) {
@@ -90,15 +90,5 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
 
     fun clearError() {
         _error.value = null
-    }
-}
-
-class StudyViewModelFactory(private val repository: FlashcardRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(StudyViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return StudyViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

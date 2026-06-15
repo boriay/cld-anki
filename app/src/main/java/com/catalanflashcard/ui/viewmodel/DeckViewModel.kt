@@ -1,7 +1,6 @@
 package com.catalanflashcard.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
@@ -10,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -58,12 +58,12 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
             combine(
                 repository.getCardCount(deckId),
                 repository.getDueCardCount(deckId)
-            ) { total, due -> total to due }
+            ) { total, due ->
+                _selectedDeckCardCount.value = total
+                _selectedDeckDueCount.value = due
+            }
                 .catch { e -> _error.value = e.message ?: "Failed to load stats" }
-                .collect { (total, due) ->
-                    _selectedDeckCardCount.value = total
-                    _selectedDeckDueCount.value = due
-                }
+                .collect()
         }
     }
 
@@ -99,15 +99,5 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
 
     fun clearError() {
         _error.value = null
-    }
-}
-
-class DeckViewModelFactory(private val repository: FlashcardRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DeckViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return DeckViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

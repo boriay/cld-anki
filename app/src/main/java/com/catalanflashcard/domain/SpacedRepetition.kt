@@ -25,7 +25,8 @@ object SpacedRepetition {
         repetitions: Int,
         quality: Int
     ): ReviewResult {
-        val newEaseFactor = (easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)))
+        val delta = 5 - quality   // насколько ответ хуже идеального (0 = Easy)
+        val newEaseFactor = (easeFactor + 0.1 - delta * (0.08 + delta * 0.02))
             .toFloat()
             .coerceIn(1.3f, 5.0f)
 
