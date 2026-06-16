@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -43,6 +44,11 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 	var req syncRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxErr *http.MaxBytesError
+		if errors.As(err, &maxErr) {
+			jsonError(w, "request too large", http.StatusRequestEntityTooLarge)
+			return
+		}
 		jsonError(w, "invalid body", http.StatusBadRequest)
 		return
 	}

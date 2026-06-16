@@ -126,9 +126,11 @@ class DeckViewModel(
     }
 
     fun sync() {
+        // Set the guard synchronously before launching: if it were set inside the
+        // coroutine, two rapid taps could both pass the check before either runs.
         if (_isSyncing.value) return
+        _isSyncing.value = true
         viewModelScope.launch {
-            _isSyncing.value = true
             try {
                 syncRepository.sync().onFailure { e ->
                     _error.value = e.message ?: "Sync failed"

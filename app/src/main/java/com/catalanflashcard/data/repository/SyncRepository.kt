@@ -71,21 +71,24 @@ class SyncRepository(
             )
             Log.d(TAG, "response: decks=${response.decks.size} cards=${response.cards.size} syncedAt=${response.syncedAt}")
 
-            // Echo suppression: skip rows the server is just bouncing back to us
-            // unchanged (same id and same-or-older updated_at than what we sent).
+            // Echo suppression: skip only an EXACT echo (same id and same
+            // updated_at we just sent). Strict equality matters because the
+            // server may clamp a future updated_at down to its own clock — that
+            // comes back with a *smaller* updated_at and must be applied so the
+            // local row converges to the server value instead of staying ahead.
             val sentDecks = changedDecks.associateBy { it.id }
             val sentCards = changedCards.associateBy { it.id }
 
             response.decks.forEach { dto ->
                 val deck = dto.toDeck()
                 val sent = sentDecks[dto.id]
-                if (sent != null && deck.updatedAt <= sent.updatedAt) return@forEach
+                if (sent != null && deck.updatedAt == sent.updatedAt) return@forEach
                 deckDao.upsert(deck)
             }
             response.cards.forEach { dto ->
                 val card = dto.toCard()
                 val sent = sentCards[dto.id]
-                if (sent != null && card.updatedAt <= sent.updatedAt) return@forEach
+                if (sent != null && card.updatedAt == sent.updatedAt) return@forEach
                 cardDao.upsert(card)
             }
 
