@@ -55,8 +55,7 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	jsonOK(w, d)
+	jsonStatus(w, http.StatusCreated, d)
 }
 
 func (h *DeckHandler) Get(w http.ResponseWriter, r *http.Request) {

@@ -79,7 +79,7 @@ func (r *CardRepo) GetByID(ctx context.Context, id, userID string) (*model.Card,
 // ChangedSince returns all cards (including soft-deleted) modified after the given time.
 func (r *CardRepo) ChangedSince(ctx context.Context, userID string, since time.Time) ([]*model.Card, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT `+cardCols+` FROM cards WHERE user_id = $1 AND updated_at > $2 ORDER BY updated_at`,
+		`SELECT `+cardCols+` FROM cards WHERE user_id = $1 AND updated_at >= $2 ORDER BY updated_at`,
 		userID, since,
 	)
 	if err != nil {

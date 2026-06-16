@@ -62,8 +62,7 @@ func (h *CardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	jsonOK(w, c)
+	jsonStatus(w, http.StatusCreated, c)
 }
 
 func (h *CardHandler) Get(w http.ResponseWriter, r *http.Request) {

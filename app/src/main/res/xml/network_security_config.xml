@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Production config (also used by release). Debug builds override this with a
+     more permissive variant in src/debug for local dev hosts. -->
 <network-security-config>
     <!-- Default: no cleartext anywhere. -->
     <base-config cleartextTrafficPermitted="false" />
