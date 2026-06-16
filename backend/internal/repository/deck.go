@@ -87,10 +87,17 @@ func (r *DeckRepo) ChangedSince(ctx context.Context, userID string, since time.T
 	return collectDecks(rows)
 }
 
+// SoftDelete tombstones the deck and cascades to its cards in one atomic
+// statement (FK ON DELETE CASCADE never fires for soft deletes, so do it here).
 func (r *DeckRepo) SoftDelete(ctx context.Context, id, userID string) error {
 	now := time.Now().UTC()
-	_, err := r.db.Exec(ctx,
-		`UPDATE decks SET deleted_at = $1, updated_at = $1 WHERE id = $2 AND user_id = $3`,
+	_, err := r.db.Exec(ctx, `
+		WITH del_deck AS (
+			UPDATE decks SET deleted_at = $1, updated_at = $1
+			WHERE id = $2 AND user_id = $3
+		)
+		UPDATE cards SET deleted_at = $1, updated_at = $1
+		WHERE deck_id = $2 AND user_id = $3 AND deleted_at IS NULL`,
 		now, id, userID,
 	)
 	return err

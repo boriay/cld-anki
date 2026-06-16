@@ -68,6 +68,12 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	// Apply client decks first (cards depend on them via FK).
 	for _, d := range req.Decks {
 		d.UserID = uid // enforce ownership regardless of payload
+		// Don't let a client with a fast/forged clock set a far-future
+		// updated_at to win last-write-wins forever; cap it at server time.
+		// (Past timestamps are left intact for legitimate offline edits.)
+		if d.UpdatedAt.After(syncedAt) {
+			d.UpdatedAt = syncedAt
+		}
 		if err := decksTx.Upsert(ctx, d); err != nil {
 			internalError(w, err)
 			return
@@ -75,6 +81,9 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, c := range req.Cards {
 		c.UserID = uid
+		if c.UpdatedAt.After(syncedAt) {
+			c.UpdatedAt = syncedAt
+		}
 		if err := cardsTx.Upsert(ctx, c); err != nil {
 			internalError(w, err)
 			return

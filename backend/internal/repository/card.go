@@ -39,7 +39,13 @@ func (r *CardRepo) Upsert(ctx context.Context, c *model.Card) error {
 	_, err := r.db.Exec(ctx, `
 		INSERT INTO cards (`+cardCols+`)
 		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-		WHERE EXISTS (SELECT 1 FROM decks WHERE id = $2 AND user_id = $3)
+		-- Deck must exist and be owned by the user. The deck must also be active,
+		-- UNLESS this card is itself a tombstone ($12 set) — that path is the
+		-- cascade-delete sync and must be allowed under a deleted deck.
+		WHERE EXISTS (
+			SELECT 1 FROM decks
+			WHERE id = $2 AND user_id = $3 AND (deleted_at IS NULL OR $12 IS NOT NULL)
+		)
 		ON CONFLICT (id) DO UPDATE SET
 			front            = EXCLUDED.front,
 			back             = EXCLUDED.back,
