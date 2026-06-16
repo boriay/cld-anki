@@ -2,7 +2,7 @@
 -- updated_at drives last-write-wins conflict resolution in sync.
 -- deleted_at = soft delete; records are never purged so clients can detect removals.
 
-CREATE TABLE decks (
+CREATE TABLE IF NOT EXISTS decks (
     id          TEXT        PRIMARY KEY,
     user_id     TEXT        NOT NULL,
     name        TEXT        NOT NULL,
@@ -12,9 +12,9 @@ CREATE TABLE decks (
     deleted_at  TIMESTAMPTZ
 );
 
-CREATE INDEX idx_decks_user_updated ON decks (user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_decks_user_updated ON decks (user_id, updated_at);
 
-CREATE TABLE cards (
+CREATE TABLE IF NOT EXISTS cards (
     id               TEXT             PRIMARY KEY,
     deck_id          TEXT             NOT NULL REFERENCES decks (id) ON DELETE CASCADE,
     user_id          TEXT             NOT NULL,
@@ -29,5 +29,5 @@ CREATE TABLE cards (
     deleted_at       TIMESTAMPTZ
 );
 
-CREATE INDEX idx_cards_user_updated ON cards (user_id, updated_at);
-CREATE INDEX idx_cards_deck         ON cards (deck_id);
+CREATE INDEX IF NOT EXISTS idx_cards_user_updated ON cards (user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_cards_deck         ON cards (deck_id);

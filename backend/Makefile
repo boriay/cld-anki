@@ -30,10 +30,10 @@ deploy: push
 # Migrations are written to be idempotent (IF [NOT] EXISTS) so re-runs are safe.
 migrate-up:
 	@for f in $$(ls migrations/*.up.sql | sort); do \
-		echo "applying $$f"; psql "$(DATABASE_URL)" -f "$$f" || exit 1; \
+		echo "applying $$f"; psql "$(DATABASE_URL)" -v ON_ERROR_STOP=1 -f "$$f" || exit 1; \
 	done
 
 migrate-down:
 	@for f in $$(ls migrations/*.down.sql | sort -r); do \
-		echo "reverting $$f"; psql "$(DATABASE_URL)" -f "$$f" || exit 1; \
+		echo "reverting $$f"; psql "$(DATABASE_URL)" -v ON_ERROR_STOP=1 -f "$$f" || exit 1; \
 	done
