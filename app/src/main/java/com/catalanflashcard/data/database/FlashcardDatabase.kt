@@ -11,7 +11,7 @@ import com.catalanflashcard.data.dao.DeckDao
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 
-@Database(entities = [Deck::class, Card::class], version = 3, exportSchema = true)
+@Database(entities = [Deck::class, Card::class], version = 4, exportSchema = true)
 abstract class FlashcardDatabase : RoomDatabase() {
     abstract fun deckDao(): DeckDao
     abstract fun cardDao(): CardDao
@@ -30,6 +30,15 @@ abstract class FlashcardDatabase : RoomDatabase() {
             }
         }
 
+        // v3 -> v4: index updatedAt on both tables (the sync delta filters on it).
+        // Index names must match Room's generated convention.
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_decks_updatedAt ON decks (updatedAt)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_cards_updatedAt ON cards (updatedAt)")
+            }
+        }
+
         fun getDatabase(context: Context): FlashcardDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -37,7 +46,7 @@ abstract class FlashcardDatabase : RoomDatabase() {
                     FlashcardDatabase::class.java,
                     "flashcard_database"
                 )
-                    .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                     .fallbackToDestructiveMigration()
                     .addCallback(InitialDataCallback(context.applicationContext))
                     .build()

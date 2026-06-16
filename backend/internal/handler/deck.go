@@ -37,7 +37,8 @@ func (h *DeckHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
 	var body struct {
-		Name string `json:"name"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
 		jsonError(w, "name required", http.StatusBadRequest)
@@ -45,11 +46,12 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	now := time.Now().UTC()
 	d := &model.Deck{
-		ID:        uuid.NewString(),
-		UserID:    uid,
-		Name:      body.Name,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:          uuid.NewString(),
+		UserID:      uid,
+		Name:        body.Name,
+		Description: body.Description,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 	if err := h.repo.Upsert(r.Context(), d); err != nil {
 		internalError(w, err)

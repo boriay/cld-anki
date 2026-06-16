@@ -3,12 +3,13 @@
 -- deleted_at = soft delete; records are never purged so clients can detect removals.
 
 CREATE TABLE decks (
-    id         TEXT        PRIMARY KEY,
-    user_id    TEXT        NOT NULL,
-    name       TEXT        NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    id          TEXT        PRIMARY KEY,
+    user_id     TEXT        NOT NULL,
+    name        TEXT        NOT NULL,
+    description TEXT        NOT NULL DEFAULT '',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at  TIMESTAMPTZ
 );
 
 CREATE INDEX idx_decks_user_updated ON decks (user_id, updated_at);

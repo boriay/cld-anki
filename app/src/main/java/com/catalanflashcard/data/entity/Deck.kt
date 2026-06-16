@@ -1,10 +1,12 @@
 package com.catalanflashcard.data.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "decks")
+// updatedAt is indexed because the sync delta query filters on it.
+@Entity(tableName = "decks", indices = [Index(value = ["updatedAt"])])
 data class Deck(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),

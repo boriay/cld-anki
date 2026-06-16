@@ -18,7 +18,9 @@ import java.util.UUID
     ],
     indices = [
         Index(value = ["deckId"]),
-        Index(value = ["deckId", "nextReviewTime"])
+        Index(value = ["deckId", "nextReviewTime"]),
+        // Sync delta query filters on updatedAt.
+        Index(value = ["updatedAt"])
     ]
 )
 data class Card(
