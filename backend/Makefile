@@ -26,8 +26,14 @@ push: docker
 deploy: push
 	kubectl set image deployment/cld-anki-backend app=$(IMAGE):$(TAG) -n cld-anki
 
+# Apply every *.up.sql in ascending order; *.down.sql in descending order.
+# Migrations are written to be idempotent (IF [NOT] EXISTS) so re-runs are safe.
 migrate-up:
-	psql "$(DATABASE_URL)" -f migrations/001_initial.up.sql
+	@for f in $$(ls migrations/*.up.sql | sort); do \
+		echo "applying $$f"; psql "$(DATABASE_URL)" -f "$$f" || exit 1; \
+	done
 
 migrate-down:
-	psql "$(DATABASE_URL)" -f migrations/001_initial.down.sql
+	@for f in $$(ls migrations/*.down.sql | sort -r); do \
+		echo "reverting $$f"; psql "$(DATABASE_URL)" -f "$$f" || exit 1; \
+	done

@@ -24,7 +24,11 @@ spec:
             - sh
             - -c
             - |
-              psql "$DATABASE_URL" -f /migrations/001_initial.up.sql
+              set -e
+              for f in $(ls /migrations/*.up.sql | sort); do
+                echo "applying $f"
+                psql "$DATABASE_URL" -f "$f"
+              done
           env:
             - name: DATABASE_URL
               valueFrom:
