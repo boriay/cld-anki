@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -40,7 +39,10 @@ func (h *CardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Front string `json:"front"`
 		Back  string `json:"back"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Front == "" || body.Back == "" {
+	if !decodeBody(w, r, &body) {
+		return
+	}
+	if body.Front == "" || body.Back == "" {
 		jsonError(w, "front and back required", http.StatusBadRequest)
 		return
 	}
@@ -91,8 +93,7 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Repetitions    *int       `json:"repetitions"`
 		NextReviewTime *time.Time `json:"next_review_time"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		jsonError(w, "invalid body", http.StatusBadRequest)
+	if !decodeBody(w, r, &body) {
 		return
 	}
 	c, err := h.repo.GetByID(r.Context(), id, uid)

@@ -47,7 +47,10 @@ abstract class FlashcardDatabase : RoomDatabase() {
                     "flashcard_database"
                 )
                     .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
-                    .fallbackToDestructiveMigration()
+                    // Destructive fallback ONLY from v1 — the Long->UUID PK change
+                    // has no data-preserving path. Any later missing migration
+                    // (e.g. v4->v5) fails loudly instead of silently wiping data.
+                    .fallbackToDestructiveMigrationFrom(false, 1)
                     .addCallback(InitialDataCallback(context.applicationContext))
                     .build()
                     .also { INSTANCE = it }

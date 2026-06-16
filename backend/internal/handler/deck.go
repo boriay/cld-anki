@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -40,7 +39,10 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
+	if !decodeBody(w, r, &body) {
+		return
+	}
+	if body.Name == "" {
 		jsonError(w, "name required", http.StatusBadRequest)
 		return
 	}
@@ -83,8 +85,7 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Name        *string `json:"name"`
 		Description *string `json:"description"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		jsonError(w, "invalid body", http.StatusBadRequest)
+	if !decodeBody(w, r, &body) {
 		return
 	}
 	if body.Name == nil && body.Description == nil {

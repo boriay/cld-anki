@@ -1,6 +1,7 @@
 package com.catalanflashcard.data.repository
 
 import android.util.Log
+import com.catalanflashcard.BuildConfig
 import com.catalanflashcard.data.dao.CardDao
 import com.catalanflashcard.data.dao.DeckDao
 import com.catalanflashcard.data.entity.Card
@@ -20,6 +21,12 @@ import java.time.Instant
 
 private const val TAG = "SyncRepo"
 
+// Debug-only logging — keeps sync/auth metadata (counts, cursors) out of
+// production logs, consistent with ApiClient's DEBUG-gated network logging.
+private fun logd(msg: String) {
+    if (BuildConfig.DEBUG) Log.d(TAG, msg)
+}
+
 /** Supplies a Firebase ID token. Abstracted so sync logic is unit-testable. */
 fun interface TokenProvider {
     suspend fun idToken(): String
@@ -30,7 +37,7 @@ class FirebaseTokenProvider : TokenProvider {
     override suspend fun idToken(): String {
         val auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
-            Log.d(TAG, "signing in anonymously")
+            logd("signing in anonymously")
             auth.signInAnonymously().await()
         }
         val user = auth.currentUser ?: error("not signed in")
@@ -59,7 +66,7 @@ class SyncRepository(
             val pushedAt = System.currentTimeMillis()
             val changedDecks = deckDao.getChangedSince(pushSince)
             val changedCards = cardDao.getChangedSince(pushSince)
-            Log.d(TAG, "sending decks=${changedDecks.size} cards=${changedCards.size} since=$lastSyncedAtIso")
+            logd("sending decks=${changedDecks.size} cards=${changedCards.size} since=$lastSyncedAtIso")
 
             val response = syncApi.sync(
                 request = SyncRequest(
@@ -69,7 +76,7 @@ class SyncRepository(
                 ),
                 auth = "Bearer $token"
             )
-            Log.d(TAG, "response: decks=${response.decks.size} cards=${response.cards.size} syncedAt=${response.syncedAt}")
+            logd("response: decks=${response.decks.size} cards=${response.cards.size} syncedAt=${response.syncedAt}")
 
             // Echo suppression: skip only an EXACT echo (same id and same
             // updated_at we just sent). Strict equality matters because the
@@ -94,7 +101,7 @@ class SyncRepository(
 
             syncPreferences.lastSyncedAt = Instant.parse(response.syncedAt).toEpochMilli()
             syncPreferences.lastPushedAt = pushedAt
-            Log.d(TAG, "sync complete")
+            logd("sync complete")
             Result.success(Unit)
         } catch (e: CancellationException) {
             // Never swallow coroutine cancellation — it must propagate.
