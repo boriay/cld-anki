@@ -105,6 +105,12 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	if req.LastSyncedAt != nil {
 		since = *req.LastSyncedAt
 	}
+	// A future cursor (corrupt prefs / malicious client) would return no rows and
+	// make the client skip every change up to now. Fall back to a full resync so
+	// the protocol self-heals.
+	if since.After(syncedAt) {
+		since = time.Time{}
+	}
 
 	decks, err := h.decks.ChangedSince(ctx, uid, since)
 	if err != nil {
