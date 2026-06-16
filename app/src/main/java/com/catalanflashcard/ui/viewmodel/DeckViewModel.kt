@@ -129,10 +129,14 @@ class DeckViewModel(
         if (_isSyncing.value) return
         viewModelScope.launch {
             _isSyncing.value = true
-            syncRepository.sync().onFailure { e ->
-                _error.value = e.message ?: "Ошибка синхронизации"
+            try {
+                syncRepository.sync().onFailure { e ->
+                    _error.value = e.message ?: "Sync failed"
+                }
+            } finally {
+                // Reset even if the coroutine is cancelled, so the UI never sticks.
+                _isSyncing.value = false
             }
-            _isSyncing.value = false
         }
     }
 

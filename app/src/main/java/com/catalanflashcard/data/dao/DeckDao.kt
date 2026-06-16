@@ -25,9 +25,10 @@ interface DeckDao {
     @Query("SELECT * FROM decks WHERE deletedAt IS NULL ORDER BY createdAt DESC")
     fun getAllDecks(): Flow<List<Deck>>
 
-    // Delta for sync: only rows touched since the last successful sync,
-    // tombstones included so deletions reach the server.
-    @Query("SELECT * FROM decks WHERE updatedAt > :since")
+    // Delta for sync: rows touched since the last successful sync (tombstones
+    // included). Uses >= so same-millisecond edits at the cursor boundary aren't
+    // skipped; re-sending a row is safe because sync is idempotent.
+    @Query("SELECT * FROM decks WHERE updatedAt >= :since")
     suspend fun getChangedSince(since: Long): List<Deck>
 
     // Soft delete: mark as a tombstone instead of physically removing the row.

@@ -1,6 +1,10 @@
 # GKE uses the GCE Ingress controller by default.
 # Replace HOST with your domain (e.g. api.example.com).
 # For HTTPS: provision a ManagedCertificate or use cert-manager.
+#
+# NOTE: This is the future entrypoint and is NOT applied yet (no domain).
+# It is mutually exclusive with the LoadBalancer Service (service.yaml). Before
+# applying this, set the Service to `type: ClusterIP` to avoid double exposure.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress

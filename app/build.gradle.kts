@@ -10,7 +10,9 @@ plugins {
 
 // Sync backend URL — override per environment via -PsyncBaseUrl=... or
 // gradle.properties, instead of hard-coding it in the build types.
-val syncBaseUrl = (project.findProperty("syncBaseUrl") as String?) ?: "http://34.62.20.204/"
+// Retrofit's baseUrl requires a trailing slash, so normalize it here.
+val syncBaseUrl = ((project.findProperty("syncBaseUrl") as String?) ?: "http://34.62.20.204/")
+    .let { if (it.endsWith("/")) it else "$it/" }
 
 android {
     namespace = "com.catalanflashcard"

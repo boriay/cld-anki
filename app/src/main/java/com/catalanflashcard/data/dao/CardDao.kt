@@ -37,9 +37,10 @@ interface CardDao {
     @Query("SELECT COUNT(*) FROM cards WHERE deckId = :deckId AND deletedAt IS NULL AND nextReviewTime <= :now")
     fun getDueCardCount(deckId: String, now: Long): Flow<Int>
 
-    // Delta for sync: only rows touched since the last successful sync,
-    // tombstones included so deletions reach the server.
-    @Query("SELECT * FROM cards WHERE updatedAt > :since")
+    // Delta for sync: rows touched since the last successful sync (tombstones
+    // included). Uses >= so same-millisecond edits at the cursor boundary aren't
+    // skipped; re-sending a row is safe because sync is idempotent.
+    @Query("SELECT * FROM cards WHERE updatedAt >= :since")
     suspend fun getChangedSince(since: Long): List<Card>
 
     // Soft delete: mark as a tombstone instead of physically removing the row.

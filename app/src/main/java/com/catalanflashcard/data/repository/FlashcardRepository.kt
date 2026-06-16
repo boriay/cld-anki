@@ -22,7 +22,9 @@ class FlashcardRepository(
         return deck.id
     }
 
-    suspend fun updateDeck(deck: Deck) = deckDao.update(deck)
+    // Bump updatedAt so the change is picked up by the sync delta.
+    suspend fun updateDeck(deck: Deck) =
+        deckDao.update(deck.copy(updatedAt = System.currentTimeMillis()))
 
     // Soft delete: tombstone the deck and its cards so the removal syncs to the
     // backend. The FK CASCADE only fires on physical deletes, so cascade manually.
@@ -48,7 +50,9 @@ class FlashcardRepository(
         return card.id
     }
 
-    suspend fun updateCard(card: Card) = cardDao.update(card)
+    // Bump updatedAt so the edit is picked up by the sync delta.
+    suspend fun updateCard(card: Card) =
+        cardDao.update(card.copy(updatedAt = System.currentTimeMillis()))
 
     suspend fun deleteCard(card: Card) = cardDao.softDelete(card.id)
 
