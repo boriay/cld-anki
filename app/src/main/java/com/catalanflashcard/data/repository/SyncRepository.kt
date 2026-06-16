@@ -8,6 +8,7 @@ import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.network.ApiClient
 import com.catalanflashcard.data.network.CardDto
 import com.catalanflashcard.data.network.DeckDto
+import com.catalanflashcard.data.network.SyncApi
 import com.catalanflashcard.data.network.SyncRequest
 import com.catalanflashcard.data.preferences.SyncPreferences
 import com.google.firebase.auth.FirebaseAuth
@@ -19,20 +20,34 @@ import java.time.Instant
 
 private const val TAG = "SyncRepo"
 
+/** Supplies a Firebase ID token. Abstracted so sync logic is unit-testable. */
+fun interface TokenProvider {
+    suspend fun idToken(): String
+}
+
+/** Default provider: anonymous Firebase sign-in + ID token. */
+class FirebaseTokenProvider : TokenProvider {
+    override suspend fun idToken(): String {
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser == null) {
+            Log.d(TAG, "signing in anonymously")
+            auth.signInAnonymously().await()
+        }
+        val user = auth.currentUser ?: error("not signed in")
+        return user.getIdToken(false).await().token ?: error("failed to get token")
+    }
+}
+
 class SyncRepository(
     private val deckDao: DeckDao,
     private val cardDao: CardDao,
-    private val syncPreferences: SyncPreferences
+    private val syncPreferences: SyncPreferences,
+    private val syncApi: SyncApi = ApiClient.syncApi,
+    private val tokenProvider: TokenProvider = FirebaseTokenProvider()
 ) {
     suspend fun sync(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val auth = FirebaseAuth.getInstance()
-            if (auth.currentUser == null) {
-                Log.d(TAG, "signing in anonymously")
-                auth.signInAnonymously().await()
-            }
-            val user = auth.currentUser ?: error("not signed in")
-            val token = user.getIdToken(false).await().token ?: error("failed to get token")
+            val token = tokenProvider.idToken()
 
             // `since` for the server query is the server's own clock (last sync).
             val lastSyncedAtIso = Instant.ofEpochMilli(syncPreferences.lastSyncedAt).toString()
@@ -46,7 +61,7 @@ class SyncRepository(
             val changedCards = cardDao.getChangedSince(pushSince)
             Log.d(TAG, "sending decks=${changedDecks.size} cards=${changedCards.size} since=$lastSyncedAtIso")
 
-            val response = ApiClient.syncApi.sync(
+            val response = syncApi.sync(
                 request = SyncRequest(
                     lastSyncedAt = lastSyncedAtIso,
                     decks = changedDecks.map { it.toDto() },

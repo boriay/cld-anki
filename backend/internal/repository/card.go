@@ -98,7 +98,7 @@ func (r *CardRepo) ChangedSince(ctx context.Context, userID string, since time.T
 func (r *CardRepo) SoftDelete(ctx context.Context, id, userID string) error {
 	now := time.Now().UTC()
 	_, err := r.db.Exec(ctx,
-		`UPDATE cards SET deleted_at = $1, updated_at = $1 WHERE id = $2 AND user_id = $3`,
+		`UPDATE cards SET deleted_at = $1, updated_at = $1 WHERE id = $2 AND user_id = $3 AND deleted_at IS NULL`,
 		now, id, userID,
 	)
 	return err

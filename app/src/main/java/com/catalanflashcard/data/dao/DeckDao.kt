@@ -32,6 +32,8 @@ interface DeckDao {
     suspend fun getChangedSince(since: Long): List<Deck>
 
     // Soft delete: mark as a tombstone instead of physically removing the row.
-    @Query("UPDATE decks SET deletedAt = :now, updatedAt = :now WHERE id = :id")
+    // Idempotent — only stamps an active row, so retries don't keep bumping the
+    // timestamp or re-emitting the same tombstone in the sync delta.
+    @Query("UPDATE decks SET deletedAt = :now, updatedAt = :now WHERE id = :id AND deletedAt IS NULL")
     suspend fun softDelete(id: String, now: Long = System.currentTimeMillis())
 }

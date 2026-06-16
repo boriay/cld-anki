@@ -33,6 +33,12 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        // Return defaults (0/null) for unmocked android.* calls like Log.d,
+        // so pure-logic unit tests don't crash on "not mocked".
+        unitTests.isReturnDefaultValues = true
+    }
+
     buildTypes {
         debug {
             buildConfigField("String", "SYNC_BASE_URL", "\"$syncBaseUrl\"")
