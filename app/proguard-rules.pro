@@ -8,6 +8,18 @@
 # Data entities: Room uses reflection to instantiate these and read field names.
 -keep class com.catalanflashcard.data.entity.** { *; }
 
+# Gson DTOs: keep field names for JSON serialization/deserialization.
+-keep class com.catalanflashcard.data.network.** { *; }
+
+# Retrofit
+-keepattributes Signature, Exceptions, *Annotation*
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+
+# OkHttp
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
 # Keep public API of app classes for debugging convenience.
 # Room, Compose, and Lifecycle bundle their own consumer ProGuard rules.
 -keepclassmembers class com.catalanflashcard.** {

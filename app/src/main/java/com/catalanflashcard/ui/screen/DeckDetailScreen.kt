@@ -35,10 +35,10 @@ import com.catalanflashcard.ui.viewmodel.DeckViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailScreen(
-    deckId: Long,
+    deckId: String,
     deckViewModel: DeckViewModel,
     onBackClick: () -> Unit,
-    onStudyClick: (Long) -> Unit
+    onStudyClick: (String) -> Unit
 ) {
     val currentDeck by deckViewModel.selectedDeck.collectAsState()
     val isLoadingDeck by deckViewModel.isLoadingDeck.collectAsState()

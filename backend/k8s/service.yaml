@@ -1,0 +1,16 @@
+# NOTE: Service and Ingress are mutually exclusive entrypoints — apply only one.
+# Currently active: LoadBalancer (direct external IP, no domain required).
+# When a domain + TLS are provisioned, switch to Ingress (ingress.yaml) and
+# change this Service back to `type: ClusterIP` so the API isn't exposed twice.
+apiVersion: v1
+kind: Service
+metadata:
+  name: cld-anki-backend
+  namespace: cld-anki
+spec:
+  selector:
+    app: cld-anki-backend
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer

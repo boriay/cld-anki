@@ -13,3 +13,13 @@ local.properties
 
 # Gradle wrapper JAR is automatically downloaded on first run
 # If not present, run: ./gradlew --version (on macOS/Linux) or gradlew.bat --version (on Windows)
+
+# Secrets — never commit
+backend/k8s/secret.yaml
+backend/.env
+
+# Firebase app config (project-specific, not tracked)
+/app/google-services.json
+
+# Build artifacts
+/app/release/

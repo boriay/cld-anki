@@ -1,14 +1,20 @@
 package com.catalanflashcard.data.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
-@Entity(tableName = "decks")
+// updatedAt is indexed because the sync delta query filters on it.
+@Entity(tableName = "decks", indices = [Index(value = ["updatedAt"])])
 data class Deck(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val name: String,
     val description: String = "",
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    // Tombstone: null = active, non-null = soft-deleted. Kept locally so the
+    // deletion propagates to the backend on the next sync.
+    val deletedAt: Long? = null
 )

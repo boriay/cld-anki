@@ -36,9 +36,9 @@ class DeckDaoTest {
     @Test
     fun insertDeck_canRetrieveDeck() = runTest {
         val deck = Deck(name = "Test Deck", description = "Test Description")
-        val deckId = deckDao.insert(deck)
+        deckDao.insert(deck)
 
-        val retrieved = deckDao.getDeckFlow(deckId).firstOrNull()
+        val retrieved = deckDao.getDeckFlow(deck.id).firstOrNull()
         org.junit.Assert.assertNotNull(retrieved)
         org.junit.Assert.assertEquals("Test Deck", retrieved?.name)
     }
@@ -57,23 +57,28 @@ class DeckDaoTest {
     @Test
     fun updateDeck_updatesName() = runTest {
         val deck = Deck(name = "Original Name")
-        val deckId = deckDao.insert(deck)
+        deckDao.insert(deck)
 
-        val updated = deck.copy(id = deckId, name = "Updated Name")
-        deckDao.update(updated)
+        deckDao.update(deck.copy(name = "Updated Name"))
 
-        val retrieved = deckDao.getDeckFlow(deckId).firstOrNull()
+        val retrieved = deckDao.getDeckFlow(deck.id).firstOrNull()
         org.junit.Assert.assertEquals("Updated Name", retrieved?.name)
     }
 
     @Test
-    fun deleteDeck_removesFromDatabase() = runTest {
+    fun softDelete_hidesDeckFromActiveQueries() = runTest {
         val deck = Deck(name = "Test Deck")
-        val deckId = deckDao.insert(deck)
+        deckDao.insert(deck)
 
-        deckDao.deleteDeck(deckId)
+        deckDao.softDelete(deck.id)
 
-        val retrieved = deckDao.getDeckFlow(deckId).firstOrNull()
+        // getDeckFlow filters out tombstones, so the deck is no longer visible.
+        val retrieved = deckDao.getDeckFlow(deck.id).firstOrNull()
         org.junit.Assert.assertNull(retrieved)
+
+        // But the tombstone row survives so it can sync to the backend.
+        val changed = deckDao.getChangedSince(0L)
+        org.junit.Assert.assertEquals(1, changed.size)
+        org.junit.Assert.assertNotNull(changed[0].deletedAt)
     }
 }

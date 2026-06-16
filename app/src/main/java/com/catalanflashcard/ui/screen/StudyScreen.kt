@@ -49,7 +49,7 @@ import com.catalanflashcard.ui.viewmodel.StudyViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudyScreen(
-    deckId: Long,
+    deckId: String,
     viewModel: StudyViewModel,
     onBackClick: () -> Unit
 ) {

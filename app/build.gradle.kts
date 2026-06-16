@@ -5,6 +5,26 @@ plugins {
     kotlin("android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
+}
+
+// Sync backend URL — override per environment via -PsyncBaseUrl=... or
+// gradle.properties, instead of hard-coding it in the build types.
+// Retrofit's baseUrl requires a trailing slash, so normalize it here.
+val syncBaseUrl = ((project.findProperty("syncBaseUrl") as String?) ?: "http://34.62.20.204/")
+    .let { if (it.endsWith("/")) it else "$it/" }
+
+// Release uses the HTTPS-only network-security-config, so a cleartext base URL
+// would fail at runtime. Fail fast (only when actually building a release task)
+// and require https — provide one via -PsyncBaseUrl=https://your-host/.
+gradle.taskGraph.whenReady {
+    val buildingRelease = allTasks.any { it.name.contains("Release") }
+    if (buildingRelease && !syncBaseUrl.startsWith("https://")) {
+        throw GradleException(
+            "Release requires an https:// syncBaseUrl (got '$syncBaseUrl'). " +
+                "Set -PsyncBaseUrl=https://your-host/"
+        )
+    }
 }
 
 android {
@@ -23,15 +43,26 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    testOptions {
+        // Return defaults (0/null) for unmocked android.* calls like Log.d,
+        // so pure-logic unit tests don't crash on "not mocked".
+        unitTests.isReturnDefaultValues = true
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "SYNC_BASE_URL", "\"$syncBaseUrl\"")
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "SYNC_BASE_URL", "\"$syncBaseUrl\"")
         }
     }
 
@@ -79,6 +110,17 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+
+    // Retrofit + OkHttp
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

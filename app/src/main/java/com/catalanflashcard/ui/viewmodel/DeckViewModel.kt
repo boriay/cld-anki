@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
+import com.catalanflashcard.data.repository.SyncRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
+class DeckViewModel(
+    private val repository: FlashcardRepository,
+    private val syncRepository: SyncRepository
+) : ViewModel() {
     private val _decks = MutableStateFlow<List<Deck>>(emptyList())
     val decks: StateFlow<List<Deck>> = _decks.asStateFlow()
 
@@ -34,6 +38,9 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
 
     private val _selectedDeckDueCount = MutableStateFlow(0)
     val selectedDeckDueCount: StateFlow<Int> = _selectedDeckDueCount.asStateFlow()
+
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
     private var statsJob: Job? = null
 
@@ -56,7 +63,7 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
         }
     }
 
-    fun loadDeckStats(deckId: Long) {
+    fun loadDeckStats(deckId: String) {
         statsJob?.cancel()
         _selectedDeck.value = null
         _isLoadingDeck.value = true
@@ -107,13 +114,30 @@ class DeckViewModel(private val repository: FlashcardRepository) : ViewModel() {
         }
     }
 
-    fun deleteDeck(deckId: Long) {
+    fun deleteDeck(deckId: String) {
         viewModelScope.launch {
             try {
                 repository.deleteDeck(deckId)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to delete deck"
+            }
+        }
+    }
+
+    fun sync() {
+        // Set the guard synchronously before launching: if it were set inside the
+        // coroutine, two rapid taps could both pass the check before either runs.
+        if (_isSyncing.value) return
+        _isSyncing.value = true
+        viewModelScope.launch {
+            try {
+                syncRepository.sync().onFailure { e ->
+                    _error.value = e.message ?: "Sync failed"
+                }
+            } finally {
+                // Reset even if the coroutine is cancelled, so the UI never sticks.
+                _isSyncing.value = false
             }
         }
     }

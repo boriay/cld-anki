@@ -15,7 +15,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.catalanflashcard.data.database.FlashcardDatabase
+import com.catalanflashcard.data.preferences.SyncPreferences
 import com.catalanflashcard.data.repository.FlashcardRepository
+import com.catalanflashcard.data.repository.SyncRepository
 import com.catalanflashcard.ui.navigation.Screen
 import com.catalanflashcard.ui.screen.AddDeckDialog
 import com.catalanflashcard.ui.screen.DeckDetailScreen
@@ -36,8 +38,13 @@ class MainActivity : ComponentActivity() {
             database.deckDao(),
             database.cardDao()
         )
+        val syncRepository = SyncRepository(
+            database.deckDao(),
+            database.cardDao(),
+            SyncPreferences(applicationContext)
+        )
 
-        val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository) }
+        val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository, syncRepository) }
         val studyViewModelFactory = ViewModelFactory { StudyViewModel(repository) }
 
         setContent {
@@ -68,9 +75,9 @@ class MainActivity : ComponentActivity() {
 
                     composable(
                         Screen.DeckDetail.route,
-                        arguments = listOf(navArgument("deckId") { type = NavType.LongType })
+                        arguments = listOf(navArgument("deckId") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        val deckId = backStackEntry.arguments?.getLong("deckId") ?: return@composable
+                        val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
                         val deckViewModel: DeckViewModel = viewModel(factory = deckViewModelFactory)
                         DeckDetailScreen(
                             deckId = deckId,
@@ -84,9 +91,9 @@ class MainActivity : ComponentActivity() {
 
                     composable(
                         Screen.Study.route,
-                        arguments = listOf(navArgument("deckId") { type = NavType.LongType })
+                        arguments = listOf(navArgument("deckId") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        val deckId = backStackEntry.arguments?.getLong("deckId") ?: return@composable
+                        val deckId = backStackEntry.arguments?.getString("deckId") ?: return@composable
                         val studyViewModel: StudyViewModel = viewModel(factory = studyViewModelFactory)
                         StudyScreen(
                             deckId = deckId,

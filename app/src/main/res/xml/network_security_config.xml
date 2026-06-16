@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Production config (used by release): HTTPS only, no cleartext anywhere.
+     Debug builds override this in src/debug to allow cleartext to the backend IP
+     and local dev hosts. A real release therefore requires an HTTPS backend
+     (see the release buildType guard in app/build.gradle.kts). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

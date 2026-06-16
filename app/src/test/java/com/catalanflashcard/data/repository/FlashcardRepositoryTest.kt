@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -18,6 +19,11 @@ class FlashcardRepositoryTest {
     @Mock private lateinit var deckDao: DeckDao
     @Mock private lateinit var cardDao: CardDao
     private lateinit var repository: FlashcardRepository
+
+    companion object {
+        const val DECK_ID = "deck-uuid-1"
+        const val CARD_ID = "card-uuid-1"
+    }
 
     @Before
     fun setup() {
@@ -27,7 +33,7 @@ class FlashcardRepositoryTest {
 
     @Test
     fun getAllDecks_delegatesToDeckDao() = runTest {
-        val decks = listOf(Deck(id = 1, name = "Test"))
+        val decks = listOf(Deck(id = DECK_ID, name = "Test"))
         whenever(deckDao.getAllDecks()).thenReturn(flowOf(decks))
 
         val result = repository.getAllDecks()
@@ -38,31 +44,27 @@ class FlashcardRepositoryTest {
 
     @Test
     fun createDeck_callsDeckDaoInsert() = runTest {
-        whenever(deckDao.insert(org.mockito.kotlin.any())).thenReturn(1)
-
         repository.createDeck("Test Deck", "Description")
 
         verify(deckDao).insert(org.mockito.kotlin.any())
     }
 
     @Test
-    fun deleteDeck_callsDeckDaoDelete() = runTest {
-        whenever(deckDao.deleteDeck(1)).thenReturn(Unit)
+    fun deleteDeck_softDeletesDeckAndCascadesToCards() = runTest {
+        repository.deleteDeck(DECK_ID)
 
-        repository.deleteDeck(1)
-
-        verify(deckDao).deleteDeck(1)
+        verify(cardDao).softDeleteByDeck(eq(DECK_ID), org.mockito.kotlin.any())
+        verify(deckDao).softDelete(eq(DECK_ID), org.mockito.kotlin.any())
     }
 
     @Test
     fun updateCardReview_updatesCardWithSpacedRepetition() = runTest {
-        val card = Card(id = 1, deckId = 1, front = "Front", back = "Back")
-        whenever(cardDao.getCard(1)).thenReturn(card)
-        whenever(cardDao.update(org.mockito.kotlin.any())).thenReturn(Unit)
+        val card = Card(id = CARD_ID, deckId = DECK_ID, front = "Front", back = "Back")
+        whenever(cardDao.getCard(CARD_ID)).thenReturn(card)
 
-        repository.updateCardReview(1, 4)
+        repository.updateCardReview(CARD_ID, 4)
 
-        verify(cardDao).getCard(1)
+        verify(cardDao).getCard(CARD_ID)
         verify(cardDao).update(org.mockito.kotlin.any())
     }
 }
