@@ -57,13 +57,17 @@ func (r *CardRepo) Upsert(ctx context.Context, c *model.Card) error {
 			deleted_at       = EXCLUDED.deleted_at
 		WHERE cards.user_id = EXCLUDED.user_id
 		  AND cards.updated_at < EXCLUDED.updated_at
+		  -- deck_id is immutable via upsert; reject attempts to re-parent a card.
+		  AND cards.deck_id = EXCLUDED.deck_id
 		  -- Same rule as INSERT: don't let an update resurrect a card (deleted_at
-		  -- = null) under a tombstoned deck. Tombstone writes are still allowed.
+		  -- = null) under a tombstoned deck. Check the EXISTING row's deck_id (not
+		  -- the client-supplied EXCLUDED.deck_id, which could be spoofed). Tombstone
+		  -- writes are still allowed.
 		  AND (
 			EXCLUDED.deleted_at IS NOT NULL
 			OR EXISTS (
 				SELECT 1 FROM decks
-				WHERE id = EXCLUDED.deck_id AND user_id = EXCLUDED.user_id AND deleted_at IS NULL
+				WHERE id = cards.deck_id AND user_id = cards.user_id AND deleted_at IS NULL
 			)
 		  )`,
 		c.ID, c.DeckID, c.UserID, c.Front, c.Back,

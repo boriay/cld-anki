@@ -77,11 +77,22 @@ func (h *DeckHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
 	id := chi.URLParam(r, "id")
+	// Partial update: only fields present in the payload are changed. Pointers
+	// distinguish "omitted" from "set to empty".
 	var body struct {
-		Name string `json:"name"`
+		Name        *string `json:"name"`
+		Description *string `json:"description"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
-		jsonError(w, "name required", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+	if body.Name == nil && body.Description == nil {
+		jsonError(w, "no fields to update", http.StatusBadRequest)
+		return
+	}
+	if body.Name != nil && *body.Name == "" {
+		jsonError(w, "name cannot be empty", http.StatusBadRequest)
 		return
 	}
 	d, err := h.repo.GetByID(r.Context(), id, uid)
@@ -93,7 +104,12 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-	d.Name = body.Name
+	if body.Name != nil {
+		d.Name = *body.Name
+	}
+	if body.Description != nil {
+		d.Description = *body.Description
+	}
 	d.UpdatedAt = time.Now().UTC()
 	if err := h.repo.Upsert(r.Context(), d); err != nil {
 		internalError(w, err)
