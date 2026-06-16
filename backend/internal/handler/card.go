@@ -61,6 +61,10 @@ func (h *CardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:      now,
 	}
 	if err := h.repo.Upsert(r.Context(), c); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			jsonError(w, "deck not found", http.StatusNotFound)
+			return
+		}
 		internalError(w, err)
 		return
 	}

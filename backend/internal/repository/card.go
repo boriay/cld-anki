@@ -35,8 +35,11 @@ func scanCard(row pgx.Row) (*model.Card, error) {
 
 // Upsert inserts or updates a card. Verifies deck ownership via subquery.
 // Server record wins if its updated_at is newer.
+// Upsert returns ErrNotFound when the write affected no rows AND the card does
+// not already exist — i.e. an orphan write (parent deck missing/soft-deleted).
+// A last-write-wins no-op on an existing card returns nil (success).
 func (r *CardRepo) Upsert(ctx context.Context, c *model.Card) error {
-	_, err := r.db.Exec(ctx, `
+	tag, err := r.db.Exec(ctx, `
 		INSERT INTO cards (`+cardCols+`)
 		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
 		-- Deck must exist and be owned by the user. The deck must also be active,
@@ -74,7 +77,21 @@ func (r *CardRepo) Upsert(ctx context.Context, c *model.Card) error {
 		c.Interval, c.EaseFactor, c.Repetitions, c.NextReviewTime,
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		// No row written: either an orphan (deck missing/deleted) or a
+		// last-write-wins no-op. Only the orphan case is an error.
+		var exists bool
+		if err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM cards WHERE id = $1)`, c.ID).Scan(&exists); err != nil {
+			return err
+		}
+		if !exists {
+			return ErrNotFound
+		}
+	}
+	return nil
 }
 
 func (r *CardRepo) ListByDeck(ctx context.Context, deckID, userID string) ([]*model.Card, error) {

@@ -91,6 +91,12 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 			c.UpdatedAt = syncedAt
 		}
 		if err := cardsTx.Upsert(ctx, c); err != nil {
+			// Orphan card (deck missing/soft-deleted) — skip it rather than
+			// aborting the whole batch, so one bad row can't block the client's
+			// entire sync. Other (real) errors still fail the request.
+			if errors.Is(err, repository.ErrNotFound) {
+				continue
+			}
 			internalError(w, err)
 			return
 		}

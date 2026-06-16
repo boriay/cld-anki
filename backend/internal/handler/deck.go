@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/boriay/cld-anki/backend/internal/auth"
@@ -42,7 +43,8 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if !decodeBody(w, r, &body) {
 		return
 	}
-	if body.Name == "" {
+	name := strings.TrimSpace(body.Name)
+	if name == "" {
 		jsonError(w, "name required", http.StatusBadRequest)
 		return
 	}
@@ -50,8 +52,8 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 	d := &model.Deck{
 		ID:          uuid.NewString(),
 		UserID:      uid,
-		Name:        body.Name,
-		Description: body.Description,
+		Name:        name,
+		Description: strings.TrimSpace(body.Description),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -92,7 +94,7 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "no fields to update", http.StatusBadRequest)
 		return
 	}
-	if body.Name != nil && *body.Name == "" {
+	if body.Name != nil && strings.TrimSpace(*body.Name) == "" {
 		jsonError(w, "name cannot be empty", http.StatusBadRequest)
 		return
 	}
@@ -106,10 +108,10 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if body.Name != nil {
-		d.Name = *body.Name
+		d.Name = strings.TrimSpace(*body.Name)
 	}
 	if body.Description != nil {
-		d.Description = *body.Description
+		d.Description = strings.TrimSpace(*body.Description)
 	}
 	d.UpdatedAt = time.Now().UTC()
 	if err := h.repo.Upsert(r.Context(), d); err != nil {

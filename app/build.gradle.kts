@@ -14,6 +14,19 @@ plugins {
 val syncBaseUrl = ((project.findProperty("syncBaseUrl") as String?) ?: "http://34.62.20.204/")
     .let { if (it.endsWith("/")) it else "$it/" }
 
+// Release uses the HTTPS-only network-security-config, so a cleartext base URL
+// would fail at runtime. Fail fast (only when actually building a release task)
+// and require https — provide one via -PsyncBaseUrl=https://your-host/.
+gradle.taskGraph.whenReady {
+    val buildingRelease = allTasks.any { it.name.contains("Release") }
+    if (buildingRelease && !syncBaseUrl.startsWith("https://")) {
+        throw GradleException(
+            "Release requires an https:// syncBaseUrl (got '$syncBaseUrl'). " +
+                "Set -PsyncBaseUrl=https://your-host/"
+        )
+    }
+}
+
 android {
     namespace = "com.catalanflashcard"
     compileSdk = 37
@@ -49,7 +62,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // TODO: switch to https:// once a domain + TLS cert is provisioned.
             buildConfigField("String", "SYNC_BASE_URL", "\"$syncBaseUrl\"")
         }
     }
