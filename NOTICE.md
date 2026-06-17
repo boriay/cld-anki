@@ -9,7 +9,7 @@ This project includes code generated with the assistance of AI tools.
 
 ## Licensing
 
-All code in this project, including AI-generated code, is covered under the MIT license (see LICENSE file).
+All code in this project, including AI-generated code, is covered under the Apache License, Version 2.0 (see LICENSE file).
 
 ## Code Quality
 
@@ -24,9 +24,9 @@ All code in this repository has been:
 If you use AI tools (Claude, Copilot, etc.) for contributions:
 1. Clearly indicate AI-assisted code in commit messages or comments
 2. Ensure all generated code is reviewed and tested
-3. All contributions remain under the project's MIT license
+3. All contributions remain under the project's Apache-2.0 license
 
 ---
 
-**Project License:** MIT  
+**Project License:** Apache-2.0  
 **Last Updated:** 2026-05-15

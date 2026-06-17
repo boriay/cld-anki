@@ -2,6 +2,8 @@
 
 An Android flashcard application for learning Catalan language, designed for Russian speakers. Built with Anki-style spaced repetition algorithm.
 
+> 🤖 **AI-generated project.** This codebase was primarily written with the assistance of AI tools — mainly Claude Code by Anthropic and GitHub Copilot, with other tools used as needed. All code has been reviewed, tested, and integrated by the maintainer. See [NOTICE.md](NOTICE.md) for details.
+
 ## Features
 
 - 📚 **Deck Management**: Create, manage, and organize multiple decks
@@ -168,7 +170,9 @@ Users can create additional custom decks.
 
 ## License
 
-See LICENSE file for details.
+Licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
+
+Copyright 2026 Boris Yusupov
 
 ## Development Notes
 
