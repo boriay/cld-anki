@@ -41,7 +41,11 @@ func scanCard(row pgx.Row) (*model.Card, error) {
 func (r *CardRepo) Upsert(ctx context.Context, c *model.Card) error {
 	tag, err := r.db.Exec(ctx, `
 		INSERT INTO cards (`+cardCols+`)
-		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+		-- $12 (deleted_at) is cast explicitly: it's used in "$12 IS NOT NULL"
+		-- below where Postgres can't infer the param type for a bare NULL
+		-- (non-tombstone card), failing with 42P08. The cast fixes the type
+		-- for every use of $12 in this statement.
+		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz
 		-- Deck must exist and be owned by the user. The deck must also be active,
 		-- UNLESS this card is itself a tombstone ($12 set) — that path is the
 		-- cascade-delete sync and must be allowed under a deleted deck.
