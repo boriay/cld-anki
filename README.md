@@ -108,6 +108,26 @@ Quick start:
 
 For complete setup guide, see [BUILD.md](BUILD.md)
 
+## Backend
+
+The Go sync backend lives in [`backend/`](backend/) (chi, pgx/v5, Firebase Admin).
+
+### Tests
+
+```bash
+cd backend
+go test ./...              # unit tests (no database needed)
+make test-integration      # integration tests against a throwaway Postgres
+```
+
+`make test-integration` runs [`scripts/test-integration.sh`](backend/scripts/test-integration.sh):
+it starts a `postgres:16-alpine` container in Docker, applies the migrations, runs the
+build-tagged integration tests (`go test -tags=integration ./...`), and removes the
+container afterwards — the same flow as the `backend-tests` CI job. Requires Docker.
+
+Pass extra `go test` flags via `ARGS`, e.g. `make test-integration ARGS="-v"`. Override
+the host port or keep the container with env vars: `PG_PORT=5432 KEEP_DB=1 make test-integration`.
+
 ## Learning Algorithm
 
 The app implements SM-2 (Spaced Repetition) algorithm with four quality ratings:

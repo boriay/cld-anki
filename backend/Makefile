@@ -2,7 +2,7 @@ PROJECT_ID ?= cld-anki
 IMAGE      := europe-west1-docker.pkg.dev/$(PROJECT_ID)/cld-anki/cld-anki-backend
 TAG        ?= $(shell git rev-parse --short HEAD)
 
-.PHONY: build run test lint docker push deploy migrate-up migrate-down
+.PHONY: build run test test-integration lint docker push deploy migrate-up migrate-down
 
 build:
 	go build -o bin/server ./cmd/server
@@ -12,6 +12,11 @@ run:
 
 test:
 	go test ./...
+
+# Spin up a throwaway Postgres, run the integration tests, tear it down.
+# Pass extra `go test` args via ARGS, e.g. make test-integration ARGS="-v".
+test-integration:
+	./scripts/test-integration.sh $(ARGS)
 
 lint:
 	golangci-lint run ./...
