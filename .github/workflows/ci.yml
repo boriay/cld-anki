@@ -61,3 +61,47 @@ jobs:
         with:
           name: test-results
           path: app/build/reports/tests/testDebugUnitTest/
+
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    # Postgres service container (sidecar). Backend integration tests run the
+    # real sync SQL against it — mocks/SQLite can't reproduce Postgres-specific
+    # behaviour like parameter type inference (the $12 42P08 sync bug).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser -d testdb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: backend/go.sum
+
+      - name: Build and vet
+        working-directory: backend
+        run: |
+          go build ./...
+          go vet ./...
+
+      # Integration tests are build-tagged so a plain `go test ./...` stays
+      # green without a database; here we opt in with -tags=integration and
+      # point them at the service container.
+      - name: Run backend tests (incl. integration)
+        working-directory: backend
+        env:
+          TEST_DATABASE_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
+        run: go test -tags=integration ./...
