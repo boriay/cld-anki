@@ -21,17 +21,30 @@ import (
 
 // newTestPool connects to the database from TEST_DATABASE_URL, applies the
 // project migrations, truncates the tables, and returns a ready pool. The pool
-// is closed automatically when the test finishes. Skips (not fails) when the
-// env var is unset so the suite can be run locally without a database.
+// is closed automatically when the test finishes.
+//
+// Locally (no TEST_DATABASE_URL) it skips so `go test -tags=integration` works
+// without a database; in CI a missing var is a hard failure so the suite can't
+// silently turn green without actually running.
+//
+// All tests share one database and TRUNCATE on setup, so they MUST stay
+// sequential — do not add t.Parallel() without per-test schemas/databases.
 func newTestPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
+		if os.Getenv("CI") != "" {
+			t.Fatal("TEST_DATABASE_URL must be set in CI")
+		}
 		t.Skip("TEST_DATABASE_URL not set; skipping integration test")
 	}
 
-	ctx := context.Background()
+	// Bound setup so a hung/unreachable DB fails fast instead of stalling until
+	// the global `go test` timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	t.Cleanup(cancel)
+
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		t.Fatalf("connect to test db: %v", err)
@@ -42,7 +55,7 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("ping test db: %v", err)
 	}
 
-	applyMigrations(t, pool)
+	applyMigrations(ctx, t, pool)
 
 	// Clean slate for each test. RESTART IDENTITY is harmless (no serials) but
 	// CASCADE keeps this working if FKs change.
@@ -57,7 +70,7 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 // migrations are idempotent (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS), so
 // running them before each test is safe and also doubles as a migration smoke
 // test.
-func applyMigrations(t *testing.T, pool *pgxpool.Pool) {
+func applyMigrations(ctx context.Context, t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 
 	// repository package lives at backend/internal/repository.
@@ -73,9 +86,9 @@ func applyMigrations(t *testing.T, pool *pgxpool.Pool) {
 			files = append(files, name)
 		}
 	}
+	// Filename order — relies on zero-padded numeric prefixes (001, 002, ...).
 	sort.Strings(files)
 
-	ctx := context.Background()
 	for _, f := range files {
 		sql, err := os.ReadFile(filepath.Join(migDir, f))
 		if err != nil {

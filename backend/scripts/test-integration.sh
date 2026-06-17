@@ -34,11 +34,16 @@ docker run -d --name "$CONTAINER" \
 	-p "$PG_PORT:5432" "$PG_IMAGE" >/dev/null
 
 echo ">> waiting for Postgres to accept connections"
-for i in $(seq 1 30); do
-	if docker exec "$CONTAINER" pg_isready -U testuser -d testdb >/dev/null 2>&1; then
+# Probe over TCP (-h 127.0.0.1), not the unix socket: the official image runs a
+# temporary socket-only server during initdb, so a socket-based pg_isready can
+# report ready before the real TCP listener is up — leading to "connection
+# reset" once we connect from the host. A successful SELECT 1 over TCP means the
+# final server is actually serving.
+for i in $(seq 1 60); do
+	if docker exec "$CONTAINER" psql -h 127.0.0.1 -U testuser -d testdb -c 'SELECT 1' >/dev/null 2>&1; then
 		break
 	fi
-	if [ "$i" -eq 30 ]; then
+	if [ "$i" -eq 60 ]; then
 		echo "!! Postgres did not become ready in time" >&2
 		exit 1
 	fi
@@ -47,4 +52,4 @@ done
 
 export TEST_DATABASE_URL="postgres://testuser:testpass@localhost:$PG_PORT/testdb?sslmode=disable"
 echo ">> running integration tests"
-go test -tags=integration ./internal/repository/ "$@"
+go test -tags=integration ./... "$@"

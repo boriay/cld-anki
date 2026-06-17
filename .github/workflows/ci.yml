@@ -77,8 +77,11 @@ jobs:
           POSTGRES_DB: testdb
         ports:
           - 5432:5432
+        # Probe over TCP (-h 127.0.0.1), not the unix socket: the image runs a
+        # temporary socket-only server during initdb, so a socket probe can
+        # report healthy before the real TCP listener is up.
         options: >-
-          --health-cmd "pg_isready -U testuser -d testdb"
+          --health-cmd "pg_isready -h 127.0.0.1 -U testuser -d testdb"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
