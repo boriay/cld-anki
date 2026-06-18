@@ -101,12 +101,12 @@ class DeckViewModel(
         _selectedDeckDueCount.value = 0
     }
 
-    fun createDeck(name: String, description: String = "") {
+    fun createDeck(name: String) {
         // No manual _isLoading toggling here: the decks Flow re-emits after insert and
         // drives the loading state, avoiding a race with loadDecks' collector.
         viewModelScope.launch {
             try {
-                repository.createDeck(name, description)
+                repository.createDeck(name)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to create deck"

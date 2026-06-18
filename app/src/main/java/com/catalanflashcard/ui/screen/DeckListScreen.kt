@@ -39,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
 import com.catalanflashcard.data.entity.Deck
@@ -174,15 +173,6 @@ fun DeckListItem(
                     text = deck.name,
                     style = MaterialTheme.typography.headlineSmall
                 )
-                if (deck.description.isNotEmpty()) {
-                    Text(
-                        text = deck.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
             }
             IconButton(onClick = onDeleteClick) {
                 Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))

@@ -15,7 +15,6 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
 
         const val COL_ID = "id"
         const val COL_NAME = "name"
-        const val COL_DESCRIPTION = "description"
         const val COL_DECK_ID = "deckId"
         const val COL_FRONT = "front"
         const val COL_BACK = "back"
@@ -46,7 +45,6 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
             val deckValues = ContentValues().apply {
                 put(COL_ID, deckId)
                 put(COL_NAME, context.getString(R.string.initial_deck_name))
-                put(COL_DESCRIPTION, context.getString(R.string.initial_deck_description))
                 put(COL_CREATED_AT, now)
                 put(COL_UPDATED_AT, now)
             }

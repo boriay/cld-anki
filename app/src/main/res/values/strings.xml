@@ -24,12 +24,10 @@
     <string name="start_study">Start Study Session</string>
     <string name="create_deck_title">Create New Deck</string>
     <string name="deck_name_hint">Deck Name</string>
-    <string name="deck_description_hint">Description</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="due_count">Due: %d</string>
     <string name="delete_deck_confirm_title">Delete Deck</string>
     <string name="delete_deck_confirm_message">Delete \"%1$s\"? This cannot be undone.</string>
     <string name="initial_deck_name">Basic Catalan</string>
-    <string name="initial_deck_description">Основной каталанский язык</string>
 </resources>

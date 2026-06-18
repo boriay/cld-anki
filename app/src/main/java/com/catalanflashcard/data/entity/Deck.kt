@@ -11,7 +11,6 @@ data class Deck(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val description: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     // Tombstone: null = active, non-null = soft-deleted. Kept locally so the

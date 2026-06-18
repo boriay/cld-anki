@@ -35,7 +35,7 @@ class DeckDaoTest {
 
     @Test
     fun insertDeck_canRetrieveDeck() = runTest {
-        val deck = Deck(name = "Test Deck", description = "Test Description")
+        val deck = Deck(name = "Test Deck")
         deckDao.insert(deck)
 
         val retrieved = deckDao.getDeckFlow(deck.id).firstOrNull()

@@ -37,8 +37,7 @@ func (h *DeckHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
 	var body struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
+		Name string `json:"name"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
@@ -50,12 +49,11 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	now := time.Now().UTC()
 	d := &model.Deck{
-		ID:          uuid.NewString(),
-		UserID:      uid,
-		Name:        name,
-		Description: strings.TrimSpace(body.Description),
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		ID:        uuid.NewString(),
+		UserID:    uid,
+		Name:      name,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 	if err := h.repo.Upsert(r.Context(), d); err != nil {
 		internalError(w, err)
@@ -81,20 +79,19 @@ func (h *DeckHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
 	id := chi.URLParam(r, "id")
-	// Partial update: only fields present in the payload are changed. Pointers
-	// distinguish "omitted" from "set to empty".
+	// Partial update: only fields present in the payload are changed. Pointer
+	// distinguishes "omitted" from "set to empty".
 	var body struct {
-		Name        *string `json:"name"`
-		Description *string `json:"description"`
+		Name *string `json:"name"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
 	}
-	if body.Name == nil && body.Description == nil {
+	if body.Name == nil {
 		jsonError(w, "no fields to update", http.StatusBadRequest)
 		return
 	}
-	if body.Name != nil && strings.TrimSpace(*body.Name) == "" {
+	if strings.TrimSpace(*body.Name) == "" {
 		jsonError(w, "name cannot be empty", http.StatusBadRequest)
 		return
 	}
@@ -107,12 +104,7 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-	if body.Name != nil {
-		d.Name = strings.TrimSpace(*body.Name)
-	}
-	if body.Description != nil {
-		d.Description = strings.TrimSpace(*body.Description)
-	}
+	d.Name = strings.TrimSpace(*body.Name)
 	d.UpdatedAt = time.Now().UTC()
 	if err := h.repo.Upsert(r.Context(), d); err != nil {
 		internalError(w, err)

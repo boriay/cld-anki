@@ -7,6 +7,14 @@ metadata:
     app: cld-anki-backend
 spec:
   replicas: 1
+  # Single-node cluster with no headroom for a second pod: surge before
+  # terminating would deadlock on Insufficient cpu/memory. Free the old pod
+  # first (brief downtime is acceptable for this workload).
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: cld-anki-backend
