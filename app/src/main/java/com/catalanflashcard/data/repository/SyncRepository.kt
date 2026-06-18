@@ -116,6 +116,8 @@ class SyncRepository(
 private fun Deck.toDto() = DeckDto(
     id = id,
     name = name,
+    language = language,
+    pinned = pinned,
     createdAt = Instant.ofEpochMilli(createdAt).toString(),
     updatedAt = Instant.ofEpochMilli(updatedAt).toString(),
     deletedAt = deletedAt?.let { Instant.ofEpochMilli(it).toString() }
@@ -138,6 +140,8 @@ private fun Card.toDto() = CardDto(
 private fun DeckDto.toDeck() = Deck(
     id = id,
     name = name,
+    language = language,
+    pinned = pinned,
     createdAt = Instant.parse(createdAt).toEpochMilli(),
     updatedAt = Instant.parse(updatedAt).toEpochMilli(),
     deletedAt = deletedAt?.let { Instant.parse(it).toEpochMilli() }

@@ -1,10 +1,13 @@
 package com.catalanflashcard.ui.viewmodel
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
 import com.catalanflashcard.data.repository.SyncRepository
+import com.catalanflashcard.ui.resolveAppLanguage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,14 +15,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class DeckViewModel(
     private val repository: FlashcardRepository,
-    private val syncRepository: SyncRepository
+    private val syncRepository: SyncRepository,
+    initialLanguage: String = resolveAppLanguage(
+        AppCompatDelegate.getApplicationLocales().get(0) ?: Locale.getDefault()
+    )
 ) : ViewModel() {
     private val _decks = MutableStateFlow<List<Deck>>(emptyList())
     val decks: StateFlow<List<Deck>> = _decks.asStateFlow()
+
+    private val _language = MutableStateFlow(initialLanguage)
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -48,19 +58,32 @@ class DeckViewModel(
         loadDecks()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun loadDecks() {
         viewModelScope.launch {
             _isLoading.value = true
-            repository.getAllDecks()
-                .catch { e ->
-                    _error.value = e.message ?: "Failed to load decks"
-                    _isLoading.value = false
+            _language
+                .flatMapLatest { lang ->
+                    // .catch is inside flatMapLatest so an error on one language's
+                    // query terminates only that inner Flow. The outer _language flow
+                    // stays alive; setLanguage() can still trigger a fresh re-query.
+                    repository.getDecks(lang)
+                        .catch { e ->
+                            _error.value = e.message ?: "Failed to load decks"
+                            _isLoading.value = false
+                        }
                 }
                 .collect { deckList ->
                     _decks.value = deckList
                     _isLoading.value = false
                 }
         }
+    }
+
+    // Called by the screen with the language resolved from the current locale,
+    // and by the in-app language menu. Re-queries the deck list via flatMapLatest.
+    fun setLanguage(language: String) {
+        _language.value = language
     }
 
     fun loadDeckStats(deckId: String) {

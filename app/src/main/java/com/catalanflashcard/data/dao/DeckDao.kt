@@ -22,8 +22,15 @@ interface DeckDao {
     @Query("SELECT * FROM decks WHERE id = :id AND deletedAt IS NULL")
     fun getDeckFlow(id: String): Flow<Deck?>
 
-    @Query("SELECT * FROM decks WHERE deletedAt IS NULL ORDER BY createdAt DESC")
-    fun getAllDecks(): Flow<List<Deck>>
+    // Decks visible for the current UI language: those tagged with :lang, plus
+    // user-created decks (language IS NULL) and any deck pinned by use — pinned
+    // and user decks stay visible across language switches.
+    @Query(
+        "SELECT * FROM decks WHERE deletedAt IS NULL " +
+            "AND (pinned = 1 OR language IS NULL OR language = :lang) " +
+            "ORDER BY createdAt DESC"
+    )
+    fun getDecks(lang: String): Flow<List<Deck>>
 
     // Delta for sync: rows touched since the last successful sync (tombstones
     // included). Uses >= so same-millisecond edits at the cursor boundary aren't
@@ -36,4 +43,10 @@ interface DeckDao {
     // timestamp or re-emitting the same tombstone in the sync delta.
     @Query("UPDATE decks SET deletedAt = :now, updatedAt = :now WHERE id = :id AND deletedAt IS NULL")
     suspend fun softDelete(id: String, now: Long = System.currentTimeMillis())
+
+    // Pin a deck on first use so it survives language switches. Idempotent —
+    // only an unpinned row is touched, so repeat answers don't keep bumping
+    // updatedAt or re-emitting the row in the sync delta.
+    @Query("UPDATE decks SET pinned = 1, updatedAt = :now WHERE id = :id AND pinned = 0")
+    suspend fun pin(id: String, now: Long = System.currentTimeMillis())
 }

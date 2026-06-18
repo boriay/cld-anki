@@ -12,7 +12,7 @@ class FlashcardRepository(
     private val deckDao: DeckDao,
     private val cardDao: CardDao
 ) {
-    fun getAllDecks(): Flow<List<Deck>> = deckDao.getAllDecks()
+    fun getDecks(language: String): Flow<List<Deck>> = deckDao.getDecks(language)
 
     fun getDeckFlow(id: String): Flow<Deck?> = deckDao.getDeckFlow(id)
 
@@ -64,14 +64,18 @@ class FlashcardRepository(
             card.repetitions,
             quality
         )
+        val now = System.currentTimeMillis()
         cardDao.update(
             card.copy(
                 interval = result.interval,
                 easeFactor = result.easeFactor,
                 repetitions = result.repetitions,
-                nextReviewTime = System.currentTimeMillis() + result.interval.toLong() * TimeUnit.DAYS.toMillis(1),
-                updatedAt = System.currentTimeMillis()
+                nextReviewTime = now + result.interval.toLong() * TimeUnit.DAYS.toMillis(1),
+                updatedAt = now
             )
         )
+        // Pin is cosmetic and idempotent — don't let a transient SQLiteException
+        // here roll back an already-committed card review in the caller's catch block.
+        runCatching { deckDao.pin(card.deckId, now) }
     }
 }

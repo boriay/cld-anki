@@ -12,7 +12,7 @@ import com.catalanflashcard.data.dao.DeckDao
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 
-@Database(entities = [Deck::class, Card::class], version = 5, exportSchema = true)
+@Database(entities = [Deck::class, Card::class], version = 6, exportSchema = true)
 abstract class FlashcardDatabase : RoomDatabase() {
     abstract fun deckDao(): DeckDao
     abstract fun cardDao(): CardDao
@@ -65,6 +65,18 @@ abstract class FlashcardDatabase : RoomDatabase() {
             }
         }
 
+        // v5 -> v6: add per-language deck filtering. `language` tags seeded decks
+        // (null = user-created, always shown); `pinned` keeps a used deck visible
+        // after a language switch. Plain ADD COLUMN — existing rows get language
+        // NULL (treated as user-created) and pinned 0.
+        @VisibleForTesting
+        internal val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE decks ADD COLUMN language TEXT")
+                db.execSQL("ALTER TABLE decks ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): FlashcardDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -72,7 +84,7 @@ abstract class FlashcardDatabase : RoomDatabase() {
                     FlashcardDatabase::class.java,
                     "flashcard_database"
                 )
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     // Destructive fallback ONLY from v1 — the Long->UUID PK change
                     // has no data-preserving path. Any later missing migration
                     // (e.g. v4->v5) fails loudly instead of silently wiping data.

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Light variant; values-night/themes.xml provides the dark counterpart. -->
-    <style name="Theme.CatalanFlashcard" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- AppCompat ancestry is required by AppCompatActivity (used for per-app
+         locales). Light variant; values-night/themes.xml provides the dark one. -->
+    <style name="Theme.CatalanFlashcard" parent="Theme.AppCompat.Light.NoActionBar" />
 </resources>

@@ -91,4 +91,59 @@ class MigrationTest {
             helper.close()
         }
     }
+
+    @Test
+    fun migrate5To6_addsLanguageAndPinned_andPreservesRows() {
+        val name = "migration-5-6-test"
+        ctx.deleteDatabase(name)
+        val helper = FrameworkSQLiteOpenHelperFactory().create(
+            SupportSQLiteOpenHelper.Configuration.builder(ctx)
+                .name(name)
+                .callback(object : SupportSQLiteOpenHelper.Callback(5) {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        // decks as exported in schema 5.json (description dropped).
+                        db.execSQL(
+                            "CREATE TABLE decks (" +
+                                "id TEXT NOT NULL, name TEXT NOT NULL, " +
+                                "createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL, " +
+                                "deletedAt INTEGER, PRIMARY KEY(id))"
+                        )
+                        db.execSQL("CREATE INDEX index_decks_updatedAt ON decks (updatedAt)")
+                    }
+
+                    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+                })
+                .build()
+        )
+
+        val db = helper.writableDatabase
+        try {
+            db.execSQL(
+                "INSERT INTO decks (id, name, createdAt, updatedAt, deletedAt) " +
+                    "VALUES ('d1', 'Deck One', 1000, 2000, NULL)"
+            )
+
+            FlashcardDatabase.MIGRATION_5_6.migrate(db)
+
+            // Existing row survives; new columns default to NULL / 0.
+            db.query("SELECT id, name, language, pinned FROM decks").use { c ->
+                assertTrue(c.moveToFirst())
+                assertEquals("d1", c.getString(0))
+                assertEquals("Deck One", c.getString(1))
+                assertTrue(c.isNull(2))           // language NULL -> treated as user deck
+                assertEquals(0L, c.getLong(3))     // pinned default 0
+            }
+
+            db.query("PRAGMA table_info(decks)").use { c ->
+                val cols = buildList {
+                    while (c.moveToNext()) add(c.getString(c.getColumnIndexOrThrow("name")))
+                }
+                assertTrue(cols.contains("language"))
+                assertTrue(cols.contains("pinned"))
+            }
+        } finally {
+            helper.close()
+            ctx.deleteDatabase(name)
+        }
+    }
 }

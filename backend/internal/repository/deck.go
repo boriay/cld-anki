@@ -29,11 +29,11 @@ func NewDeckRepo(db DBTX) *DeckRepo { return &DeckRepo{db: db} }
 // WithTx returns a repo bound to the given transaction.
 func (r *DeckRepo) WithTx(tx pgx.Tx) *DeckRepo { return &DeckRepo{db: tx} }
 
-const deckCols = `id, user_id, name, created_at, updated_at, deleted_at`
+const deckCols = `id, user_id, name, language, pinned, created_at, updated_at, deleted_at`
 
 func scanDeck(row pgx.Row) (*model.Deck, error) {
 	d := &model.Deck{}
-	err := row.Scan(&d.ID, &d.UserID, &d.Name, &d.CreatedAt, &d.UpdatedAt, &d.DeletedAt)
+	err := row.Scan(&d.ID, &d.UserID, &d.Name, &d.Language, &d.Pinned, &d.CreatedAt, &d.UpdatedAt, &d.DeletedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -44,14 +44,16 @@ func scanDeck(row pgx.Row) (*model.Deck, error) {
 func (r *DeckRepo) Upsert(ctx context.Context, d *model.Deck) error {
 	_, err := r.db.Exec(ctx, `
 		INSERT INTO decks (`+deckCols+`)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT (id) DO UPDATE SET
 			name        = EXCLUDED.name,
+			language    = COALESCE(decks.language, EXCLUDED.language),
+			pinned      = (decks.pinned OR EXCLUDED.pinned),
 			updated_at  = EXCLUDED.updated_at,
 			deleted_at  = EXCLUDED.deleted_at
 		WHERE decks.user_id = EXCLUDED.user_id
 		  AND decks.updated_at < EXCLUDED.updated_at`,
-		d.ID, d.UserID, d.Name, d.CreatedAt, d.UpdatedAt, d.DeletedAt,
+		d.ID, d.UserID, d.Name, d.Language, d.Pinned, d.CreatedAt, d.UpdatedAt, d.DeletedAt,
 	)
 	return err
 }
@@ -107,7 +109,7 @@ func collectDecks(rows pgx.Rows) ([]*model.Deck, error) {
 	var out []*model.Deck
 	for rows.Next() {
 		d := &model.Deck{}
-		if err := rows.Scan(&d.ID, &d.UserID, &d.Name, &d.CreatedAt, &d.UpdatedAt, &d.DeletedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.UserID, &d.Name, &d.Language, &d.Pinned, &d.CreatedAt, &d.UpdatedAt, &d.DeletedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, d)

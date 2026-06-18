@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tarjetas de catalán</string>
+    <string name="deck_title">Mazos</string>
+    <string name="add_deck">Añadir mazo</string>
+    <string name="sync">Sincronizar</string>
+    <string name="study">Estudiar</string>
+    <string name="front">Anverso</string>
+    <string name="back">Reverso</string>
+    <string name="navigate_back">Volver</string>
+    <string name="again">Otra vez</string>
+    <string name="hard">Difícil</string>
+    <string name="good">Bien</string>
+    <string name="easy">Fácil</string>
+    <string name="no_cards">¡No hay más tarjetas para estudiar!</string>
+    <string name="no_decks">Aún no hay mazos. ¡Crea uno para empezar!</string>
+    <string name="card_count">Tarjetas: %d</string>
+    <string name="card_progress">Tarjeta %1$d / %2$d</string>
+    <string name="delete">Eliminar</string>
+    <string name="tap_to_flip">Toca para girar</string>
+    <string name="back_to_deck">Volver al mazo</string>
+    <string name="deck_not_found">Mazo no encontrado</string>
+    <string name="go_back">Atrás</string>
+    <string name="start_study">Iniciar sesión de estudio</string>
+    <string name="create_deck_title">Crear nuevo mazo</string>
+    <string name="deck_name_hint">Nombre del mazo</string>
+    <string name="create">Crear</string>
+    <string name="cancel">Cancelar</string>
+    <string name="due_count">Pendientes: %d</string>
+    <string name="delete_deck_confirm_title">Eliminar mazo</string>
+    <string name="delete_deck_confirm_message">¿Eliminar \"%1$s\"? Esto no se puede deshacer.</string>
+    <string name="language">Idioma</string>
+    <string name="language_system_default">Predeterminado del sistema</string>
+</resources>

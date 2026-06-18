@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName
 data class DeckDto(
     val id: String,
     val name: String,
+    val language: String? = null,
+    val pinned: Boolean = false,
     @SerializedName("created_at") val createdAt: String,
     @SerializedName("updated_at") val updatedAt: String,
     @SerializedName("deleted_at") val deletedAt: String? = null
