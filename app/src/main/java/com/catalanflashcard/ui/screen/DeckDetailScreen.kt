@@ -116,12 +116,6 @@ fun DeckDetailScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (deck.description.isNotEmpty()) {
-                    Text(
-                        text = deck.description,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(24.dp)

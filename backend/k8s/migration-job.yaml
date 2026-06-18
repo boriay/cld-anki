@@ -5,6 +5,13 @@
 #   kubectl wait --for=condition=complete job/cld-anki-migrate -n cld-anki
 #   kubectl delete -f k8s/migration-job.yaml
 #   kubectl delete configmap cld-anki-migrations -n cld-anki
+#
+# cloud-sql-proxy runs as a native sidecar (initContainer with restartPolicy:
+# Always, GKE >= 1.28). The kubelet starts it before the migrate container and
+# stops it automatically once migrate exits, so the Job actually completes
+# instead of hanging on a never-terminating proxy. The proxy's startup probe
+# gates the main container, removing the start-up race that caused
+# "connection refused" on the first migration.
 
 apiVersion: batch/v1
 kind: Job
@@ -17,6 +24,26 @@ spec:
     spec:
       serviceAccountName: cld-anki-backend
       restartPolicy: Never
+      initContainers:
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+          restartPolicy: Always # makes this a native sidecar
+          args:
+            - "--structured-logs"
+            - "--port=5432"
+            - "--health-check"
+            - "--http-address=0.0.0.0"
+            - "cld-anki:europe-west1:cld-anki-db"
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: 9090
+            periodSeconds: 1
+            failureThreshold: 60
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
       containers:
         - name: migrate
           image: postgres:16-alpine
@@ -38,16 +65,6 @@ spec:
           volumeMounts:
             - name: migrations
               mountPath: /migrations
-        - name: cloud-sql-proxy
-          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
-          args:
-            - "--structured-logs"
-            - "--port=5432"
-            - "cld-anki:europe-west1:cld-anki-db"
-          resources:
-            requests:
-              cpu: "10m"
-              memory: "32Mi"
       volumes:
         - name: migrations
           configMap:

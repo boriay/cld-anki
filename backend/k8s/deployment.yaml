@@ -7,6 +7,15 @@ metadata:
     app: cld-anki-backend
 spec:
   replicas: 1
+  # Zero-downtime deploys: bring up the new pod before terminating the old one.
+  # The node pool autoscales 1->2, so the surge pod (which doesn't fit on the
+  # single busy e2-small) triggers a temporary second node, then scales back
+  # down. Do NOT set maxUnavailable>0 here — that would drop the only pod.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: cld-anki-backend

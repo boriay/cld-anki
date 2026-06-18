@@ -70,12 +70,12 @@ class DeckViewModelTest {
     @Test
     fun createDeck_setIsLoadingFalseOnSuccess() = runTest {
         whenever(repository.getAllDecks()).thenReturn(flowOf(emptyList()))
-        whenever(repository.createDeck("Test", "Desc")).thenReturn(DECK_ID)
+        whenever(repository.createDeck("Test")).thenReturn(DECK_ID)
 
         viewModel = DeckViewModel(repository, syncRepository)
         advanceUntilIdle()
 
-        viewModel.createDeck("Test", "Desc")
+        viewModel.createDeck("Test")
         advanceUntilIdle()
 
         org.junit.Assert.assertFalse(viewModel.isLoading.value)

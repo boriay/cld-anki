@@ -44,7 +44,7 @@ class FlashcardRepositoryTest {
 
     @Test
     fun createDeck_callsDeckDaoInsert() = runTest {
-        repository.createDeck("Test Deck", "Description")
+        repository.createDeck("Test Deck")
 
         verify(deckDao).insert(org.mockito.kotlin.any())
     }
