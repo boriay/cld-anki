@@ -86,6 +86,9 @@ ksp {
 dependencies {
     // Android Core
     implementation("androidx.core:core-ktx:1.19.0")
+    // AppCompat: per-app locales (AppCompatDelegate.setApplicationLocales) for the
+    // in-app language switch, with persistence backported below Android 13.
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.activity:activity-compose:1.13.0")
 

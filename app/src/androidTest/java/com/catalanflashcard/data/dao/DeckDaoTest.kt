@@ -44,14 +44,42 @@ class DeckDaoTest {
     }
 
     @Test
-    fun getAllDecks_returnsFlowOfDecks() = runTest {
-        val deck1 = Deck(name = "Deck 1")
-        val deck2 = Deck(name = "Deck 2")
-        deckDao.insert(deck1)
-        deckDao.insert(deck2)
+    fun getDecks_filtersByLanguage_butKeepsUserDecks() = runTest {
+        deckDao.insert(Deck(name = "EN", language = "en"))
+        deckDao.insert(Deck(name = "ES", language = "es"))
+        deckDao.insert(Deck(name = "User", language = null)) // user-created, always visible
 
-        val decks = deckDao.getAllDecks().first()
-        org.junit.Assert.assertEquals(2, decks.size)
+        val es = deckDao.getDecks("es").first()
+        org.junit.Assert.assertEquals(setOf("ES", "User"), es.map { it.name }.toSet())
+    }
+
+    @Test
+    fun getDecks_includesPinnedDeckOfAnotherLanguage() = runTest {
+        val esDeck = Deck(name = "ES", language = "es")
+        deckDao.insert(esDeck)
+        deckDao.insert(Deck(name = "EN", language = "en"))
+
+        // Using the ES deck pins it; it must stay visible under the EN filter.
+        deckDao.pin(esDeck.id)
+
+        val en = deckDao.getDecks("en").first()
+        org.junit.Assert.assertEquals(setOf("ES", "EN"), en.map { it.name }.toSet())
+    }
+
+    @Test
+    fun pin_isIdempotent_bumpsUpdatedAtOnlyOnce() = runTest {
+        val deck = Deck(name = "ES", language = "es", updatedAt = 100)
+        deckDao.insert(deck)
+
+        deckDao.pin(deck.id, now = 200)
+        val afterFirst = deckDao.getDeckFlow(deck.id).first()!!
+        org.junit.Assert.assertTrue(afterFirst.pinned)
+        org.junit.Assert.assertEquals(200L, afterFirst.updatedAt)
+
+        // Already pinned -> a second pin is a no-op (updatedAt unchanged).
+        deckDao.pin(deck.id, now = 300)
+        val afterSecond = deckDao.getDeckFlow(deck.id).first()!!
+        org.junit.Assert.assertEquals(200L, afterSecond.updatedAt)
     }
 
     @Test

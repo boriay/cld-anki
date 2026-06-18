@@ -16,6 +16,9 @@ import org.junit.After
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,7 +46,7 @@ class DeckViewModelTest {
     @Test
     fun init_loadsDecks() = runTest {
         val decks = listOf(Deck(id = DECK_ID, name = "Test"))
-        whenever(repository.getAllDecks()).thenReturn(flowOf(decks))
+        whenever(repository.getDecks(any())).thenReturn(flowOf(decks))
 
         viewModel = DeckViewModel(repository, syncRepository)
         advanceUntilIdle()
@@ -53,8 +56,22 @@ class DeckViewModelTest {
     }
 
     @Test
+    fun setLanguage_requeriesDecksForThatLanguage() = runTest {
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
+        viewModel = DeckViewModel(repository, syncRepository)
+        advanceUntilIdle()
+
+        viewModel.setLanguage("ru")
+        advanceUntilIdle()
+
+        // flatMapLatest re-subscribes per language: default "en" then "ru".
+        verify(repository).getDecks(eq("en"))
+        verify(repository).getDecks(eq("ru"))
+    }
+
+    @Test
     fun loadDeckStats_resetsCountsBeforeLoading() = runTest {
-        whenever(repository.getAllDecks()).thenReturn(flowOf(emptyList()))
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
         whenever(repository.getCardCount(DECK_ID)).thenReturn(flowOf(5))
         whenever(repository.getDueCardCount(DECK_ID)).thenReturn(flowOf(3))
 
@@ -69,7 +86,7 @@ class DeckViewModelTest {
 
     @Test
     fun createDeck_setIsLoadingFalseOnSuccess() = runTest {
-        whenever(repository.getAllDecks()).thenReturn(flowOf(emptyList()))
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
         whenever(repository.createDeck("Test")).thenReturn(DECK_ID)
 
         viewModel = DeckViewModel(repository, syncRepository)

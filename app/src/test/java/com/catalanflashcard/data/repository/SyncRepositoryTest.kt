@@ -48,8 +48,12 @@ class SyncRepositoryTest {
         whenever(prefs.lastPushedAt).thenReturn(0L)
         // d1 echoed back unchanged (same updated_at) -> must be suppressed.
         val echo = DeckDto(id = "d1", name = "Mine", createdAt = iso(0), updatedAt = iso(100))
-        // d2 is a genuinely newer change from elsewhere -> must be applied.
-        val other = DeckDto(id = "d2", name = "Other", createdAt = iso(0), updatedAt = iso(200))
+        // d2 is a genuinely newer change from elsewhere -> must be applied, with
+        // the language/pinned fields round-tripped from the DTO.
+        val other = DeckDto(
+            id = "d2", name = "Other", language = "es", pinned = true,
+            createdAt = iso(0), updatedAt = iso(200)
+        )
         whenever(api.sync(any(), any()))
             .thenReturn(SyncResponse(syncedAt = iso(300), decks = listOf(echo, other), cards = emptyList()))
 
@@ -57,7 +61,7 @@ class SyncRepositoryTest {
 
         assertTrue(result.isSuccess)
         verify(deckDao, never()).upsert(argThat { id == "d1" })
-        verify(deckDao).upsert(argThat { id == "d2" })
+        verify(deckDao).upsert(argThat { id == "d2" && language == "es" && pinned })
         verify(prefs).lastSyncedAt = 300L
     }
 

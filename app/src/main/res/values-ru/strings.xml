@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Каталанские карточки</string>
+    <string name="deck_title">Колоды</string>
+    <string name="add_deck">Добавить колоду</string>
+    <string name="sync">Синхронизация</string>
+    <string name="study">Учить</string>
+    <string name="front">Лицо</string>
+    <string name="back">Оборот</string>
+    <string name="navigate_back">Назад</string>
+    <string name="again">Снова</string>
+    <string name="hard">Трудно</string>
+    <string name="good">Хорошо</string>
+    <string name="easy">Легко</string>
+    <string name="no_cards">Карточек для изучения больше нет!</string>
+    <string name="no_decks">Колод пока нет. Создайте первую, чтобы начать!</string>
+    <string name="card_count">Карточек: %d</string>
+    <string name="card_progress">Карточка %1$d / %2$d</string>
+    <string name="delete">Удалить</string>
+    <string name="tap_to_flip">Нажмите, чтобы перевернуть</string>
+    <string name="back_to_deck">К колоде</string>
+    <string name="deck_not_found">Колода не найдена</string>
+    <string name="go_back">Назад</string>
+    <string name="start_study">Начать сессию</string>
+    <string name="create_deck_title">Новая колода</string>
+    <string name="deck_name_hint">Название колоды</string>
+    <string name="create">Создать</string>
+    <string name="cancel">Отмена</string>
+    <string name="due_count">К повторению: %d</string>
+    <string name="delete_deck_confirm_title">Удалить колоду</string>
+    <string name="delete_deck_confirm_message">Удалить \"%1$s\"? Это действие необратимо.</string>
+    <string name="language">Язык</string>
+    <string name="language_system_default">Системный</string>
+</resources>

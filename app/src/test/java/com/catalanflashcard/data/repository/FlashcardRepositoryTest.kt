@@ -32,14 +32,14 @@ class FlashcardRepositoryTest {
     }
 
     @Test
-    fun getAllDecks_delegatesToDeckDao() = runTest {
+    fun getDecks_delegatesToDeckDaoWithLanguage() = runTest {
         val decks = listOf(Deck(id = DECK_ID, name = "Test"))
-        whenever(deckDao.getAllDecks()).thenReturn(flowOf(decks))
+        whenever(deckDao.getDecks(eq("es"))).thenReturn(flowOf(decks))
 
-        val result = repository.getAllDecks()
+        val result = repository.getDecks("es")
         result.collect { }
 
-        verify(deckDao).getAllDecks()
+        verify(deckDao).getDecks(eq("es"))
     }
 
     @Test
@@ -66,5 +66,7 @@ class FlashcardRepositoryTest {
 
         verify(cardDao).getCard(CARD_ID)
         verify(cardDao).update(org.mockito.kotlin.any())
+        // First answer pins the deck so it survives language switches.
+        verify(deckDao).pin(eq(DECK_ID), org.mockito.kotlin.any())
     }
 }
