@@ -21,20 +21,15 @@ import java.util.Locale
 
 class DeckViewModel(
     private val repository: FlashcardRepository,
-    private val syncRepository: SyncRepository
+    private val syncRepository: SyncRepository,
+    initialLanguage: String = resolveAppLanguage(
+        AppCompatDelegate.getApplicationLocales().get(0) ?: Locale.getDefault()
+    )
 ) : ViewModel() {
     private val _decks = MutableStateFlow<List<Deck>>(emptyList())
     val decks: StateFlow<List<Deck>> = _decks.asStateFlow()
 
-    // Initialise from the persisted per-app locale so the correct language is
-    // loaded immediately, without waiting for a LaunchedEffect frame in the screen.
-    // setLanguage() is still called by DeckListScreen via LaunchedEffect, but
-    // MutableStateFlow deduplicates identical values so no extra query is issued.
-    private val _language = MutableStateFlow(
-        resolveAppLanguage(
-            AppCompatDelegate.getApplicationLocales().get(0) ?: Locale.getDefault()
-        )
-    )
+    private val _language = MutableStateFlow(initialLanguage)
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

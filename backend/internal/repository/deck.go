@@ -47,8 +47,8 @@ func (r *DeckRepo) Upsert(ctx context.Context, d *model.Deck) error {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT (id) DO UPDATE SET
 			name        = EXCLUDED.name,
-			language    = EXCLUDED.language,
-			pinned      = EXCLUDED.pinned,
+			language    = COALESCE(decks.language, EXCLUDED.language),
+			pinned      = (decks.pinned OR EXCLUDED.pinned),
 			updated_at  = EXCLUDED.updated_at,
 			deleted_at  = EXCLUDED.deleted_at
 		WHERE decks.user_id = EXCLUDED.user_id

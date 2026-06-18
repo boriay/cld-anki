@@ -58,13 +58,13 @@ class DeckViewModelTest {
     @Test
     fun setLanguage_requeriesDecksForThatLanguage() = runTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
-        viewModel = DeckViewModel(repository, syncRepository)
+        // Pin the initial language so this test is independent of host/device locale.
+        viewModel = DeckViewModel(repository, syncRepository, initialLanguage = "en")
         advanceUntilIdle()
 
         viewModel.setLanguage("ru")
         advanceUntilIdle()
 
-        // flatMapLatest re-subscribes per language: default "en" then "ru".
         verify(repository).getDecks(eq("en"))
         verify(repository).getDecks(eq("ru"))
     }

@@ -27,13 +27,13 @@ class InitialDataCallback(private val context: Context) : RoomDatabase.Callback(
         const val COL_UPDATED_AT = "updatedAt"
 
         // Deck names are written in their own language (shown as-is in the list).
-        val SEED_DECKS = listOf(
+        private val SEED_DECKS = listOf(
             SeedDeck(language = "en", name = "Basic Catalan"),
             SeedDeck(language = "es", name = "Catalán básico"),
             SeedDeck(language = "ru", name = "Базовый каталанский")
         )
 
-        val INITIAL_CARDS = listOf(
+        private val INITIAL_CARDS = listOf(
             SeedCard("Hola", "Hello", "Hola", "Привет"),
             SeedCard("Adiós", "Goodbye", "Adiós", "До свидания"),
             SeedCard("Gràcies", "Thank you", "Gracias", "Спасибо"),
