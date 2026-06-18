@@ -1,6 +1,7 @@
 package com.catalanflashcard.data.database
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -42,7 +43,8 @@ abstract class FlashcardDatabase : RoomDatabase() {
         // v4 -> v5: drop the unused description column from decks. SQLite before
         // 3.35 (Android API < 34) has no ALTER TABLE DROP COLUMN, so recreate the
         // table. The DDL must match Room's generated schema for decks exactly.
-        private val MIGRATION_4_5 = object : Migration(4, 5) {
+        @VisibleForTesting
+        internal val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     "CREATE TABLE decks_new (" +
