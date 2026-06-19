@@ -1,9 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Fanned flashcards foreground (108 × 108 dp).
+  Safe zone: centre 72 dp circle (18–90). All card content sits inside it.
+  Cards rotate around the icon centre (54, 54).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-  <path android:fillColor="#9C27B0" android:pathData="M20,20m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0"/>
-  <path android:fillColor="#FFFFFF" android:pathData="M20,32L28,24M20,24L28,32"/>
+
+  <!-- Card 3 · back-left · –16° -->
+  <group android:rotation="-16" android:pivotX="54" android:pivotY="54">
+    <path android:fillColor="#C8BEA8"
+          android:pathData="M37,22 H71 a5,5 0 0,1 5,5 V77 a5,5 0 0,1 -5,5 H37 a5,5 0 0,1 -5,-5 V27 a5,5 0 0,1 5,-5 Z"/>
+  </group>
+
+  <!-- Card 2 · middle · –5° -->
+  <group android:rotation="-5" android:pivotX="54" android:pivotY="54">
+    <path android:fillColor="#EDE9E0"
+          android:pathData="M37,22 H71 a5,5 0 0,1 5,5 V77 a5,5 0 0,1 -5,5 H37 a5,5 0 0,1 -5,-5 V27 a5,5 0 0,1 5,-5 Z"/>
+  </group>
+
+  <!-- Card 1 · front · +7° · with red "?" -->
+  <group android:rotation="7" android:pivotX="54" android:pivotY="54">
+    <path android:fillColor="#FFFFFF"
+          android:pathData="M37,22 H71 a5,5 0 0,1 5,5 V77 a5,5 0 0,1 -5,5 H37 a5,5 0 0,1 -5,-5 V27 a5,5 0 0,1 5,-5 Z"/>
+
+    <!--
+      "?" centred at card centre (~54, 50).
+      Coordinates scaled from SVG 1024px → 108dp (×0.1055).
+      stroke-width 5.9, round caps/joins.
+    -->
+    <path android:fillColor="#00000000"
+          android:strokeColor="#CC0000"
+          android:strokeWidth="5.9"
+          android:strokeLineCap="round"
+          android:strokeLineJoin="round"
+          android:pathData="M47.4,45.5 C47.4,38.1 50.8,34.3 54.8,34.3 C61.4,34.3 64.4,39.3 64.4,44.4 C64.4,51.3 56.0,52.2 54.3,56.8 L54.3,59.1"/>
+    <path android:fillColor="#CC0000"
+          android:pathData="M51.0,67.1 a3.3,3.3 0 1,0 6.6,0 a3.3,3.3 0 1,0 -6.6,0"/>
+  </group>
+
 </vector>
