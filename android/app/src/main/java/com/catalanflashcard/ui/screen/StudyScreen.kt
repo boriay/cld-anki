@@ -36,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
@@ -140,7 +142,7 @@ fun StudyScreen(
                                 .height(300.dp)
                                 .clickable { viewModel.flipCard() }
                                 .animateContentSize(),
-                            label = if (isFlipped) stringResource(R.string.back) else stringResource(R.string.front),
+                            isFlipped = isFlipped,
                             text = if (isFlipped) card.back else card.front
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -195,14 +197,24 @@ fun StudyScreen(
 @Composable
 fun FlashCard(
     modifier: Modifier = Modifier,
-    label: String,
+    isFlipped: Boolean,
     text: String
 ) {
+    // Сторона различается только цветом (без визуальной подписи); состояние стороны
+    // отдаём в TalkBack через stateDescription. Строгие Material-пары: лицо —
+    // primary/onPrimary, оборот (светлее) — primaryContainer/onPrimaryContainer.
+    val colors = MaterialTheme.colorScheme
+    val cardColor = if (isFlipped) colors.primaryContainer else colors.primary
+    val contentColor = if (isFlipped) colors.onPrimaryContainer else colors.onPrimary
+    val faceState = stringResource(R.string.front)
+    val backState = stringResource(R.string.back)
     Box(
-        modifier = modifier.background(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(16.dp)
-        ),
+        modifier = modifier
+            .semantics { stateDescription = if (isFlipped) backState else faceState }
+            .background(
+                color = cardColor,
+                shape = RoundedCornerShape(16.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -213,15 +225,9 @@ fun FlashCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
                 text = text,
                 style = MaterialTheme.typography.displaySmall,
-                color = Color.White,
+                color = contentColor,
                 textAlign = TextAlign.Center
             )
         }
