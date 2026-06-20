@@ -3,7 +3,6 @@ package com.catalanflashcard.ui.viewmodel
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
-import com.catalanflashcard.data.repository.SyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -25,7 +24,7 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeckViewModelTest {
     @Mock private lateinit var repository: FlashcardRepository
-    @Mock private lateinit var syncRepository: SyncRepository
+    private val syncController = FakeSyncController()
     private lateinit var viewModel: DeckViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -49,7 +48,7 @@ class DeckViewModelTest {
         val decks = listOf(Deck(id = DECK_ID, name = "Test"))
         whenever(repository.getDecks(any())).thenReturn(flowOf(decks))
 
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         org.junit.Assert.assertTrue(viewModel.decks.value.isNotEmpty())
@@ -60,7 +59,7 @@ class DeckViewModelTest {
     fun setLanguage_requeriesDecksForThatLanguage() = runTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
         // Pin the initial language so this test is independent of host/device locale.
-        viewModel = DeckViewModel(repository, syncRepository, initialLanguage = "en")
+        viewModel = DeckViewModel(repository, syncController, initialLanguage = "en")
         advanceUntilIdle()
 
         viewModel.setLanguage("ru")
@@ -77,7 +76,7 @@ class DeckViewModelTest {
         whenever(repository.getCards(DECK_ID)).thenReturn(flowOf(emptyList()))
         whenever(repository.getDueCardCount(DECK_ID)).thenReturn(flowOf(3))
 
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         viewModel.loadDeckStats(DECK_ID)
@@ -98,7 +97,7 @@ class DeckViewModelTest {
         whenever(repository.getCards(DECK_ID)).thenReturn(flowOf(cards))
         whenever(repository.getDueCardCount(DECK_ID)).thenReturn(flowOf(0))
 
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         viewModel.loadDeckStats(DECK_ID)
@@ -111,7 +110,7 @@ class DeckViewModelTest {
     @Test
     fun createCard_delegatesToRepository() = runTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         viewModel.createCard(DECK_ID, "  hola  ", "  привет  ")
@@ -124,7 +123,7 @@ class DeckViewModelTest {
     @Test
     fun updateCard_trimsAndDelegatesToRepository() = runTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         val card = Card(deckId = DECK_ID, front = "old", back = "старое")
@@ -139,7 +138,7 @@ class DeckViewModelTest {
     @Test
     fun deleteCard_delegatesToRepository() = runTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         val card = Card(deckId = DECK_ID, front = "hola", back = "привет")
@@ -154,7 +153,7 @@ class DeckViewModelTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
         whenever(repository.createDeck("Test")).thenReturn(DECK_ID)
 
-        viewModel = DeckViewModel(repository, syncRepository)
+        viewModel = DeckViewModel(repository, syncController)
         advanceUntilIdle()
 
         viewModel.createDeck("Test")

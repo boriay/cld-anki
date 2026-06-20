@@ -4,6 +4,10 @@
     <string name="deck_title">Mazos</string>
     <string name="add_deck">Añadir mazo</string>
     <string name="sync">Sincronizar</string>
+    <string name="sync_auto_on">Sincronización automática activada</string>
+    <string name="sync_auto_off">Sincronización automática desactivada</string>
+    <string name="sync_in_progress">Sincronizando…</string>
+    <string name="sync_caption">La sincronización con el servidor guarda tus tarjetas más allá de este teléfono: edita y estudia en otros dispositivos y en la web.</string>
     <string name="study">Estudiar</string>
     <string name="front">Anverso</string>
     <string name="back">Reverso</string>

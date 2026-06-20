@@ -18,11 +18,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.catalanflashcard.data.database.FlashcardDatabase
-import com.catalanflashcard.data.preferences.SyncPreferences
 import com.catalanflashcard.data.preferences.WeatherPreferences
 import com.catalanflashcard.data.repository.FlashcardRepository
-import com.catalanflashcard.data.repository.SyncRepository
 import com.catalanflashcard.data.repository.WeatherRepository
+import com.catalanflashcard.data.sync.SyncManager
 import com.catalanflashcard.ui.WeatherBackground
 import com.catalanflashcard.ui.navigation.Screen
 import com.catalanflashcard.ui.screen.AddDeckDialog
@@ -45,16 +44,14 @@ class MainActivity : AppCompatActivity() {
             database.deckDao(),
             database.cardDao()
         )
-        val syncRepository = SyncRepository(
-            database.deckDao(),
-            database.cardDao(),
-            SyncPreferences(applicationContext)
-        )
+        // Singleton: the shared auto-sync toggle/indicator and its debounce engine,
+        // surviving Activity recreation (e.g. on a locale change).
+        val syncManager = SyncManager.getInstance(applicationContext)
 
         val weatherRepository = WeatherRepository(WeatherPreferences(applicationContext))
 
-        val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository, syncRepository) }
-        val studyViewModelFactory = ViewModelFactory { StudyViewModel(repository) }
+        val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository, syncManager) }
+        val studyViewModelFactory = ViewModelFactory { StudyViewModel(repository, syncManager) }
         val weatherViewModelFactory = ViewModelFactory { WeatherViewModel(weatherRepository) }
 
         setContent {

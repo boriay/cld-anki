@@ -23,6 +23,7 @@ import org.mockito.kotlin.any
 @OptIn(ExperimentalCoroutinesApi::class)
 class StudyViewModelTest {
     @Mock private lateinit var repository: FlashcardRepository
+    private val syncController = FakeSyncController()
     private lateinit var viewModel: StudyViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -36,7 +37,7 @@ class StudyViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = StudyViewModel(repository)
+        viewModel = StudyViewModel(repository, syncController)
     }
 
     @After

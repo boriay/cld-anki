@@ -1,5 +1,6 @@
 package com.catalanflashcard.ui.screen
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,9 +43,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.catalanflashcard.R
@@ -53,6 +59,11 @@ import com.catalanflashcard.data.repository.WeatherState
 import com.catalanflashcard.ui.WeatherStrip
 import com.catalanflashcard.ui.resolveAppLanguage
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
+import kotlinx.coroutines.delay
+
+// "Auto-sync on" color. Green reads as an active indicator on both light and
+// dark toolbars, without depending on the theme accent.
+private val SyncOnColor = Color(0xFF4CAF50)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,9 +76,21 @@ fun DeckListScreen(
     val decks by viewModel.decks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
+    val autoSyncEnabled by viewModel.autoSyncEnabled.collectAsState()
     val error by viewModel.error.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var deckToDelete by remember { mutableStateOf<Deck?>(null) }
+
+    // The sync hint banner doesn't stay up permanently: it shows on launch and on
+    // a tap of the sync button, then fades out after 10 seconds. Each tap bumps the
+    // trigger and restarts the timer.
+    var syncHintTrigger by remember { mutableStateOf(0) }
+    var syncHintVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(syncHintTrigger) {
+        syncHintVisible = true
+        delay(10_000)
+        syncHintVisible = false
+    }
 
     // Resolve the deck-filter language from the active locale. LocalConfiguration
     // recomposes on a locale change, so switching language re-filters the list.
@@ -113,9 +136,24 @@ fun DeckListScreen(
                 title = { Text(stringResource(R.string.deck_title)) },
                 actions = {
                     LanguageMenu()
+                    // Auto-sync toggle that doubles as the indicator. A tap flips
+                    // on/off (enabling forces a sync); it spins while syncing.
+                    // stateDescription + Role.Switch announce the state to TalkBack,
+                    // including while a spinner with no contentDescription is shown.
+                    val syncStateDescription = when {
+                        isSyncing -> stringResource(R.string.sync_in_progress)
+                        autoSyncEnabled -> stringResource(R.string.sync_auto_on)
+                        else -> stringResource(R.string.sync_auto_off)
+                    }
                     IconButton(
-                        onClick = { viewModel.sync() },
-                        enabled = !isSyncing
+                        onClick = {
+                            viewModel.toggleAutoSync()
+                            syncHintTrigger++
+                        },
+                        modifier = Modifier.semantics {
+                            role = Role.Switch
+                            stateDescription = syncStateDescription
+                        }
                     ) {
                         if (isSyncing) {
                             CircularProgressIndicator(
@@ -123,7 +161,18 @@ fun DeckListScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Icon(Icons.Filled.Sync, contentDescription = stringResource(R.string.sync))
+                            Icon(
+                                Icons.Filled.Sync,
+                                contentDescription = stringResource(
+                                    if (autoSyncEnabled) R.string.sync_auto_on else R.string.sync_auto_off
+                                ),
+                                // Color shows the state: on — green, off — muted.
+                                tint = if (autoSyncEnabled) {
+                                    SyncOnColor
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
                         }
                     }
                 }
@@ -145,6 +194,10 @@ fun DeckListScreen(
                 state = weather,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
             )
+            // The sync hint always occupies its place in the Column (visibility via
+            // alpha, not AnimatedVisibility), so when hidden its space stays empty —
+            // the list below neither jumps nor gets overlapped.
+            SyncHint(visible = syncHintVisible)
             Box(modifier = Modifier.fillMaxSize().weight(1f)) {
                 if (isLoading && decks.isEmpty()) {
                     CircularProgressIndicator(
@@ -172,6 +225,36 @@ fun DeckListScreen(
                 }
             }
         }
+    }
+}
+
+// Server-sync hint banner. Always present in the layout, with visibility driven
+// by alpha — so its reserved space stays empty when hidden and the list doesn't
+// shift. The small sync icon ties the text to the toolbar button.
+@Composable
+private fun SyncHint(visible: Boolean) {
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        label = "syncHintAlpha"
+    )
+    Row(
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 4.dp)
+            .alpha(alpha),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            Icons.Filled.Sync,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = stringResource(R.string.sync_caption),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

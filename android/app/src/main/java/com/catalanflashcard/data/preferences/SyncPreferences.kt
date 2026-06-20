@@ -2,7 +2,14 @@ package com.catalanflashcard.data.preferences
 
 import android.content.Context
 
-class SyncPreferences(context: Context) {
+// Narrow contract of what SyncManager needs from settings: just the auto-sync
+// flag. Lets SyncManager be tested without an Android Context (a fake instead of
+// SharedPreferences).
+interface AutoSyncSettings {
+    var autoSyncEnabled: Boolean
+}
+
+class SyncPreferences(context: Context) : AutoSyncSettings {
     private val prefs = context.getSharedPreferences("sync_prefs", Context.MODE_PRIVATE)
 
     // Server-issued timestamp of the last sync. Used as the `since` cursor when
@@ -18,8 +25,15 @@ class SyncPreferences(context: Context) {
         get() = prefs.getLong(KEY_LAST_PUSHED_AT, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_PUSHED_AT, value).apply()
 
+    // Whether auto-sync is enabled. Off by default so the app stays fully offline
+    // until the user turns sync on themselves.
+    override var autoSyncEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_SYNC_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_AUTO_SYNC_ENABLED, value).apply()
+
     companion object {
         private const val KEY_LAST_SYNCED_AT = "last_synced_at"
         private const val KEY_LAST_PUSHED_AT = "last_pushed_at"
+        private const val KEY_AUTO_SYNC_ENABLED = "auto_sync_enabled"
     }
 }
