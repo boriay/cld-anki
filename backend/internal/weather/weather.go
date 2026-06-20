@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -140,12 +141,27 @@ type geoLocation struct {
 	City string
 }
 
+const (
+	// Opportunistic eviction bounds: when a cache exceeds maxCacheEntries we
+	// drop entries that expired more than staleRetention ago. Entries are kept
+	// past their TTL on purpose so stale-on-error can still serve them; only
+	// entries too old to be useful as a fallback are pruned.
+	maxCacheEntries = 4096
+	staleRetention  = 24 * time.Hour
+)
+
 // NewService builds a Service. geoURL and forecastURL fall back to sensible
 // public defaults when empty. ttl bounds how stale a per-location forecast may
 // be (and thus the minimum interval between upstream calls for that location).
 func NewService(geoURL, forecastURL string, ttl time.Duration) *Service {
 	if geoURL == "" {
 		geoURL = "https://ipwho.is/"
+	}
+	// The IP is appended as a path segment, so the base must end in "/".
+	// Normalize here so a config like "https://ipwho.is" (no slash) can't turn
+	// into "https://ipwho.is1.2.3.4".
+	if !strings.HasSuffix(geoURL, "/") {
+		geoURL += "/"
 	}
 	if forecastURL == "" {
 		forecastURL = "https://api.open-meteo.com/v1/forecast"
@@ -200,6 +216,13 @@ func (s *Service) geolocate(ctx context.Context, ip string) (geoLocation, error)
 	loc := v.(geoLocation)
 	s.mu.Lock()
 	s.geoC[ip] = geoEntry{loc: loc, expire: now.Add(s.geoTTL)}
+	if len(s.geoC) > maxCacheEntries {
+		for k, e := range s.geoC {
+			if now.After(e.expire.Add(staleRetention)) {
+				delete(s.geoC, k)
+			}
+		}
+	}
 	s.mu.Unlock()
 	return loc, nil
 }
@@ -261,6 +284,13 @@ func (s *Service) forecast(ctx context.Context, loc geoLocation) (Weather, error
 	wx := v.(Weather)
 	s.mu.Lock()
 	s.wxC[key] = wxEntry{wx: wx, expire: now.Add(s.ttl)}
+	if len(s.wxC) > maxCacheEntries {
+		for k, e := range s.wxC {
+			if now.After(e.expire.Add(staleRetention)) {
+				delete(s.wxC, k)
+			}
+		}
+	}
 	s.mu.Unlock()
 	return wx, nil
 }

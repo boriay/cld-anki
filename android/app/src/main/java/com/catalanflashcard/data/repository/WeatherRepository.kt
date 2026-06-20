@@ -79,6 +79,11 @@ class WeatherRepository(
             // cached weather — keep showing it instead of resetting to default.
             if (dto.daily.isEmpty()) {
                 if (BuildConfig.DEBUG) Log.d(TAG, "backend returned fallback (no daily); keeping cache")
+                // If we already have good data, treat this as a completed attempt
+                // so we honour the once-per-hour cap during an upstream outage
+                // instead of re-hitting the backend on every launch. With no prior
+                // data, leave fetchedAt untouched so the next launch keeps trying.
+                if (prefs.condition != null) prefs.fetchedAt = System.currentTimeMillis()
                 return@withContext cached()
             }
             val daily = dto.daily.map { it.toDomain() }
