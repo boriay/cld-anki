@@ -72,6 +72,11 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
 
 ## Сборка приложения
 
+> **Важно:** Android-проект находится в каталоге `android/`. Все команды
+> `./gradlew` ниже выполняются из него: `cd android` перед сборкой.
+> Пути к артефактам указаны **от корня репозитория** (`android/app/build/...`);
+> из каталога `android/` это соответствует `app/build/...`.
+
 ### Debug APK (для тестирования)
 
 **macOS/Linux:**
@@ -84,7 +89,7 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
 gradlew.bat build
 ```
 
-APK файл будет в: `app/build/outputs/apk/debug/app-debug.apk`
+APK файл будет в: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 ### Release APK (для публикации)
 
@@ -97,7 +102,7 @@ APK файл будет в: `app/build/outputs/apk/debug/app-debug.apk`
 ./gradlew assembleRelease
 ```
 
-APK файл будет в: `app/build/outputs/apk/release/app-release.apk`
+APK файл будет в: `android/app/build/outputs/apk/release/app-release.apk`
 
 ### AAB для Play Store
 
@@ -105,7 +110,7 @@ APK файл будет в: `app/build/outputs/apk/release/app-release.apk`
 ./gradlew bundleRelease
 ```
 
-Файл будет в: `app/build/outputs/bundle/release/app-release.aab`
+Файл будет в: `android/app/build/outputs/bundle/release/app-release.aab`
 
 ## Установка на эмулятор или устройство
 
@@ -162,7 +167,7 @@ adb shell am start -n com.catalanflashcard/.MainActivity
 ## Структура выходных файлов
 
 ```
-app/build/
+android/app/build/
 ├── outputs/
 │   ├── apk/
 │   │   ├── debug/app-debug.apk        # Debug APK

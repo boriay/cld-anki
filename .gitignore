@@ -1,10 +1,11 @@
 *.iml
-/.gradle/
+.gradle/
+.kotlin/
 .idea
 local.properties
 .DS_Store
-/build
-/captures
+build/
+captures/
 .externalNativeBuild
 .cxx
 *.apk
@@ -12,17 +13,18 @@ local.properties
 .vscode
 
 # Gradle wrapper JAR is automatically downloaded on first run
-# If not present, run: ./gradlew --version (on macOS/Linux) or gradlew.bat --version (on Windows)
+# If not present, run (from the android/ directory): cd android && ./gradlew --version
+# (on macOS/Linux) or cd android && gradlew.bat --version (on Windows)
 
 # Secrets — never commit
 backend/k8s/secret.yaml
 backend/.env
 
 # Firebase app config (project-specific, not tracked)
-/app/google-services.json
+/android/app/google-services.json
 
 # Build artifacts
-/app/release/
+/android/app/release/
 
 # Compiled Go server binary
 /backend/server
