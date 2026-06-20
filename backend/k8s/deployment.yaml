@@ -26,6 +26,51 @@ spec:
     spec:
       serviceAccountName: cld-anki-backend
       terminationGracePeriodSeconds: 40
+      # cloud-sql-proxy runs as a native sidecar (initContainer with
+      # restartPolicy: Always, GKE >= 1.28). The kubelet starts it — and waits
+      # for its startup probe — before the app container, so the app never races
+      # an unready proxy and crash-loops on "connection refused". On pod
+      # shutdown the kubelet stops it after the app, keeping graceful drain.
+      initContainers:
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+          restartPolicy: Always # makes this a native sidecar
+          args:
+            - "--structured-logs"
+            - "--port=5432"
+            - "--health-check"
+            - "--http-address=0.0.0.0"
+            - "$(CLOUD_SQL_INSTANCE)"
+          env:
+            - name: CLOUD_SQL_INSTANCE
+              valueFrom:
+                configMapKeyRef:
+                  name: cld-anki-config
+                  key: CLOUD_SQL_INSTANCE
+          # /startup flips to 200 only once the proxy can reach Cloud SQL, which
+          # is exactly the gate the app needs. 60 * 1s covers a cold proxy start.
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: 9090
+            periodSeconds: 1
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: 9090
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "50m"
+              memory: "64Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
       containers:
         - name: app
           image: europe-west1-docker.pkg.dev/cld-anki/cld-anki/cld-anki-backend:latest
@@ -54,18 +99,26 @@ spec:
             limits:
               cpu: "200m"
               memory: "256Mi"
+          # The HTTP server only starts after NewPool's startup DB-ping retry
+          # (up to ~60s if the DB is unreachable). The startup probe gates
+          # liveness/readiness until then, so a slow-but-recovering boot isn't
+          # killed mid-retry. 15 * 5s = 75s budget covers the 60s ping retry.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 15
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 5
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 15
             periodSeconds: 20
             failureThreshold: 3
           securityContext:
@@ -73,28 +126,3 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 65534
-
-        # Cloud SQL Auth Proxy v2 — connects via Unix socket is also possible,
-        # but TCP on 127.0.0.1:5432 is simpler for configuration.
-        - name: cloud-sql-proxy
-          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
-          args:
-            - "--structured-logs"
-            - "--port=5432"
-            - "$(CLOUD_SQL_INSTANCE)"
-          env:
-            - name: CLOUD_SQL_INSTANCE
-              valueFrom:
-                configMapKeyRef:
-                  name: cld-anki-config
-                  key: CLOUD_SQL_INSTANCE
-          resources:
-            requests:
-              cpu: "10m"
-              memory: "32Mi"
-            limits:
-              cpu: "50m"
-              memory: "64Mi"
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
