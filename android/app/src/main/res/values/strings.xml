@@ -36,6 +36,10 @@
     <string name="no_cards_in_deck">No cards yet. Add one to start studying.</string>
     <string name="delete_card_confirm_title">Delete Card</string>
     <string name="delete_card_confirm_message">Delete this card? This cannot be undone.</string>
+    <string name="weather_today">Today</string>
+    <string name="weather_tomorrow">Tomorrow</string>
+    <string name="weather_cloudiness">Cloudiness</string>
+    <string name="weather_precipitation">Precipitation chance</string>
     <string name="language">Language</string>
     <string name="language_system_default">System default</string>
     <!-- Language names are shown as endonyms, identical across all locales. -->

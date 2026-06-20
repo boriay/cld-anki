@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="270" height="480">
+  <defs>
+    <linearGradient id="sky1" gradientUnits="userSpaceOnUse" x1="540" y1="0" x2="540" y2="1280">
+      <stop offset="0" stop-color="#10162E"/>
+      <stop offset="1" stop-color="#2A3A63"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1080" height="1920" fill="url(#sky1)"/>
+  <circle cx="120" cy="220" r="5" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="300" cy="140" r="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="480" cy="300" r="6" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="250" cy="420" r="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="820" cy="180" r="5" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="960" cy="360" r="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="640" cy="240" r="5" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="180" cy="560" r="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="900" cy="560" r="5" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="520" cy="120" r="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="740" cy="460" r="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="840" cy="320" r="150" fill="#FFFFFF" fill-opacity="0.12"/>
+  <circle cx="840" cy="320" r="110" fill="#C9CEDC"/>
+  <circle cx="380" cy="380" r="117" fill="#3A4866"/>
+  <circle cx="224" cy="419" r="91" fill="#3A4866"/>
+  <circle cx="536" cy="419" r="97" fill="#3A4866"/>
+  <circle cx="380" cy="438" r="123" fill="#3A4866"/>
+  <circle cx="780" cy="320" r="90" fill="#445273"/>
+  <circle cx="660" cy="350" r="70" fill="#445273"/>
+  <circle cx="900" cy="350" r="75" fill="#445273"/>
+  <circle cx="780" cy="365" r="95" fill="#445273"/>
+  <path d="M0,1280 Q540,1130 1080,1280 L1080,1920 L0,1920 Z" fill="#284F33"/>
+  <path d="M0,1500 Q540,1360 1080,1500 L1080,1920 L0,1920 Z" fill="#1D3B27"/>
+</svg>

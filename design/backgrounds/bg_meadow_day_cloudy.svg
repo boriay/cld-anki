@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="270" height="480">
+  <defs>
+    <linearGradient id="sky1" gradientUnits="userSpaceOnUse" x1="540" y1="0" x2="540" y2="1280">
+      <stop offset="0" stop-color="#9AA7B2"/>
+      <stop offset="1" stop-color="#D2DBE2"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1080" height="1920" fill="url(#sky1)"/>
+  <circle cx="360" cy="380" r="117" fill="#FFFFFF"/>
+  <circle cx="204" cy="419" r="91" fill="#FFFFFF"/>
+  <circle cx="516" cy="419" r="97" fill="#FFFFFF"/>
+  <circle cx="360" cy="438" r="123" fill="#FFFFFF"/>
+  <circle cx="760" cy="300" r="90" fill="#F2F5F8"/>
+  <circle cx="640" cy="330" r="70" fill="#F2F5F8"/>
+  <circle cx="880" cy="330" r="75" fill="#F2F5F8"/>
+  <circle cx="760" cy="345" r="95" fill="#F2F5F8"/>
+  <path d="M0,1280 Q540,1130 1080,1280 L1080,1920 L0,1920 Z" fill="#67B24A"/>
+  <path d="M0,1500 Q540,1360 1080,1500 L1080,1920 L0,1920 Z" fill="#499234"/>
+  <circle cx="140" cy="1660" r="18" fill="#E94F4F"/>
+  <circle cx="140" cy="1660" r="7" fill="#FFE27A"/>
+  <circle cx="260" cy="1740" r="18" fill="#F2D94E"/>
+  <circle cx="260" cy="1740" r="7" fill="#FFE27A"/>
+  <circle cx="430" cy="1620" r="18" fill="#FFFFFF"/>
+  <circle cx="430" cy="1620" r="7" fill="#FFE27A"/>
+  <circle cx="600" cy="1720" r="18" fill="#E94F4F"/>
+  <circle cx="600" cy="1720" r="7" fill="#FFE27A"/>
+  <circle cx="760" cy="1650" r="18" fill="#F2D94E"/>
+  <circle cx="760" cy="1650" r="7" fill="#FFE27A"/>
+  <circle cx="910" cy="1740" r="18" fill="#FFFFFF"/>
+  <circle cx="910" cy="1740" r="7" fill="#FFE27A"/>
+  <circle cx="340" cy="1820" r="18" fill="#F2D94E"/>
+  <circle cx="340" cy="1820" r="7" fill="#FFE27A"/>
+  <circle cx="700" cy="1840" r="18" fill="#E94F4F"/>
+  <circle cx="700" cy="1840" r="7" fill="#FFE27A"/>
+  <circle cx="980" cy="1830" r="18" fill="#FFFFFF"/>
+  <circle cx="980" cy="1830" r="7" fill="#FFE27A"/>
+</svg>

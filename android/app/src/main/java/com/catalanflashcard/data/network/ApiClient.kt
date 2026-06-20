@@ -34,10 +34,13 @@ object ApiClient {
         }
         .build()
 
-    val syncApi: SyncApi = Retrofit.Builder()
+    private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .client(httpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-        .create(SyncApi::class.java)
+
+    val syncApi: SyncApi = retrofit.create(SyncApi::class.java)
+
+    val weatherApi: WeatherApi = retrofit.create(WeatherApi::class.java)
 }

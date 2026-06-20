@@ -36,6 +36,10 @@
     <string name="no_cards_in_deck">Aún no hay tarjetas. Añade una para empezar a estudiar.</string>
     <string name="delete_card_confirm_title">Eliminar tarjeta</string>
     <string name="delete_card_confirm_message">¿Eliminar esta tarjeta? Esto no se puede deshacer.</string>
+    <string name="weather_today">Hoy</string>
+    <string name="weather_tomorrow">Mañana</string>
+    <string name="weather_cloudiness">Nubosidad</string>
+    <string name="weather_precipitation">Probabilidad de lluvia</string>
     <string name="language">Idioma</string>
     <string name="language_system_default">Predeterminado del sistema</string>
 </resources>
