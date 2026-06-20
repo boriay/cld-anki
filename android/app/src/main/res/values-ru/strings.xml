@@ -4,6 +4,10 @@
     <string name="deck_title">Колоды</string>
     <string name="add_deck">Добавить колоду</string>
     <string name="sync">Синхронизация</string>
+    <string name="sync_auto_on">Авто-синхронизация включена</string>
+    <string name="sync_auto_off">Авто-синхронизация выключена</string>
+    <string name="sync_in_progress">Синхронизация…</string>
+    <string name="sync_caption">Синхронизация с сервером хранит карточки не только на этом телефоне — редактируйте и учитесь на других устройствах и на сайте.</string>
     <string name="study">Учить</string>
     <string name="front">Лицо</string>
     <string name="back">Оборот</string>

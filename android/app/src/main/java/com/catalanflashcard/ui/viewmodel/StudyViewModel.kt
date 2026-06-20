@@ -4,13 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.repository.FlashcardRepository
+import com.catalanflashcard.data.sync.SyncController
 import com.catalanflashcard.domain.Quality
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() {
+class StudyViewModel(
+    private val repository: FlashcardRepository,
+    private val syncController: SyncController
+) : ViewModel() {
     private val _currentCard = MutableStateFlow<Card?>(null)
     val currentCard: StateFlow<Card?> = _currentCard.asStateFlow()
 
@@ -31,6 +35,14 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
 
     private val _isSavingAnswer = MutableStateFlow(false)
     val isSavingAnswer: StateFlow<Boolean> = _isSavingAnswer.asStateFlow()
+
+    init {
+        // Ошибки фоновой синхронизации показываем тем же снэкбаром, что и ошибки
+        // обучения — иначе сбой синка во время учёбы остался бы незаметным.
+        viewModelScope.launch {
+            syncController.errors.collect { msg -> _error.value = msg }
+        }
+    }
 
     fun loadDueCards(deckId: String) {
         _isLoading.value = true
@@ -68,6 +80,8 @@ class StudyViewModel(private val repository: FlashcardRepository) : ViewModel() 
         viewModelScope.launch {
             try {
                 repository.updateCardReview(card.id, quality.value)
+                // Ответ изменил расписание карты — отдаём правку на сервер.
+                syncController.requestSync()
 
                 val currentIdx = _currentIndex.value
                 if (currentIdx < _dueCards.value.size - 1) {

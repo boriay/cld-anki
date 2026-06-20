@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
-import com.catalanflashcard.data.repository.SyncRepository
+import com.catalanflashcard.data.sync.SyncController
 import com.catalanflashcard.ui.resolveAppLanguage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -21,7 +21,7 @@ import java.util.Locale
 
 class DeckViewModel(
     private val repository: FlashcardRepository,
-    private val syncRepository: SyncRepository,
+    private val syncController: SyncController,
     initialLanguage: String = resolveAppLanguage(
         AppCompatDelegate.getApplicationLocales().get(0) ?: Locale.getDefault()
     )
@@ -52,13 +52,18 @@ class DeckViewModel(
     private val _selectedDeckCards = MutableStateFlow<List<Card>>(emptyList())
     val selectedDeckCards: StateFlow<List<Card>> = _selectedDeckCards.asStateFlow()
 
-    private val _isSyncing = MutableStateFlow(false)
-    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+    // Индикатор и тумблер авто-синка общие на все экраны — берём из SyncController.
+    val isSyncing: StateFlow<Boolean> = syncController.isSyncing
+    val autoSyncEnabled: StateFlow<Boolean> = syncController.enabled
 
     private var statsJob: Job? = null
 
     init {
         loadDecks()
+        // Ошибки фоновой синхронизации показываем тем же снэкбаром, что и прочие.
+        viewModelScope.launch {
+            syncController.errors.collect { msg -> _error.value = msg }
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -144,6 +149,7 @@ class DeckViewModel(
             try {
                 repository.createDeck(name)
                 _error.value = null
+                syncController.requestSync()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to create deck"
             }
@@ -155,6 +161,7 @@ class DeckViewModel(
             try {
                 repository.deleteDeck(deckId)
                 _error.value = null
+                syncController.requestSync()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to delete deck"
             }
@@ -166,6 +173,7 @@ class DeckViewModel(
             try {
                 repository.createCard(deckId, front.trim(), back.trim())
                 _error.value = null
+                syncController.requestSync()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to create card"
             }
@@ -177,6 +185,7 @@ class DeckViewModel(
             try {
                 repository.updateCardContent(card.id, front.trim(), back.trim())
                 _error.value = null
+                syncController.requestSync()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to update card"
             }
@@ -188,27 +197,18 @@ class DeckViewModel(
             try {
                 repository.deleteCard(card)
                 _error.value = null
+                syncController.requestSync()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to delete card"
             }
         }
     }
 
-    fun sync() {
-        // Set the guard synchronously before launching: if it were set inside the
-        // coroutine, two rapid taps could both pass the check before either runs.
-        if (_isSyncing.value) return
-        _isSyncing.value = true
-        viewModelScope.launch {
-            try {
-                syncRepository.sync().onFailure { e ->
-                    _error.value = e.message ?: "Sync failed"
-                }
-            } finally {
-                // Reset even if the coroutine is cancelled, so the UI never sticks.
-                _isSyncing.value = false
-            }
-        }
+    // Переключатель авто-синка. Включение принудительно запускает синк сразу,
+    // дальше синк идёт сам после каждой правки (с debounce). Состояние и
+    // конкурентность держит SyncController — он общий на все экраны.
+    fun toggleAutoSync() {
+        syncController.toggle()
     }
 
     fun clearError() {
