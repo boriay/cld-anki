@@ -37,8 +37,8 @@ class StudyViewModel(
     val isSavingAnswer: StateFlow<Boolean> = _isSavingAnswer.asStateFlow()
 
     init {
-        // Ошибки фоновой синхронизации показываем тем же снэкбаром, что и ошибки
-        // обучения — иначе сбой синка во время учёбы остался бы незаметным.
+        // Surface background-sync errors through the same snackbar as study errors —
+        // otherwise a sync failure during study would go unnoticed.
         viewModelScope.launch {
             syncController.errors.collect { msg -> _error.value = msg }
         }
@@ -80,7 +80,7 @@ class StudyViewModel(
         viewModelScope.launch {
             try {
                 repository.updateCardReview(card.id, quality.value)
-                // Ответ изменил расписание карты — отдаём правку на сервер.
+                // The answer changed the card's schedule — push the edit to the server.
                 syncController.requestSync()
 
                 val currentIdx = _currentIndex.value

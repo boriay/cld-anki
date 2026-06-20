@@ -61,8 +61,8 @@ import com.catalanflashcard.ui.resolveAppLanguage
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
 import kotlinx.coroutines.delay
 
-// Цвет «авто-синк включён». Зелёный читается как индикатор активности и на
-// светлом, и на тёмном тулбаре, не завязываясь на акцент темы.
+// "Auto-sync on" color. Green reads as an active indicator on both light and
+// dark toolbars, without depending on the theme accent.
 private val SyncOnColor = Color(0xFF4CAF50)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,9 +81,9 @@ fun DeckListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var deckToDelete by remember { mutableStateOf<Deck?>(null) }
 
-    // Плашка-подсказка про синк не висит постоянно: показывается при старте и
-    // при тапе по кнопке синка, затем сама гаснет через 10 секунд. Каждый тап
-    // увеличивает триггер и перезапускает таймер.
+    // The sync hint banner doesn't stay up permanently: it shows on launch and on
+    // a tap of the sync button, then fades out after 10 seconds. Each tap bumps the
+    // trigger and restarts the timer.
     var syncHintTrigger by remember { mutableStateOf(0) }
     var syncHintVisible by remember { mutableStateOf(false) }
     LaunchedEffect(syncHintTrigger) {
@@ -136,10 +136,10 @@ fun DeckListScreen(
                 title = { Text(stringResource(R.string.deck_title)) },
                 actions = {
                     LanguageMenu()
-                    // Тумблер авто-синка, он же индикатор. Тап переключает вкл/выкл
-                    // (включение принудительно запускает синк); во время синка крутится.
-                    // stateDescription + Role.Switch озвучивают состояние для TalkBack,
-                    // в т.ч. когда вместо иконки крутится спиннер без contentDescription.
+                    // Auto-sync toggle that doubles as the indicator. A tap flips
+                    // on/off (enabling forces a sync); it spins while syncing.
+                    // stateDescription + Role.Switch announce the state to TalkBack,
+                    // including while a spinner with no contentDescription is shown.
                     val syncStateDescription = when {
                         isSyncing -> stringResource(R.string.sync_in_progress)
                         autoSyncEnabled -> stringResource(R.string.sync_auto_on)
@@ -166,7 +166,7 @@ fun DeckListScreen(
                                 contentDescription = stringResource(
                                     if (autoSyncEnabled) R.string.sync_auto_on else R.string.sync_auto_off
                                 ),
-                                // Цветом показываем состояние: вкл — зелёный, выкл — приглушённо.
+                                // Color shows the state: on — green, off — muted.
                                 tint = if (autoSyncEnabled) {
                                     SyncOnColor
                                 } else {
@@ -194,9 +194,9 @@ fun DeckListScreen(
                 state = weather,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
             )
-            // Подсказка про синк всегда занимает своё место в Column (видимость через
-            // alpha, а не через AnimatedVisibility), поэтому при скрытии её место
-            // остаётся пустым — список под ней не прыгает и не перекрывается.
+            // The sync hint always occupies its place in the Column (visibility via
+            // alpha, not AnimatedVisibility), so when hidden its space stays empty —
+            // the list below neither jumps nor gets overlapped.
             SyncHint(visible = syncHintVisible)
             Box(modifier = Modifier.fillMaxSize().weight(1f)) {
                 if (isLoading && decks.isEmpty()) {
@@ -228,10 +228,9 @@ fun DeckListScreen(
     }
 }
 
-// Плашка-подсказка про серверный синк. Всегда присутствует в layout, видимость
-// меняется через alpha — так зарезервированное под неё место остаётся пустым при
-// скрытии, и список не сдвигается. Маленькая иконка синка связывает текст с
-// кнопкой в тулбаре.
+// Server-sync hint banner. Always present in the layout, with visibility driven
+// by alpha — so its reserved space stays empty when hidden and the list doesn't
+// shift. The small sync icon ties the text to the toolbar button.
 @Composable
 private fun SyncHint(visible: Boolean) {
     val alpha by animateFloatAsState(

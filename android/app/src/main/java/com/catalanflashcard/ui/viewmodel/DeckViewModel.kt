@@ -52,7 +52,7 @@ class DeckViewModel(
     private val _selectedDeckCards = MutableStateFlow<List<Card>>(emptyList())
     val selectedDeckCards: StateFlow<List<Card>> = _selectedDeckCards.asStateFlow()
 
-    // Индикатор и тумблер авто-синка общие на все экраны — берём из SyncController.
+    // The auto-sync indicator and toggle are shared across screens — taken from SyncController.
     val isSyncing: StateFlow<Boolean> = syncController.isSyncing
     val autoSyncEnabled: StateFlow<Boolean> = syncController.enabled
 
@@ -60,7 +60,7 @@ class DeckViewModel(
 
     init {
         loadDecks()
-        // Ошибки фоновой синхронизации показываем тем же снэкбаром, что и прочие.
+        // Surface background-sync errors through the same snackbar as everything else.
         viewModelScope.launch {
             syncController.errors.collect { msg -> _error.value = msg }
         }
@@ -204,9 +204,9 @@ class DeckViewModel(
         }
     }
 
-    // Переключатель авто-синка. Включение принудительно запускает синк сразу,
-    // дальше синк идёт сам после каждой правки (с debounce). Состояние и
-    // конкурентность держит SyncController — он общий на все экраны.
+    // Auto-sync toggle. Enabling forces an immediate sync; after that sync runs on
+    // its own after every edit (debounced). SyncController owns the state and
+    // concurrency — it is shared across all screens.
     fun toggleAutoSync() {
         syncController.toggle()
     }

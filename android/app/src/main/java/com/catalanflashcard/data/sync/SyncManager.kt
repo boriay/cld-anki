@@ -22,34 +22,34 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * Управляет авто-синхронизацией: общий тумблер вкл/выкл, индикатор «идёт синк»
- * и debounce-движок, коалесцирующий пачку правок в один запрос к серверу.
+ * Drives auto-sync: the shared on/off toggle, the "syncing now" indicator and
+ * the debounce engine that coalesces a burst of edits into a single server call.
  *
- * Вынесено в синглтон (а не в ViewModel), потому что DeckViewModel создаётся
- * по инстансу на каждую back-stack entry, а StudyViewModel — отдельный. Состояние
- * синка должно быть общим для всех экранов.
+ * Kept as a singleton (not a ViewModel) because DeckViewModel is created per
+ * back-stack entry and StudyViewModel is separate — the sync state must be
+ * shared across all screens.
  */
 interface SyncController {
-    /** Идёт ли синхронизация прямо сейчас (для индикатора в UI). */
+    /** Whether a sync is running right now (for the UI indicator). */
     val isSyncing: StateFlow<Boolean>
 
-    /** Включена ли авто-синхронизация. По умолчанию выключена. */
+    /** Whether auto-sync is enabled. Off by default. */
     val enabled: StateFlow<Boolean>
 
-    /** Сообщения об ошибках синка для показа в UI. */
+    /** Sync error messages to surface in the UI. */
     val errors: SharedFlow<String>
 
-    /** Запросить синк после локальной правки. No-op, если авто-синк выключен. */
+    /** Request a sync after a local edit. No-op while auto-sync is off. */
     fun requestSync()
 
-    /** Переключить авто-синк. Включение принудительно запускает синк немедленно. */
+    /** Toggle auto-sync. Enabling forces an immediate sync. */
     fun toggle()
 }
 
 class SyncManager internal constructor(
     private val syncRepository: SyncRepository,
     private val settings: AutoSyncSettings,
-    // Application-scope: переживает пересоздание Activity (смена локали и т.п.).
+    // Application scope: survives Activity recreation (e.g. a locale change).
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) : SyncController {
 
@@ -59,8 +59,8 @@ class SyncManager internal constructor(
     private val _enabled = MutableStateFlow(settings.autoSyncEnabled)
     override val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
 
-    // extraBufferCapacity=1 + DROP_OLDEST: пачка правок сжимается в один тик,
-    // tryEmit никогда не блокирует вызывающий поток.
+    // extraBufferCapacity=1 + DROP_OLDEST: a burst of edits collapses into one
+    // tick, and tryEmit never blocks the caller.
     private val _errors = MutableSharedFlow<String>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
@@ -72,8 +72,8 @@ class SyncManager internal constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
-    // Сериализует запуски синка: тик debounce, прилетевший во время активного
-    // синка, дождётся его и синкнёт снова, подхватив правки сделанные по ходу.
+    // Serializes sync runs: a debounce tick that arrives while a sync is running
+    // waits and re-syncs, picking up rows changed during the in-flight sync.
     private val mutex = Mutex()
 
     @OptIn(FlowPreview::class)
@@ -81,17 +81,18 @@ class SyncManager internal constructor(
         scope.launch {
             requests
                 .debounce(DEBOUNCE_MS)
-                // Повторная проверка enabled: если синк выключили, пока тик ждал
-                // окно debounce, отложенный запрос гасится, а не уезжает на сервер.
+                // Re-check enabled: if auto-sync was turned off while the tick was
+                // waiting out the debounce window, drop the pending request instead
+                // of pushing it to the server.
                 .collect { if (_enabled.value) runSync() }
         }
     }
 
     init {
         startDebounceLoop()
-        // Если авто-синк был оставлен включённым — подтянуть/выгрузить при старте.
-        // Прямой launch, а не emit в requests: при replay=0 стартовый emit мог бы
-        // потеряться, если collector ещё не успел подписаться.
+        // If auto-sync was left enabled, pull/push on startup. Direct launch rather
+        // than emitting into `requests`: with replay=0 the startup emit could be
+        // missed if the collector hasn't subscribed yet.
         if (_enabled.value) scope.launch { runSync() }
     }
 
@@ -104,7 +105,7 @@ class SyncManager internal constructor(
         val next = !_enabled.value
         _enabled.value = next
         settings.autoSyncEnabled = next
-        // Включение — немедленный синк, минуя debounce, чтобы дать мгновенный фидбэк.
+        // Enabling: sync immediately, bypassing debounce, for instant feedback.
         if (next) scope.launch { runSync() }
     }
 

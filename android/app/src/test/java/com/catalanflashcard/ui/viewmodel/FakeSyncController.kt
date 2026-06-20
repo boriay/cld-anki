@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Лёгкий фейк вместо Mockito-мока: отдаёт реальные Flow, чтобы сбор
- * [SyncController.errors] в init вьюмодели не падал с NPE. Считает вызовы
- * requestSync/toggle для проверок при необходимости.
+ * Lightweight fake instead of a Mockito mock: exposes real Flows so collecting
+ * [SyncController.errors] in a ViewModel's init doesn't crash with an NPE. Counts
+ * requestSync/toggle calls for assertions when needed.
  */
 class FakeSyncController : SyncController {
     override val isSyncing = MutableStateFlow(false)

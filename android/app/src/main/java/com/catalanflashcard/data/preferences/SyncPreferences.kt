@@ -2,8 +2,9 @@ package com.catalanflashcard.data.preferences
 
 import android.content.Context
 
-// Узкий контракт того, что нужно SyncManager от настроек: только флаг авто-синка.
-// Позволяет тестировать SyncManager без Android Context (фейк вместо SharedPreferences).
+// Narrow contract of what SyncManager needs from settings: just the auto-sync
+// flag. Lets SyncManager be tested without an Android Context (a fake instead of
+// SharedPreferences).
 interface AutoSyncSettings {
     var autoSyncEnabled: Boolean
 }
@@ -24,8 +25,8 @@ class SyncPreferences(context: Context) : AutoSyncSettings {
         get() = prefs.getLong(KEY_LAST_PUSHED_AT, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_PUSHED_AT, value).apply()
 
-    // Включена ли авто-синхронизация. По умолчанию выключена, чтобы приложение
-    // оставалось полностью офлайн, пока пользователь сам не включит синк.
+    // Whether auto-sync is enabled. Off by default so the app stays fully offline
+    // until the user turns sync on themselves.
     override var autoSyncEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_SYNC_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_AUTO_SYNC_ENABLED, value).apply()

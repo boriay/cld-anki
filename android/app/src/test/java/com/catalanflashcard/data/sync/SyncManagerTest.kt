@@ -23,8 +23,8 @@ class SyncManagerTest {
 
     private class FakeSettings(override var autoSyncEnabled: Boolean) : AutoSyncSettings
 
-    // Unconfined: launched-корутины (немедленный синк) исполняются жадно, без
-    // ручного advance, а delay в debounce остаётся виртуальным на testScheduler.
+    // Unconfined: launched coroutines (the immediate sync) run eagerly without a
+    // manual advance, while the debounce delay stays virtual on the testScheduler.
     private fun unconfinedScope(testScheduler: kotlinx.coroutines.test.TestCoroutineScheduler) =
         CoroutineScope(UnconfinedTestDispatcher(testScheduler))
 
@@ -36,7 +36,7 @@ class SyncManagerTest {
         val scope = unconfinedScope(testScheduler)
         val manager = SyncManager(repo, settings, scope)
 
-        manager.toggle() // включение
+        manager.toggle() // enable
         advanceUntilIdle()
 
         verify(repo, times(1)).sync()
@@ -52,14 +52,14 @@ class SyncManagerTest {
         val scope = unconfinedScope(testScheduler)
         val manager = SyncManager(repo, settings, scope)
 
-        manager.toggle()      // включение -> немедленный синк (1)
+        manager.toggle()      // enable -> immediate sync (1)
         advanceUntilIdle()
 
-        manager.requestSync() // ставит отложенный (debounce) синк в очередь
-        manager.toggle()      // выключаем до истечения окна debounce
+        manager.requestSync() // queues a pending (debounced) sync
+        manager.toggle()      // disable before the debounce window elapses
         advanceUntilIdle()
 
-        // Сработал только немедленный синк включения; отложенный погашен проверкой enabled.
+        // Only the immediate enable-sync ran; the pending one was gated off by the enabled check.
         verify(repo, times(1)).sync()
         scope.cancel()
     }
@@ -68,16 +68,16 @@ class SyncManagerTest {
     fun batchedRequests_coalesceIntoSingleSync() = runTest {
         val repo = mock<SyncRepository>()
         whenever(repo.sync()).thenReturn(Result.success(Unit))
-        val settings = FakeSettings(true) // включено с самого старта
+        val settings = FakeSettings(true) // enabled from the start
         val scope = unconfinedScope(testScheduler)
         val manager = SyncManager(repo, settings, scope)
-        advanceUntilIdle() // стартовый синк (1)
+        advanceUntilIdle() // startup sync (1)
 
-        // Пять быстрых правок в пределах окна debounce схлопываются в один синк.
+        // Five rapid edits within the debounce window collapse into a single sync.
         repeat(5) { manager.requestSync() }
         advanceUntilIdle()
 
-        verify(repo, times(2)).sync() // 1 стартовый + 1 коалесцированный
+        verify(repo, times(2)).sync() // 1 startup + 1 coalesced
         scope.cancel()
     }
 
@@ -92,7 +92,7 @@ class SyncManagerTest {
         val received = mutableListOf<String>()
         scope.launch { manager.errors.collect { received += it } }
 
-        manager.toggle() // включение -> синк -> ошибка
+        manager.toggle() // enable -> sync -> failure
         advanceUntilIdle()
 
         assertEquals(listOf("boom"), received)

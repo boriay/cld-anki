@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
             database.deckDao(),
             database.cardDao()
         )
-        // Синглтон: общий тумблер/индикатор авто-синка и его debounce-движок,
-        // переживающий пересоздание Activity (например, при смене локали).
+        // Singleton: the shared auto-sync toggle/indicator and its debounce engine,
+        // surviving Activity recreation (e.g. on a locale change).
         val syncManager = SyncManager.getInstance(applicationContext)
 
         val weatherRepository = WeatherRepository(WeatherPreferences(applicationContext))
