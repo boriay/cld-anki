@@ -83,10 +83,14 @@ func pingWithRetry(ctx context.Context, rc retryConfig, ping func(context.Contex
 		}
 		slog.Default().Warn("ping db failed, retrying", "attempt", attempt, "backoff", backoff, "err", err)
 
+		// NewTimer (not time.After) so we can Stop it on cancellation instead of
+		// leaving a live timer dangling until it fires.
+		timer := time.NewTimer(backoff)
 		select {
 		case <-ctx.Done():
+			timer.Stop()
 			return fmt.Errorf("ping db: %w", ctx.Err())
-		case <-time.After(backoff):
+		case <-timer.C:
 		}
 		if backoff *= 2; backoff > rc.maxBackoff {
 			backoff = rc.maxBackoff

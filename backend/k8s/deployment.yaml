@@ -99,18 +99,26 @@ spec:
             limits:
               cpu: "200m"
               memory: "256Mi"
+          # The HTTP server only starts after NewPool's startup DB-ping retry
+          # (up to ~60s if the DB is unreachable). The startup probe gates
+          # liveness/readiness until then, so a slow-but-recovering boot isn't
+          # killed mid-retry. 15 * 5s = 75s budget covers the 60s ping retry.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 15
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 5
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 15
             periodSeconds: 20
             failureThreshold: 3
           securityContext:
