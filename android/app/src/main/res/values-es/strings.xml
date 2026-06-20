@@ -29,6 +29,13 @@
     <string name="due_count">Pendientes: %d</string>
     <string name="delete_deck_confirm_title">Eliminar mazo</string>
     <string name="delete_deck_confirm_message">¿Eliminar \"%1$s\"? Esto no se puede deshacer.</string>
+    <string name="add_card">Añadir tarjeta</string>
+    <string name="add_card_title">Nueva tarjeta</string>
+    <string name="edit_card_title">Editar tarjeta</string>
+    <string name="save">Guardar</string>
+    <string name="no_cards_in_deck">Aún no hay tarjetas. Añade una para empezar a estudiar.</string>
+    <string name="delete_card_confirm_title">Eliminar tarjeta</string>
+    <string name="delete_card_confirm_message">¿Eliminar esta tarjeta? Esto no se puede deshacer.</string>
     <string name="language">Idioma</string>
     <string name="language_system_default">Predeterminado del sistema</string>
 </resources>

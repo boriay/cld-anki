@@ -31,9 +31,6 @@ interface CardDao {
     @Query("SELECT * FROM cards WHERE deckId = :deckId AND deletedAt IS NULL AND nextReviewTime <= :now ORDER BY nextReviewTime ASC")
     suspend fun getDueCards(deckId: String, now: Long = System.currentTimeMillis()): List<Card>
 
-    @Query("SELECT COUNT(*) FROM cards WHERE deckId = :deckId AND deletedAt IS NULL")
-    fun getCardCount(deckId: String): Flow<Int>
-
     @Query("SELECT COUNT(*) FROM cards WHERE deckId = :deckId AND deletedAt IS NULL AND nextReviewTime <= :now")
     fun getDueCardCount(deckId: String, now: Long): Flow<Int>
 

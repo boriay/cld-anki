@@ -29,6 +29,13 @@
     <string name="due_count">Due: %d</string>
     <string name="delete_deck_confirm_title">Delete Deck</string>
     <string name="delete_deck_confirm_message">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="add_card">Add Card</string>
+    <string name="add_card_title">New Card</string>
+    <string name="edit_card_title">Edit Card</string>
+    <string name="save">Save</string>
+    <string name="no_cards_in_deck">No cards yet. Add one to start studying.</string>
+    <string name="delete_card_confirm_title">Delete Card</string>
+    <string name="delete_card_confirm_message">Delete this card? This cannot be undone.</string>
     <string name="language">Language</string>
     <string name="language_system_default">System default</string>
     <!-- Language names are shown as endonyms, identical across all locales. -->
