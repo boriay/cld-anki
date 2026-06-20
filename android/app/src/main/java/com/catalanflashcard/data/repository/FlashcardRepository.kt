@@ -36,8 +36,6 @@ class FlashcardRepository(
 
     fun getCards(deckId: String): Flow<List<Card>> = cardDao.getAllCards(deckId)
 
-    fun getCardCount(deckId: String): Flow<Int> = cardDao.getCardCount(deckId)
-
     // COUNT(*) over the (deckId, nextReviewTime) index instead of loading the whole table.
     fun getDueCardCount(deckId: String): Flow<Int> =
         cardDao.getDueCardCount(deckId, System.currentTimeMillis())
@@ -50,9 +48,14 @@ class FlashcardRepository(
         return card.id
     }
 
+    // Edit only the text fields. Re-read the current row instead of trusting a
+    // caller-supplied snapshot, so a concurrent review (which rewrites the
+    // scheduling fields) isn't clobbered by stale interval/easeFactor/etc.
     // Bump updatedAt so the edit is picked up by the sync delta.
-    suspend fun updateCard(card: Card) =
-        cardDao.update(card.copy(updatedAt = System.currentTimeMillis()))
+    suspend fun updateCardContent(cardId: String, front: String, back: String) {
+        val card = cardDao.getCard(cardId) ?: return
+        cardDao.update(card.copy(front = front, back = back, updatedAt = System.currentTimeMillis()))
+    }
 
     suspend fun deleteCard(card: Card) = cardDao.softDelete(card.id)
 

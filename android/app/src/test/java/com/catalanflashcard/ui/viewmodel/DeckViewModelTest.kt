@@ -1,5 +1,6 @@
 package com.catalanflashcard.ui.viewmodel
 
+import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
 import com.catalanflashcard.data.repository.SyncRepository
@@ -72,7 +73,8 @@ class DeckViewModelTest {
     @Test
     fun loadDeckStats_resetsCountsBeforeLoading() = runTest {
         whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
-        whenever(repository.getCardCount(DECK_ID)).thenReturn(flowOf(5))
+        whenever(repository.getDeckFlow(DECK_ID)).thenReturn(flowOf(null))
+        whenever(repository.getCards(DECK_ID)).thenReturn(flowOf(emptyList()))
         whenever(repository.getDueCardCount(DECK_ID)).thenReturn(flowOf(3))
 
         viewModel = DeckViewModel(repository, syncRepository)
@@ -80,8 +82,71 @@ class DeckViewModelTest {
 
         viewModel.loadDeckStats(DECK_ID)
 
+        // Counts reset synchronously, before the collectors run.
         org.junit.Assert.assertEquals(0, viewModel.selectedDeckCardCount.value)
         org.junit.Assert.assertEquals(0, viewModel.selectedDeckDueCount.value)
+    }
+
+    @Test
+    fun loadDeckStats_derivesCardCountFromCardList() = runTest {
+        val cards = listOf(
+            Card(deckId = DECK_ID, front = "hola", back = "привет"),
+            Card(deckId = DECK_ID, front = "adéu", back = "пока")
+        )
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
+        whenever(repository.getDeckFlow(DECK_ID)).thenReturn(flowOf(Deck(id = DECK_ID, name = "Test")))
+        whenever(repository.getCards(DECK_ID)).thenReturn(flowOf(cards))
+        whenever(repository.getDueCardCount(DECK_ID)).thenReturn(flowOf(0))
+
+        viewModel = DeckViewModel(repository, syncRepository)
+        advanceUntilIdle()
+
+        viewModel.loadDeckStats(DECK_ID)
+        advanceUntilIdle()
+
+        org.junit.Assert.assertEquals(2, viewModel.selectedDeckCardCount.value)
+        org.junit.Assert.assertEquals(2, viewModel.selectedDeckCards.value.size)
+    }
+
+    @Test
+    fun createCard_delegatesToRepository() = runTest {
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
+        viewModel = DeckViewModel(repository, syncRepository)
+        advanceUntilIdle()
+
+        viewModel.createCard(DECK_ID, "  hola  ", "  привет  ")
+        advanceUntilIdle()
+
+        // Fields are trimmed before reaching the repository.
+        verify(repository).createCard(DECK_ID, "hola", "привет")
+    }
+
+    @Test
+    fun updateCard_trimsAndDelegatesToRepository() = runTest {
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
+        viewModel = DeckViewModel(repository, syncRepository)
+        advanceUntilIdle()
+
+        val card = Card(deckId = DECK_ID, front = "old", back = "старое")
+        viewModel.updateCard(card, "  new  ", "  новое  ")
+        advanceUntilIdle()
+
+        // Only id + trimmed text reach the repository; scheduling fields are
+        // re-read there, not copied from the (possibly stale) snapshot.
+        verify(repository).updateCardContent(card.id, "new", "новое")
+    }
+
+    @Test
+    fun deleteCard_delegatesToRepository() = runTest {
+        whenever(repository.getDecks(any())).thenReturn(flowOf(emptyList()))
+        viewModel = DeckViewModel(repository, syncRepository)
+        advanceUntilIdle()
+
+        val card = Card(deckId = DECK_ID, front = "hola", back = "привет")
+        viewModel.deleteCard(card)
+        advanceUntilIdle()
+
+        verify(repository).deleteCard(card)
     }
 
     @Test

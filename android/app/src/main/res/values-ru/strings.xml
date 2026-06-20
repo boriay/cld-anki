@@ -29,6 +29,13 @@
     <string name="due_count">К повторению: %d</string>
     <string name="delete_deck_confirm_title">Удалить колоду</string>
     <string name="delete_deck_confirm_message">Удалить \"%1$s\"? Это действие необратимо.</string>
+    <string name="add_card">Добавить карточку</string>
+    <string name="add_card_title">Новая карточка</string>
+    <string name="edit_card_title">Редактировать карточку</string>
+    <string name="save">Сохранить</string>
+    <string name="no_cards_in_deck">Карточек пока нет. Добавьте первую, чтобы начать.</string>
+    <string name="delete_card_confirm_title">Удалить карточку</string>
+    <string name="delete_card_confirm_message">Удалить эту карточку? Это действие необратимо.</string>
     <string name="language">Язык</string>
     <string name="language_system_default">Системный</string>
 </resources>

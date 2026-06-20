@@ -3,6 +3,7 @@ package com.catalanflashcard.ui.viewmodel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.catalanflashcard.data.entity.Card
 import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.repository.FlashcardRepository
 import com.catalanflashcard.data.repository.SyncRepository
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -48,6 +48,9 @@ class DeckViewModel(
 
     private val _selectedDeckDueCount = MutableStateFlow(0)
     val selectedDeckDueCount: StateFlow<Int> = _selectedDeckDueCount.asStateFlow()
+
+    private val _selectedDeckCards = MutableStateFlow<List<Card>>(emptyList())
+    val selectedDeckCards: StateFlow<List<Card>> = _selectedDeckCards.asStateFlow()
 
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
@@ -92,6 +95,7 @@ class DeckViewModel(
         _isLoadingDeck.value = true
         _selectedDeckCardCount.value = 0
         _selectedDeckDueCount.value = 0
+        _selectedDeckCards.value = emptyList()
         statsJob = viewModelScope.launch {
             launch {
                 repository.getDeckFlow(deckId)
@@ -104,15 +108,23 @@ class DeckViewModel(
                         _isLoadingDeck.value = false
                     }
             }
-            combine(
-                repository.getCardCount(deckId),
-                repository.getDueCardCount(deckId)
-            ) { total, due ->
-                _selectedDeckCardCount.value = total
-                _selectedDeckDueCount.value = due
+            // The full card list backs both the editor UI and the total count,
+            // so derive the count from it instead of issuing a separate COUNT query.
+            launch {
+                repository.getCards(deckId)
+                    .catch { e -> _error.value = e.message ?: "Failed to load cards" }
+                    .collect { cards ->
+                        _selectedDeckCards.value = cards
+                        _selectedDeckCardCount.value = cards.size
+                    }
             }
-                .catch { e -> _error.value = e.message ?: "Failed to load stats" }
-                .collect()
+            // Due count keeps its own index-backed COUNT query (filters on
+            // nextReviewTime), separate from the loaded card rows.
+            launch {
+                repository.getDueCardCount(deckId)
+                    .catch { e -> _error.value = e.message ?: "Failed to load stats" }
+                    .collect { due -> _selectedDeckDueCount.value = due }
+            }
         }
     }
 
@@ -122,6 +134,7 @@ class DeckViewModel(
         _isLoadingDeck.value = false
         _selectedDeckCardCount.value = 0
         _selectedDeckDueCount.value = 0
+        _selectedDeckCards.value = emptyList()
     }
 
     fun createDeck(name: String) {
@@ -144,6 +157,39 @@ class DeckViewModel(
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to delete deck"
+            }
+        }
+    }
+
+    fun createCard(deckId: String, front: String, back: String) {
+        viewModelScope.launch {
+            try {
+                repository.createCard(deckId, front.trim(), back.trim())
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to create card"
+            }
+        }
+    }
+
+    fun updateCard(card: Card, front: String, back: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateCardContent(card.id, front.trim(), back.trim())
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to update card"
+            }
+        }
+    }
+
+    fun deleteCard(card: Card) {
+        viewModelScope.launch {
+            try {
+                repository.deleteCard(card)
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to delete card"
             }
         }
     }
