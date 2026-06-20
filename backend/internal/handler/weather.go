@@ -25,7 +25,9 @@ func (h *WeatherHandler) Current(w http.ResponseWriter, r *http.Request) {
 		// Weather is decorative — never fail the screen. Return a neutral
 		// default the client can render, and log the real cause server-side.
 		slog.Error("weather lookup", "err", err)
-		jsonOK(w, weather.Weather{Condition: weather.Sunny, IsDay: true})
+		// Fallback flag is the explicit contract the client keys on (rather than
+		// inferring from an empty daily list) to avoid clobbering its good cache.
+		jsonOK(w, weather.Weather{Condition: weather.Sunny, IsDay: true, Fallback: true})
 		return
 	}
 	jsonOK(w, wx)

@@ -90,6 +90,8 @@ dependencies {
     // in-app language switch, with persistence backported below Android 13.
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    // LifecycleStartEffect for refreshing weather when the app returns to foreground.
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
     implementation("androidx.activity:activity-compose:1.13.0")
 
     // Jetpack Compose

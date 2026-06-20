@@ -4,6 +4,8 @@ import android.util.Log
 import com.catalanflashcard.BuildConfig
 import com.catalanflashcard.data.network.ApiClient
 import com.catalanflashcard.data.network.DailyDto
+import com.catalanflashcard.data.network.FirebaseTokenProvider
+import com.catalanflashcard.data.network.TokenProvider
 import com.catalanflashcard.data.network.WeatherApi
 import com.catalanflashcard.data.preferences.WeatherPreferences
 import com.google.gson.Gson
@@ -74,11 +76,11 @@ class WeatherRepository(
         try {
             val token = tokenProvider.idToken()
             val dto = api.current(auth = "Bearer $token")
-            // An empty `daily` means the backend served its neutral fallback
-            // (its own upstream failed). Don't let that clobber the last good
-            // cached weather — keep showing it instead of resetting to default.
-            if (dto.daily.isEmpty()) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "backend returned fallback (no daily); keeping cache")
+            // `fallback` is the backend's explicit signal that it couldn't
+            // resolve real weather. Don't let that clobber the last good cached
+            // weather — keep showing it instead of resetting to default.
+            if (dto.fallback) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "backend returned fallback; keeping cache")
                 // If we already have good data, treat this as a completed attempt
                 // so we honour the once-per-hour cap during an upstream outage
                 // instead of re-hitting the backend on every launch. With no prior

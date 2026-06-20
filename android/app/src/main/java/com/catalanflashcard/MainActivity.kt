@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -61,6 +62,13 @@ class MainActivity : AppCompatActivity() {
                 val navController = rememberNavController()
                 val weatherViewModel: WeatherViewModel = viewModel(factory = weatherViewModelFactory)
                 val weatherState by weatherViewModel.state.collectAsState()
+
+                // Refresh on every foreground so day/night and the forecast keep
+                // up when the app returns from the background past the cache TTL.
+                LifecycleStartEffect(weatherViewModel) {
+                    weatherViewModel.refresh()
+                    onStopOrDispose { }
+                }
 
                 Box {
                     WeatherBackground(weatherState)

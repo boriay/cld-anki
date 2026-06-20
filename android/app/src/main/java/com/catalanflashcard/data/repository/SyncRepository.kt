@@ -9,13 +9,13 @@ import com.catalanflashcard.data.entity.Deck
 import com.catalanflashcard.data.network.ApiClient
 import com.catalanflashcard.data.network.CardDto
 import com.catalanflashcard.data.network.DeckDto
+import com.catalanflashcard.data.network.FirebaseTokenProvider
 import com.catalanflashcard.data.network.SyncApi
 import com.catalanflashcard.data.network.SyncRequest
+import com.catalanflashcard.data.network.TokenProvider
 import com.catalanflashcard.data.preferences.SyncPreferences
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.time.Instant
 
@@ -27,23 +27,6 @@ private fun logd(msg: String) {
     if (BuildConfig.DEBUG) Log.d(TAG, msg)
 }
 
-/** Supplies a Firebase ID token. Abstracted so sync logic is unit-testable. */
-fun interface TokenProvider {
-    suspend fun idToken(): String
-}
-
-/** Default provider: anonymous Firebase sign-in + ID token. */
-class FirebaseTokenProvider : TokenProvider {
-    override suspend fun idToken(): String {
-        val auth = FirebaseAuth.getInstance()
-        if (auth.currentUser == null) {
-            logd("signing in anonymously")
-            auth.signInAnonymously().await()
-        }
-        val user = auth.currentUser ?: error("not signed in")
-        return user.getIdToken(false).await().token ?: error("failed to get token")
-    }
-}
 
 class SyncRepository(
     private val deckDao: DeckDao,

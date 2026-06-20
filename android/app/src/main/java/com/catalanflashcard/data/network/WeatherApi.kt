@@ -20,6 +20,9 @@ data class WeatherDto(
     @SerializedName("weather_code") val weatherCode: Int = 0,
     val city: String? = null,
     @SerializedName("fetched_at") val fetchedAt: String? = null,
+    /** True when the backend couldn't resolve real weather and returned a
+     *  neutral default; the client must not cache it. */
+    val fallback: Boolean = false,
     /** Today and tomorrow, in order. */
     val daily: List<DailyDto> = emptyList()
 )

@@ -37,6 +37,10 @@ type Weather struct {
 	City        string          `json:"city,omitempty"`
 	FetchedAt   time.Time       `json:"fetched_at"`
 	Daily       []DailyForecast `json:"daily,omitempty"`
+	// Fallback is true only when the handler couldn't resolve real weather and
+	// returned a neutral default; the client uses it to avoid overwriting its
+	// last-good cache. Omitted (false) on normal responses.
+	Fallback bool `json:"fallback,omitempty"`
 }
 
 // DailyForecast is a coarse per-day summary (today and tomorrow).
