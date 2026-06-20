@@ -10,6 +10,11 @@ jobs:
   android-tests:
     runs-on: ubuntu-latest
 
+    # The Android Gradle project lives in android/; run all steps from there.
+    defaults:
+      run:
+        working-directory: android
+
     steps:
       - uses: actions/checkout@v4
 
@@ -60,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: app/build/reports/tests/testDebugUnitTest/
+          path: android/app/build/reports/tests/testDebugUnitTest/
 
   backend-tests:
     runs-on: ubuntu-latest

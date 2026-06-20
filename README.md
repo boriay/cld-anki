@@ -17,54 +17,40 @@ An Android flashcard application for learning Catalan language, designed for Rus
 
 ```
 cld-anki/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/catalanflashcard/
-│   │   │   │   ├── MainActivity.kt                 # Main entry point
-│   │   │   │   ├── data/
-│   │   │   │   │   ├── database/
-│   │   │   │   │   │   ├── FlashcardDatabase.kt   # Room database
-│   │   │   │   │   │   └── InitialDataCallback.kt # Initial data setup
-│   │   │   │   │   ├── dao/
-│   │   │   │   │   │   ├── CardDao.kt             # Card data access
-│   │   │   │   │   │   └── DeckDao.kt             # Deck data access
-│   │   │   │   │   ├── entity/
-│   │   │   │   │   │   ├── Card.kt                # Card entity
-│   │   │   │   │   │   └── Deck.kt                # Deck entity
-│   │   │   │   │   └── repository/
-│   │   │   │   │       └── FlashcardRepository.kt # Data repository
-│   │   │   │   └── ui/
-│   │   │   │       ├── screen/
-│   │   │   │       │   ├── DeckListScreen.kt      # List of decks
-│   │   │   │       │   ├── DeckDetailScreen.kt    # Deck details
-│   │   │   │       │   ├── StudyScreen.kt         # Study session
-│   │   │   │       │   └── AddDeckDialog.kt       # Create deck dialog
-│   │   │   │       ├── viewmodel/
-│   │   │   │       │   ├── DeckViewModel.kt       # Deck logic
-│   │   │   │       │   └── StudyViewModel.kt      # Study logic
-│   │   │   │       ├── navigation/
-│   │   │   │       │   └── Navigation.kt          # Navigation routes
-│   │   │   │       └── theme/
-│   │   │   │           ├── Theme.kt               # Material theme
-│   │   │   │           ├── Color.kt               # Color palette
-│   │   │   │           └── Type.kt                # Typography
-│   │   │   ├── res/
-│   │   │   │   ├── values/
-│   │   │   │   │   ├── strings.xml
-│   │   │   │   │   ├── colors.xml
-│   │   │   │   │   └── themes.xml
-│   │   │   │   └── xml/
-│   │   │   │       ├── data_extraction_rules.xml
-│   │   │   │       └── backup_rules.xml
-│   │   │   └── AndroidManifest.xml
-│   │   └── test/ & androidTest/                   # Testing
-│   ├── build.gradle.kts                           # App-level build config
-│   └── proguard-rules.pro                         # ProGuard rules
-├── build.gradle.kts                               # Root build config
-├── settings.gradle.kts                            # Gradle settings
-├── gradle.properties                              # Gradle properties
-└── README.md                                      # This file
+├── android/                                        # Android app (Kotlin/Compose)
+│   ├── app/
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/catalanflashcard/
+│   │   │   │   │   ├── MainActivity.kt                 # Main entry point
+│   │   │   │   │   ├── data/
+│   │   │   │   │   │   ├── database/
+│   │   │   │   │   │   │   ├── FlashcardDatabase.kt   # Room database
+│   │   │   │   │   │   │   └── InitialDataCallback.kt # Initial data setup
+│   │   │   │   │   │   ├── dao/
+│   │   │   │   │   │   │   ├── CardDao.kt             # Card data access
+│   │   │   │   │   │   │   └── DeckDao.kt             # Deck data access
+│   │   │   │   │   │   ├── entity/
+│   │   │   │   │   │   │   ├── Card.kt                # Card entity
+│   │   │   │   │   │   │   └── Deck.kt                # Deck entity
+│   │   │   │   │   │   └── repository/
+│   │   │   │   │   │       └── FlashcardRepository.kt # Data repository
+│   │   │   │   │   └── ui/
+│   │   │   │   │       ├── screen/                    # Compose screens
+│   │   │   │   │       ├── viewmodel/                 # ViewModels
+│   │   │   │   │       ├── navigation/                # Navigation routes
+│   │   │   │   │       └── theme/                     # Material theme
+│   │   │   │   ├── res/                               # Resources
+│   │   │   │   └── AndroidManifest.xml
+│   │   │   └── test/ & androidTest/                   # Testing
+│   │   ├── build.gradle.kts                           # App-level build config
+│   │   └── proguard-rules.pro                         # ProGuard rules
+│   ├── build.gradle.kts                               # Root build config
+│   ├── settings.gradle.kts                            # Gradle settings
+│   └── gradle.properties                              # Gradle properties
+├── backend/                                        # Go sync backend
+├── design/                                         # Design assets
+└── README.md                                       # This file
 ```
 
 ## Architecture
@@ -102,8 +88,9 @@ Quick start:
 
 1. Clone the repository
 2. Install Android SDK and set `ANDROID_HOME`
-3. Build and run:
+3. Build and run (from the `android/` directory):
    ```bash
+   cd android
    ./gradlew build              # Build APK
    ./gradlew installDebug       # Install on emulator/device
    ```
