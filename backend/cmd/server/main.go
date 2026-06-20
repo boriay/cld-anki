@@ -15,6 +15,7 @@ import (
 	"github.com/boriay/cld-anki/backend/internal/db"
 	"github.com/boriay/cld-anki/backend/internal/handler"
 	"github.com/boriay/cld-anki/backend/internal/repository"
+	"github.com/boriay/cld-anki/backend/internal/weather"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"google.golang.org/api/option"
@@ -59,9 +60,12 @@ func main() {
 	deckRepo := repository.NewDeckRepo(pool)
 	cardRepo := repository.NewCardRepo(pool)
 
+	weatherSvc := weather.NewService(cfg.WeatherGeoIPURL, cfg.WeatherForecastURL, time.Hour)
+
 	deckH := handler.NewDeckHandler(deckRepo)
 	cardH := handler.NewCardHandler(cardRepo)
 	syncH := handler.NewSyncHandler(pool, deckRepo, cardRepo)
+	weatherH := handler.NewWeatherHandler(weatherSvc)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
@@ -88,6 +92,8 @@ func main() {
 		r.Delete("/cards/{id}", cardH.Delete)
 
 		r.Post("/sync", syncH.Sync)
+
+		r.Get("/weather", weatherH.Current)
 	})
 
 	srv := &http.Server{

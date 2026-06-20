@@ -42,12 +42,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.catalanflashcard.R
 import com.catalanflashcard.data.entity.Deck
+import com.catalanflashcard.data.repository.WeatherState
+import com.catalanflashcard.ui.WeatherStrip
 import com.catalanflashcard.ui.resolveAppLanguage
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
 
@@ -55,6 +58,7 @@ import com.catalanflashcard.ui.viewmodel.DeckViewModel
 @Composable
 fun DeckListScreen(
     viewModel: DeckViewModel,
+    weather: WeatherState,
     onDeckClick: (String) -> Unit,
     onAddDeckClick: () -> Unit
 ) {
@@ -101,6 +105,9 @@ fun DeckListScreen(
     }
 
     Scaffold(
+        // Transparent so the app-wide weather background shows through the list
+        // area; the top bar and cards keep their own surface for readability.
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.deck_title)) },
@@ -129,32 +136,38 @@ fun DeckListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (isLoading && decks.isEmpty()) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (decks.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.no_decks),
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    items(decks) { deck ->
-                        DeckListItem(
-                            deck = deck,
-                            onDeckClick = onDeckClick,
-                            onDeleteClick = { deckToDelete = deck }
-                        )
+            WeatherStrip(
+                state = weather,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+            )
+            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                if (isLoading && decks.isEmpty()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else if (decks.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.no_decks),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        items(decks) { deck ->
+                            DeckListItem(
+                                deck = deck,
+                                onDeckClick = onDeckClick,
+                                onDeleteClick = { deckToDelete = deck }
+                            )
+                        }
                     }
                 }
             }

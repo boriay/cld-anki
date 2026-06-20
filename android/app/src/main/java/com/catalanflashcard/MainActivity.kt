@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,8 +18,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.catalanflashcard.data.database.FlashcardDatabase
 import com.catalanflashcard.data.preferences.SyncPreferences
+import com.catalanflashcard.data.preferences.WeatherPreferences
 import com.catalanflashcard.data.repository.FlashcardRepository
 import com.catalanflashcard.data.repository.SyncRepository
+import com.catalanflashcard.data.repository.WeatherRepository
+import com.catalanflashcard.ui.WeatherBackground
 import com.catalanflashcard.ui.navigation.Screen
 import com.catalanflashcard.ui.screen.AddDeckDialog
 import com.catalanflashcard.ui.screen.DeckDetailScreen
@@ -27,6 +32,7 @@ import com.catalanflashcard.ui.theme.CatalanFlashcardTheme
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
 import com.catalanflashcard.ui.viewmodel.StudyViewModel
 import com.catalanflashcard.ui.viewmodel.ViewModelFactory
+import com.catalanflashcard.ui.viewmodel.WeatherViewModel
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,14 +50,22 @@ class MainActivity : AppCompatActivity() {
             SyncPreferences(applicationContext)
         )
 
+        val weatherRepository = WeatherRepository(WeatherPreferences(applicationContext))
+
         val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository, syncRepository) }
         val studyViewModelFactory = ViewModelFactory { StudyViewModel(repository) }
+        val weatherViewModelFactory = ViewModelFactory { WeatherViewModel(weatherRepository) }
 
         setContent {
             CatalanFlashcardTheme {
                 val navController = rememberNavController()
+                val weatherViewModel: WeatherViewModel = viewModel(factory = weatherViewModelFactory)
+                val weatherState by weatherViewModel.state.collectAsState()
 
-                NavHost(navController = navController, startDestination = Screen.DeckList.route) {
+                Box {
+                    WeatherBackground(weatherState)
+
+                    NavHost(navController = navController, startDestination = Screen.DeckList.route) {
                     composable(Screen.DeckList.route) {
                         // ViewModel scoped to this back-stack entry, not the whole Activity.
                         val deckViewModel: DeckViewModel = viewModel(factory = deckViewModelFactory)
@@ -66,6 +80,7 @@ class MainActivity : AppCompatActivity() {
 
                         DeckListScreen(
                             viewModel = deckViewModel,
+                            weather = weatherState,
                             onDeckClick = { deckId ->
                                 navController.navigate(Screen.DeckDetail.createRoute(deckId))
                             },
@@ -100,6 +115,7 @@ class MainActivity : AppCompatActivity() {
                             viewModel = studyViewModel,
                             onBackClick = { navController.navigateUp() }
                         )
+                    }
                     }
                 }
             }

@@ -36,6 +36,10 @@
     <string name="no_cards_in_deck">Карточек пока нет. Добавьте первую, чтобы начать.</string>
     <string name="delete_card_confirm_title">Удалить карточку</string>
     <string name="delete_card_confirm_message">Удалить эту карточку? Это действие необратимо.</string>
+    <string name="weather_today">Сегодня</string>
+    <string name="weather_tomorrow">Завтра</string>
+    <string name="weather_cloudiness">Облачность</string>
+    <string name="weather_precipitation">Вероятность осадков</string>
     <string name="language">Язык</string>
     <string name="language_system_default">Системный</string>
 </resources>

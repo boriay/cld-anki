@@ -14,3 +14,9 @@ spec:
     - port: 80
       targetPort: 8080
   type: LoadBalancer
+  # Preserve the client's real source IP. With the default "Cluster" policy GKE
+  # SNATs the source to a node IP, and an L4 passthrough LB sets no
+  # X-Forwarded-For, so the backend would see a private IP for every request and
+  # geolocate the weather to the cluster's own region instead of the user's.
+  # "Local" routes only to nodes running a ready pod and keeps the source IP.
+  externalTrafficPolicy: Local
