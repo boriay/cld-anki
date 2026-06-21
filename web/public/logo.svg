@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Catalan Flashcard — question mark variant</title>
+  <defs>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="22" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+    <clipPath id="iconClip">
+      <rect width="1024" height="1024" rx="200"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#iconClip)">
+    <!-- ─── Senyera background (9 equal bands, gold + 4 red) ─── -->
+    <rect width="1024" height="1024" fill="#FCBA00"/>
+    <rect y="113.78"  width="1024" height="113.78" fill="#CC0000"/>
+    <rect y="341.33"  width="1024" height="113.78" fill="#CC0000"/>
+    <rect y="568.89"  width="1024" height="113.78" fill="#CC0000"/>
+    <rect y="796.44"  width="1024" height="113.78" fill="#CC0000"/>
+
+    <!-- ─── Fanned flashcards (rotated around icon centre 512,512) ─── -->
+    <g filter="url(#cardShadow)">
+      <g transform="rotate(-16,512,512)">
+        <rect x="302" y="200" width="420" height="580" rx="48" fill="#C8BEA8"/>
+      </g>
+      <g transform="rotate(-5,512,512)">
+        <rect x="302" y="200" width="420" height="580" rx="48" fill="#EDE9E0"/>
+      </g>
+      <!-- Card 1 · front · +7° · with red "?" -->
+      <g transform="rotate(7,512,512)">
+        <rect x="302" y="200" width="420" height="580" rx="48" fill="#FFFFFF"/>
+
+        <!--
+          "?" centred at card centre (514, 490).
+          Bowl arc → hook → stem → dot. stroke-width 56, round caps/joins.
+        -->
+        <path d="M449,431
+                 C449,361 482,325 520,325
+                 C582,325 611,373 611,421
+                 C611,486 531,495 515,538
+                 L515,560"
+              fill="none" stroke="#CC0000" stroke-width="56"
+              stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="515" cy="636" r="31" fill="#CC0000"/>
+      </g>
+    </g>
+  </g>
+</svg>

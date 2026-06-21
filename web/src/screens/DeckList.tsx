@@ -77,7 +77,7 @@ export function DeckList() {
     <div className="screen">
       <header className="topbar">
         <div className="topbar-left">
-          <span className="logo-link">🐱</span>
+          <img src="/logo.svg" alt="Cat Flashcards" className="logo-img" />
           <h2>{s.decks}</h2>
         </div>
         <div className="topbar-right">

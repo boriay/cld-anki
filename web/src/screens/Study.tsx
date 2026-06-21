@@ -100,7 +100,7 @@ export function Study() {
     () => (
       <header className="topbar">
         <div className="topbar-left">
-          <Link to="/" className="logo-link">🐱</Link>
+          <Link to="/"><img src="/logo.svg" alt="Cat Flashcards" className="logo-img" /></Link>
           <h2>
             <Link to={`/decks/${deckId}`} className="link">
               {s.backToDeck}

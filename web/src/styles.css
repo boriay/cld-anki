@@ -118,10 +118,12 @@ input {
   align-items: center;
   gap: 0.8rem;
 }
-.logo-link {
-  font-size: 1.5rem;
-  line-height: 1;
-  text-decoration: none;
+.logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .add-row {
