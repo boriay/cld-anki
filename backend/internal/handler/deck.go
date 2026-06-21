@@ -80,18 +80,20 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
 	id := chi.URLParam(r, "id")
 	// Partial update: only fields present in the payload are changed. Pointer
-	// distinguishes "omitted" from "set to empty".
+	// distinguishes "omitted" from "set to empty". Pinned is one-way (a deck pins
+	// itself on first use, mirroring the Android client); the repo OR-merges it.
 	var body struct {
-		Name *string `json:"name"`
+		Name   *string `json:"name"`
+		Pinned *bool   `json:"pinned"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
 	}
-	if body.Name == nil {
+	if body.Name == nil && body.Pinned == nil {
 		jsonError(w, "no fields to update", http.StatusBadRequest)
 		return
 	}
-	if strings.TrimSpace(*body.Name) == "" {
+	if body.Name != nil && strings.TrimSpace(*body.Name) == "" {
 		jsonError(w, "name cannot be empty", http.StatusBadRequest)
 		return
 	}
@@ -104,11 +106,26 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-	d.Name = strings.TrimSpace(*body.Name)
-	d.UpdatedAt = time.Now().UTC()
-	if err := h.repo.Upsert(r.Context(), d); err != nil {
-		internalError(w, err)
-		return
+	// Apply only fields that actually change. Skipping no-op writes keeps the
+	// updated_at cursor still, so an idempotent pin (or a rename to the same
+	// value) doesn't re-emit the deck in the sync delta — mirrors the Android DAO.
+	changed := false
+	if body.Name != nil {
+		if name := strings.TrimSpace(*body.Name); name != d.Name {
+			d.Name = name
+			changed = true
+		}
+	}
+	if body.Pinned != nil && *body.Pinned && !d.Pinned {
+		d.Pinned = true
+		changed = true
+	}
+	if changed {
+		d.UpdatedAt = time.Now().UTC()
+		if err := h.repo.Upsert(r.Context(), d); err != nil {
+			internalError(w, err)
+			return
+		}
 	}
 	jsonOK(w, d)
 }
