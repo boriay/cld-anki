@@ -49,4 +49,10 @@ interface DeckDao {
     // updatedAt or re-emitting the row in the sync delta.
     @Query("UPDATE decks SET pinned = 1, updatedAt = :now WHERE id = :id AND pinned = 0")
     suspend fun pin(id: String, now: Long = System.currentTimeMillis())
+
+    // Hard-wipe all local decks. Used when switching accounts so the previous
+    // user's rows aren't re-pushed under the new UID. Bypasses tombstones on
+    // purpose — these deletions are local-only and never synced.
+    @Query("DELETE FROM decks")
+    suspend fun deleteAll()
 }

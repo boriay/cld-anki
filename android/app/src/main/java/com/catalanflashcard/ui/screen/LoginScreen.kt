@@ -103,6 +103,9 @@ private fun AuthForm(
     var signUp by remember { mutableStateOf(false) }
 
     val canSubmit = email.isNotBlank() && password.isNotBlank() && !busy
+    // Google sign-in needs the Web client ID; disable the button when it's unset
+    // rather than letting AuthManager throw at tap time.
+    val googleConfigured = stringResource(R.string.web_client_id).isNotBlank()
 
     Text(stringResource(R.string.account_anonymous))
 
@@ -138,7 +141,7 @@ private fun AuthForm(
 
     OutlinedButton(
         onClick = { viewModel.signInGoogle(context) },
-        enabled = !busy,
+        enabled = !busy && googleConfigured,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(stringResource(R.string.google_sign_in))

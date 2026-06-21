@@ -93,11 +93,20 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "no fields to update", http.StatusBadRequest)
 		return
 	}
-	if body.Name != nil && strings.TrimSpace(*body.Name) == "" {
-		jsonError(w, "name cannot be empty", http.StatusBadRequest)
-		return
+	var namePtr *string
+	if body.Name != nil {
+		name := strings.TrimSpace(*body.Name)
+		if name == "" {
+			jsonError(w, "name cannot be empty", http.StatusBadRequest)
+			return
+		}
+		namePtr = &name
 	}
-	d, err := h.repo.GetByID(r.Context(), id, uid)
+	pin := body.Pinned != nil && *body.Pinned
+	// Atomic, soft-delete-guarded update: a single SQL statement applies the
+	// rename/pin without a read-modify-write that could resurrect a tombstoned
+	// deck or clobber a concurrent edit (see repository.UpdateFields).
+	d, err := h.repo.UpdateFields(r.Context(), id, uid, namePtr, pin)
 	if errors.Is(err, repository.ErrNotFound) {
 		jsonError(w, "not found", http.StatusNotFound)
 		return
@@ -105,27 +114,6 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		internalError(w, err)
 		return
-	}
-	// Apply only fields that actually change. Skipping no-op writes keeps the
-	// updated_at cursor still, so an idempotent pin (or a rename to the same
-	// value) doesn't re-emit the deck in the sync delta — mirrors the Android DAO.
-	changed := false
-	if body.Name != nil {
-		if name := strings.TrimSpace(*body.Name); name != d.Name {
-			d.Name = name
-			changed = true
-		}
-	}
-	if body.Pinned != nil && *body.Pinned && !d.Pinned {
-		d.Pinned = true
-		changed = true
-	}
-	if changed {
-		d.UpdatedAt = time.Now().UTC()
-		if err := h.repo.Upsert(r.Context(), d); err != nil {
-			internalError(w, err)
-			return
-		}
 	}
 	jsonOK(w, d)
 }

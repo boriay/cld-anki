@@ -49,18 +49,23 @@ ConfigMap for production. Android sends no `Origin` header and is unaffected.
 npm run build     # → dist/  (static assets)
 ```
 
-Deploy target: GCS bucket served through the **existing** L7 LB with host-based
-routing (`catflashcards.com` → bucket, `api.catflashcards.com` → backend). Note:
-the k8s GCE Ingress can't target a GCS bucket directly — the bucket backend must
-be attached to the LB's URL map outside the k8s Ingress (self-managed GCLB) so
-the Ingress controller doesn't overwrite the routing rule.
+The SPA is baked into an nginx image (`Dockerfile`, `nginx.conf` with SPA
+fallback) and served by the in-cluster `web-static` Deployment/Service (`k8s/`)
+behind the **existing** GCE Ingress, routed by host (`catflashcards.com` →
+web-static, `api.catflashcards.com` → backend). GCE Ingress can only target
+Services, not a GCS bucket, so the static site runs as a Service on the same L7
+LB. The apex has its own `ManagedCertificate` (`cld-anki-cert-web`), leaving the
+api cert untouched.
+
+Deploy: build with the `VITE_*` build args, push to Artifact Registry, then
+`kubectl set image deployment/web-static nginx=<image>:<tag> -n cld-anki`.
 
 ## Known follow-ups
 
-- **Android account migration**: Android currently uses Firebase *anonymous*
-  auth, so its data lives under a per-device anonymous UID. To share decks with
-  the web, link the anonymous account to a Google/email credential
-  (`linkWithCredential`) so the UID persists, then sign into the same account on
-  web. Until then, web is a separate (empty) account.
+- **Android account login** (done): Android is anonymous by default and the
+  account screen links the anonymous session to a Google/email credential
+  (`linkWithCredential`, falling back to sign-in on collision) so decks sync with
+  the web. Switching to a different account clears the local store and pulls the
+  account's data to avoid mixing UIDs.
 - **Apple Sign-In** — add the provider button in `src/screens/Login.tsx` once
   enabled in the console.

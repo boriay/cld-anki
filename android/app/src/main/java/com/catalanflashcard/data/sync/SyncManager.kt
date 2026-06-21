@@ -124,13 +124,18 @@ class SyncManager internal constructor(
 
     override fun resyncFromScratch() {
         scope.launch {
-            syncRepository.resetSyncCursor()
-            runSync()
+            // Clear + reset run inside the sync mutex so a concurrent sync can't
+            // push the old account's rows between the wipe and the pull.
+            runSync {
+                syncRepository.clearLocalData()
+                syncRepository.resetSyncCursor()
+            }
         }
     }
 
-    private suspend fun runSync() {
+    private suspend fun runSync(prepare: (suspend () -> Unit)? = null) {
         mutex.withLock {
+            prepare?.invoke()
             _isSyncing.value = true
             try {
                 syncRepository.sync().onFailure { e ->

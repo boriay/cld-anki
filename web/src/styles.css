@@ -194,6 +194,9 @@ button[disabled] {
 .icon-btn:hover {
   background: rgba(0, 0, 0, 0.06);
 }
+.icon-btn.danger {
+  color: #c0392b;
+}
 
 /* Language picker in the top bar. */
 .lang-select {

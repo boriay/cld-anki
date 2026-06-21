@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"math"
 	"net/http"
 	"time"
 
@@ -98,6 +99,20 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		NextReviewTime *time.Time `json:"next_review_time"`
 	}
 	if !decodeBody(w, r, &body) {
+		return
+	}
+	// Validate SM-2 invariants so a buggy/malicious client can't store
+	// out-of-range state or overflow the INTEGER interval column.
+	if body.Interval != nil && (*body.Interval < 1 || *body.Interval > math.MaxInt32) {
+		jsonError(w, "interval out of range", http.StatusBadRequest)
+		return
+	}
+	if body.Repetitions != nil && *body.Repetitions < 0 {
+		jsonError(w, "repetitions out of range", http.StatusBadRequest)
+		return
+	}
+	if body.EaseFactor != nil && (*body.EaseFactor < 1.3 || *body.EaseFactor > 5.0) {
+		jsonError(w, "ease_factor out of range", http.StatusBadRequest)
 		return
 	}
 	c, err := h.repo.GetByID(r.Context(), id, uid)

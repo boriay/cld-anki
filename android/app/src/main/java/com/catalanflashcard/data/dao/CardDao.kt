@@ -49,4 +49,9 @@ interface CardDao {
     // Cascade soft-delete when the parent deck is removed.
     @Query("UPDATE cards SET deletedAt = :now, updatedAt = :now WHERE deckId = :deckId AND deletedAt IS NULL")
     suspend fun softDeleteByDeck(deckId: String, now: Long = System.currentTimeMillis())
+
+    // Hard-wipe all local cards. Used when switching accounts so the previous
+    // user's rows aren't re-pushed under the new UID (local-only, never synced).
+    @Query("DELETE FROM cards")
+    suspend fun deleteAll()
 }

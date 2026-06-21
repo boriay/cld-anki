@@ -43,6 +43,15 @@ class SyncRepository(
         syncPreferences.lastPushedAt = 0L
     }
 
+    // Wipe all local rows so the previous account's decks/cards aren't re-pushed
+    // under a new UID after switching accounts. Cards first (they reference a
+    // deck). The data still lives on the server under the old UID; the following
+    // full sync pulls the new account's data into the now-empty store.
+    suspend fun clearLocalData() = withContext(Dispatchers.IO) {
+        cardDao.deleteAll()
+        deckDao.deleteAll()
+    }
+
     suspend fun sync(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val token = tokenProvider.idToken()

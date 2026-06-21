@@ -20,6 +20,10 @@ export interface ReviewResult {
 
 const EASE_MIN = 1.3;
 const EASE_MAX = 5.0;
+// Match the Android Int.MAX_VALUE cap: the backend stores interval as a 32-bit
+// INTEGER, so a long review streak must not overflow it.
+const INT32_MAX = 2_147_483_647;
+const DAY_MS = 86_400_000;
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.min(Math.max(v, lo), hi);
@@ -48,8 +52,9 @@ export function calculateReview(
   } else if (repetitions === 1) {
     newInterval = 3;
   } else {
-    // Round to match the Android Int conversion (truncation toward zero).
-    newInterval = Math.trunc(clamp(interval * newEaseFactor, 1, Number.MAX_SAFE_INTEGER));
+    // Round to match the Android Int conversion (truncation toward zero) and
+    // cap at INT32_MAX so the backend's INTEGER column can't overflow.
+    newInterval = Math.trunc(clamp(interval * newEaseFactor, 1, INT32_MAX));
   }
 
   return { interval: newInterval, easeFactor: newEaseFactor, repetitions: repetitions + 1 };
@@ -58,7 +63,7 @@ export function calculateReview(
 // nextReviewTime returns an RFC3339 string `interval` days from now, matching
 // the next_review_time the backend stores.
 export function nextReviewTime(intervalDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + intervalDays);
-  return d.toISOString();
+  // Fixed 24h days (not setDate, which shifts by calendar days and drifts ±1h
+  // across DST) so scheduling matches the Android interval * 24h arithmetic.
+  return new Date(Date.now() + intervalDays * DAY_MS).toISOString();
 }

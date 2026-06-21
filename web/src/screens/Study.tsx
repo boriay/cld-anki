@@ -17,6 +17,9 @@ export function Study() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  // Blocks a second grade (e.g. a double-tap) until the current PUT resolves, so
+  // a card can't be skipped without its review being saved.
+  const [saving, setSaving] = useState(false);
   // Pin the deck once per session on the first review, so it stays visible
   // across UI-language switches (mirrors Android pinning a deck on first use).
   const pinned = useRef(false);
@@ -28,7 +31,15 @@ export function Study() {
         const cards = await api.listCards(deckId);
         const now = Date.now();
         // Due = next review time in the past (new cards default to "now").
-        const due = cards.filter((c) => new Date(c.next_review_time).getTime() <= now);
+        const due = cards
+          .filter((c) => new Date(c.next_review_time).getTime() <= now)
+          // Soonest-due first (the backend lists by created_at); matches the
+          // Android study order.
+          .sort(
+            (a, b) =>
+              new Date(a.next_review_time).getTime() -
+              new Date(b.next_review_time).getTime(),
+          );
         setQueue(due);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load cards");
@@ -42,33 +53,38 @@ export function Study() {
   const remaining = queue.length;
 
   async function grade(quality: Quality) {
-    if (!current) return;
+    if (!current || saving) return;
     const r = calculateReview(
       current.interval,
       current.ease_factor,
       current.repetitions,
       quality,
     );
-    // Optimistically advance; the PUT persists the new schedule server-side.
-    setQueue((q) => q.slice(1));
-    setRevealed(false);
-    // Pin the deck once on first use — fire-and-forget so a transient failure
-    // never blocks or rolls back the card review (mirrors Android's runCatching).
-    if (deckId && !pinned.current) {
-      pinned.current = true;
-      void api.pinDeck(deckId).catch(() => {
-        pinned.current = false;
-      });
-    }
+    setSaving(true);
+    setError(null);
     try {
+      // Persist first, then advance — so a failed save keeps the card in the
+      // queue instead of silently dropping the review.
       await api.updateCard(current.id, {
         interval: r.interval,
         ease_factor: r.easeFactor,
         repetitions: r.repetitions,
         next_review_time: nextReviewTime(r.interval),
       });
+      setQueue((q) => q.slice(1));
+      setRevealed(false);
+      // Pin the deck once on first use — fire-and-forget so a transient failure
+      // never blocks or rolls back the review (mirrors Android's runCatching).
+      if (deckId && !pinned.current) {
+        pinned.current = true;
+        void api.pinDeck(deckId).catch(() => {
+          pinned.current = false;
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save review");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -118,6 +134,7 @@ export function Study() {
             <button
               key={g.quality}
               className={`grade ${g.cls}`}
+              disabled={saving}
               onClick={() => void grade(g.quality)}
             >
               {g.label}
