@@ -1,0 +1,402 @@
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #1a1a1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+button {
+  cursor: pointer;
+  font: inherit;
+}
+
+input {
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #c4ccd8;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.muted {
+  color: #5a6472;
+}
+.error {
+  color: #c0392b;
+}
+
+/* --- Weather backgrounds (coarse, key off backend condition) --- */
+.bg {
+  min-height: 100dvh;
+  transition: background 0.6s ease;
+}
+.bg-sunny.bg-day {
+  background: linear-gradient(180deg, #7ec8f0, #cdeafe 60%, #b7e2a8);
+}
+.bg-cloudy.bg-day {
+  background: linear-gradient(180deg, #9fb2c4, #d6dee6 60%, #c3cdb8);
+}
+.bg-rain.bg-day {
+  background: linear-gradient(180deg, #5f7184, #8fa2b3 60%, #8fa890);
+}
+.bg-snow.bg-day {
+  background: linear-gradient(180deg, #cdd9e6, #eef3f8 60%, #e3eaee);
+}
+.bg-sunny.bg-night,
+.bg-cloudy.bg-night {
+  background: linear-gradient(180deg, #16223c, #243a5e 70%, #2c3a30);
+}
+.bg-rain.bg-night {
+  background: linear-gradient(180deg, #121a2a, #243245 70%, #28342a);
+}
+.bg-snow.bg-night {
+  background: linear-gradient(180deg, #1c2740, #33425c 70%, #3a4450);
+}
+
+/* --- Weather forecast strip (today/tomorrow summary) --- */
+.weather-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 0.8rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+}
+.weather-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.weather-label {
+  font-size: 0.72rem;
+  color: #5a6472;
+}
+.weather-temp {
+  font-size: 0.95rem;
+}
+.weather-meta {
+  font-size: 0.72rem;
+  color: #5a6472;
+}
+.weather-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(26, 26, 26, 0.15);
+}
+
+/* --- Layout --- */
+.screen {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1rem 1.1rem 3rem;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.topbar h2 {
+  margin: 0;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.add-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+.add-row input {
+  flex: 1 1 120px;
+}
+
+button:not(.link):not(.grade):not(.reveal-btn):not(.deck-open):not(.icon-btn) {
+  padding: 0.55rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: #2f6fde;
+  color: #fff;
+}
+button[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+.link {
+  background: none;
+  border: none;
+  color: #2f6fde;
+  text-decoration: none;
+  padding: 0;
+}
+.link.danger {
+  color: #c0392b;
+}
+
+/* --- Lists --- */
+.deck-list,
+.card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.deck-item,
+.card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 10px;
+}
+.card-item {
+  padding: 0.7rem 0.9rem;
+}
+/* The deck plaque is one big clickable button (opens the deck). */
+.deck-open {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.85rem 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  border-radius: 10px;
+}
+.deck-open:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.7rem;
+  font-size: 1.05rem;
+  border-radius: 8px;
+  line-height: 1;
+}
+.icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.icon-btn.danger {
+  color: #c0392b;
+}
+
+/* Language picker in the top bar. */
+.lang-select {
+  font: inherit;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #c4ccd8;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+}
+
+/* Floating "create deck" button. */
+.fab {
+  position: fixed;
+  right: max(1.2rem, calc((100vw - 720px) / 2 + 1.1rem));
+  bottom: 1.6rem;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: #2f6fde;
+  color: #fff;
+  font-size: 1.8rem;
+  line-height: 1;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+/* Modal dialog (deck-name prompt). */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 10;
+}
+.modal {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.4rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+.modal h3 {
+  margin: 0 0 1rem;
+}
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+/* --- Login --- */
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #16223c, #243a5e 70%, #2c3a30);
+  padding: 1rem;
+}
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.6rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+.login-card h1 {
+  margin: 0 0 0.2rem;
+}
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.google-btn {
+  width: 100%;
+  background: #fff !important;
+  color: #1a1a1a !important;
+  border: 1px solid #c4ccd8 !important;
+}
+
+/* --- Study --- */
+.study {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.flashcard {
+  min-height: 220px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+/* Distinct side colors (mirrors the Android front/back color cue). */
+.flashcard.front-side {
+  background: #fef6e4;
+}
+.flashcard.back-side {
+  background: #e4f1fe;
+}
+.flashcard-text {
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.reveal-btn {
+  padding: 0.8rem;
+  border: none;
+  border-radius: 10px;
+  background: #2f6fde;
+  color: #fff;
+  font-size: 1rem;
+}
+.grade-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+.grade {
+  padding: 0.8rem 0.4rem;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+}
+.grade.again {
+  background: #c0392b;
+}
+.grade.hard {
+  background: #e08e0b;
+}
+.grade.good {
+  background: #2f8f4e;
+}
+.grade.easy {
+  background: #2f6fde;
+}
+.done {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 1.2rem;
+}
+
+/* Night weather background: switch all text to light so it's readable on
+   the dark gradient. Triggered by .bg-night on WeatherBackground —
+   not by prefers-color-scheme (dark sky is app-driven, not OS-driven). */
+.bg-night { color: #f0f0f0; }
+.bg-night h1,
+.bg-night h2,
+.bg-night h3,
+.bg-night h4 { color: #f0f0f0; }
+.bg-night .muted { color: #9aabb8; }
+.bg-night .deck-open { color: #f0f0f0; }
+.bg-night .deck-item,
+.bg-night .card-item { background: rgba(255, 255, 255, 0.10); }
+.bg-night .lang-select {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f0f0f0;
+}
+.bg-night .lang-select option {
+  background: #1e2a3a;
+  color: #f0f0f0;
+}
+.bg-night input {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f0f0f0;
+}
+.bg-night input::placeholder { color: #7a8a97; }
+.bg-night .link { color: #7ab3ff; }
+.bg-night a { color: #7ab3ff; }
+/* Weather strip has its own light background — keep text dark inside it */
+.bg-night .weather-strip { color: #1a1a1a; }
+.bg-night .weather-strip .weather-label,
+.bg-night .weather-strip .weather-meta { color: #5a6472; }

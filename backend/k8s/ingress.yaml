@@ -6,8 +6,10 @@
 # ClusterIP (see service.yaml) so the API isn't exposed twice.
 #
 # The LB uses the reserved global static IP `cld-anki-api-ip` (34.160.37.42);
-# DNS A record api.catflashcards.com -> that IP must exist before applying, or
-# the ManagedCertificate can't be provisioned.
+# DNS A records api.catflashcards.com and catflashcards.com -> that IP must
+# exist before applying, or the ManagedCertificate can't be provisioned. Both
+# records are Cloudflare grey-cloud (DNS-only): api.* must stay unproxied so the
+# backend sees the real client IP for weather geolocation.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -18,7 +20,10 @@ metadata:
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.allow-http: "false"
     kubernetes.io/ingress.global-static-ip-name: "cld-anki-api-ip"
-    networking.gke.io/managed-certificates: "cld-anki-cert"
+    # One managed cert per domain. A ManagedCertificate's domains are immutable,
+    # so the apex gets its own cert (cld-anki-cert-web) rather than mutating the
+    # api cert — that keeps the already-Active api cert (and HTTPS) untouched.
+    networking.gke.io/managed-certificates: "cld-anki-cert,cld-anki-cert-web"
 spec:
   rules:
     - host: api.catflashcards.com
@@ -31,6 +36,19 @@ spec:
                 name: cld-anki-backend
                 port:
                   number: 80
+    # Static web SPA on the same LB, routed by host. GCE Ingress can only target
+    # Services (not a GCS bucket), so the SPA is served by the web-static nginx
+    # Service (web/k8s). The browser still calls the API at api.* directly.
+    - host: catflashcards.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-static
+                port:
+                  number: 80
 ---
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
@@ -40,3 +58,12 @@ metadata:
 spec:
   domains:
     - api.catflashcards.com
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: cld-anki-cert-web
+  namespace: cld-anki
+spec:
+  domains:
+    - catflashcards.com

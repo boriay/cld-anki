@@ -1,0 +1,43 @@
+# Static SPA served by nginx, fronted by the shared GCE Ingress (host rule
+# catflashcards.com). The Vite bundle talks to the API at api.catflashcards.com
+# directly from the browser, so this pod only serves files — no secrets, no DB.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-static
+  namespace: cld-anki
+  labels:
+    app: web-static
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-static
+  template:
+    metadata:
+      labels:
+        app: web-static
+    spec:
+      containers:
+        - name: nginx
+          # :latest is the bootstrap manifest only. Deploys pin an immutable tag
+          # (commit SHA) via `kubectl set image deployment/web-static nginx=...:<sha>`
+          # so rollouts/rollbacks are reproducible — see web/README.md.
+          image: europe-west1-docker.pkg.dev/cld-anki/cld-anki/web-static:latest
+          ports:
+            - containerPort: 80
+          # Drives the Ingress NEG health check: only Ready pods receive LB
+          # traffic, so a rolling update never serves from a half-started pod.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

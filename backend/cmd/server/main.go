@@ -19,6 +19,7 @@ import (
 	"github.com/boriay/cld-anki/backend/internal/weather"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"google.golang.org/api/option"
 )
 
@@ -66,6 +67,7 @@ func main() {
 	deckH := handler.NewDeckHandler(deckRepo)
 	cardH := handler.NewCardHandler(cardRepo)
 	syncH := handler.NewSyncHandler(pool, deckRepo, cardRepo)
+	seedH := handler.NewSeedHandler(pool)
 	weatherH := handler.NewWeatherHandler(weatherSvc)
 
 	r := chi.NewRouter()
@@ -75,6 +77,15 @@ func main() {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	// CORS for the web SPA (catflashcards.com). Must run before auth so the
+	// browser's preflight OPTIONS gets the headers without a bearer token.
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   cfg.AllowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 	r.Use(middleware.Timeout(30 * time.Second))
 
 	r.Get("/health", handler.Health)
@@ -95,6 +106,8 @@ func main() {
 		r.Delete("/cards/{id}", cardH.Delete)
 
 		r.Post("/sync", syncH.Sync)
+
+		r.Post("/seed", seedH.Seed)
 
 		r.Get("/weather", weatherH.Current)
 	})

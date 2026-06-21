@@ -1,5 +1,6 @@
 package com.catalanflashcard.data.sync
 
+import com.catalanflashcard.data.database.LocalSeeder
 import com.catalanflashcard.data.preferences.AutoSyncSettings
 import com.catalanflashcard.data.repository.SyncRepository
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,7 @@ class SyncManagerTest {
         whenever(repo.sync()).thenReturn(Result.success(Unit))
         val settings = FakeSettings(false)
         val scope = unconfinedScope(testScheduler)
-        val manager = SyncManager(repo, settings, scope)
+        val manager = SyncManager(repo, settings, mock<LocalSeeder>(), scope)
 
         manager.toggle() // enable
         advanceUntilIdle()
@@ -50,7 +51,7 @@ class SyncManagerTest {
         whenever(repo.sync()).thenReturn(Result.success(Unit))
         val settings = FakeSettings(false)
         val scope = unconfinedScope(testScheduler)
-        val manager = SyncManager(repo, settings, scope)
+        val manager = SyncManager(repo, settings, mock<LocalSeeder>(), scope)
 
         manager.toggle()      // enable -> immediate sync (1)
         advanceUntilIdle()
@@ -70,7 +71,7 @@ class SyncManagerTest {
         whenever(repo.sync()).thenReturn(Result.success(Unit))
         val settings = FakeSettings(true) // enabled from the start
         val scope = unconfinedScope(testScheduler)
-        val manager = SyncManager(repo, settings, scope)
+        val manager = SyncManager(repo, settings, mock<LocalSeeder>(), scope)
         advanceUntilIdle() // startup sync (1)
 
         // Five rapid edits within the debounce window collapse into a single sync.
@@ -87,7 +88,7 @@ class SyncManagerTest {
         whenever(repo.sync()).thenReturn(Result.failure(RuntimeException("boom")))
         val settings = FakeSettings(false)
         val scope = unconfinedScope(testScheduler)
-        val manager = SyncManager(repo, settings, scope)
+        val manager = SyncManager(repo, settings, mock<LocalSeeder>(), scope)
 
         val received = mutableListOf<String>()
         scope.launch { manager.errors.collect { received += it } }
@@ -104,7 +105,7 @@ class SyncManagerTest {
         val repo = mock<SyncRepository>()
         val settings = FakeSettings(false)
         val scope = unconfinedScope(testScheduler)
-        val manager = SyncManager(repo, settings, scope)
+        val manager = SyncManager(repo, settings, mock<LocalSeeder>(), scope)
 
         manager.requestSync()
         advanceUntilIdle()

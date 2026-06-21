@@ -80,33 +80,38 @@ func (h *DeckHandler) Update(w http.ResponseWriter, r *http.Request) {
 	uid := auth.UserIDFromCtx(r.Context())
 	id := chi.URLParam(r, "id")
 	// Partial update: only fields present in the payload are changed. Pointer
-	// distinguishes "omitted" from "set to empty".
+	// distinguishes "omitted" from "set to empty". Pinned is one-way (a deck pins
+	// itself on first use, mirroring the Android client); the repo OR-merges it.
 	var body struct {
-		Name *string `json:"name"`
+		Name   *string `json:"name"`
+		Pinned *bool   `json:"pinned"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
 	}
-	if body.Name == nil {
+	if body.Name == nil && body.Pinned == nil {
 		jsonError(w, "no fields to update", http.StatusBadRequest)
 		return
 	}
-	if strings.TrimSpace(*body.Name) == "" {
-		jsonError(w, "name cannot be empty", http.StatusBadRequest)
-		return
+	var namePtr *string
+	if body.Name != nil {
+		name := strings.TrimSpace(*body.Name)
+		if name == "" {
+			jsonError(w, "name cannot be empty", http.StatusBadRequest)
+			return
+		}
+		namePtr = &name
 	}
-	d, err := h.repo.GetByID(r.Context(), id, uid)
+	pin := body.Pinned != nil && *body.Pinned
+	// Atomic, soft-delete-guarded update: a single SQL statement applies the
+	// rename/pin without a read-modify-write that could resurrect a tombstoned
+	// deck or clobber a concurrent edit (see repository.UpdateFields).
+	d, err := h.repo.UpdateFields(r.Context(), id, uid, namePtr, pin)
 	if errors.Is(err, repository.ErrNotFound) {
 		jsonError(w, "not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		internalError(w, err)
-		return
-	}
-	d.Name = strings.TrimSpace(*body.Name)
-	d.UpdatedAt = time.Now().UTC()
-	if err := h.repo.Upsert(r.Context(), d); err != nil {
 		internalError(w, err)
 		return
 	}

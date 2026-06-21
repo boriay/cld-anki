@@ -76,6 +76,32 @@ func (r *DeckRepo) GetByID(ctx context.Context, id, userID string) (*model.Deck,
 	))
 }
 
+// UpdateFields applies an optional rename and/or a one-way pin in a single
+// guarded statement. `deleted_at IS NULL` prevents a stale read-modify-write
+// from resurrecting a tombstoned deck, and the change predicate skips a no-op
+// write so an idempotent pin doesn't bump updated_at or re-emit the deck in the
+// sync delta. Returns the current row unchanged on a no-op, or ErrNotFound if no
+// active deck matched.
+func (r *DeckRepo) UpdateFields(ctx context.Context, id, userID string, name *string, pin bool) (*model.Deck, error) {
+	d, err := scanDeck(r.db.QueryRow(ctx, `
+		UPDATE decks
+		SET name = COALESCE($3, name),
+			pinned = (pinned OR $4),
+			updated_at = now()
+		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+		  AND (($3 IS NOT NULL AND name IS DISTINCT FROM $3) OR ($4 AND NOT pinned))
+		RETURNING `+deckCols, id, userID, name, pin))
+	if errors.Is(err, ErrNotFound) {
+		// No row updated: a no-op on an existing deck, or the deck is absent /
+		// tombstoned. Read back to tell them apart.
+		d, err = r.GetByID(ctx, id, userID)
+		if err == nil && d.DeletedAt != nil {
+			return nil, ErrNotFound
+		}
+	}
+	return d, err
+}
+
 // ChangedSince returns all decks (including soft-deleted) modified after the given time.
 func (r *DeckRepo) ChangedSince(ctx context.Context, userID string, since time.Time) ([]*model.Deck, error) {
 	rows, err := r.db.Query(ctx,

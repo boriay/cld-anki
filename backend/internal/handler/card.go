@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/boriay/cld-anki/backend/internal/auth"
@@ -100,35 +101,52 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if !decodeBody(w, r, &body) {
 		return
 	}
-	c, err := h.repo.GetByID(r.Context(), id, uid)
+	if body.Front == nil && body.Back == nil && body.Interval == nil &&
+		body.EaseFactor == nil && body.Repetitions == nil && body.NextReviewTime == nil {
+		jsonError(w, "no fields to update", http.StatusBadRequest)
+		return
+	}
+	if body.Front != nil {
+		f := strings.TrimSpace(*body.Front)
+		if f == "" {
+			jsonError(w, "front cannot be empty", http.StatusBadRequest)
+			return
+		}
+		body.Front = &f
+	}
+	if body.Back != nil {
+		b := strings.TrimSpace(*body.Back)
+		if b == "" {
+			jsonError(w, "back cannot be empty", http.StatusBadRequest)
+			return
+		}
+		body.Back = &b
+	}
+	// Validate SM-2 invariants so a buggy/malicious client can't store
+	// out-of-range state or overflow the INTEGER interval column. Bounds are
+	// shared with the /sync sanitiser (see sm2.go) — here a single edit is
+	// rejected outright; /sync clamps bulk deltas instead.
+	if body.Interval != nil && (*body.Interval < minInterval || *body.Interval > maxInterval) {
+		jsonError(w, "interval out of range", http.StatusBadRequest)
+		return
+	}
+	if body.Repetitions != nil && (*body.Repetitions < minRepetitions || *body.Repetitions > maxRepetitions) {
+		jsonError(w, "repetitions out of range", http.StatusBadRequest)
+		return
+	}
+	if body.EaseFactor != nil && (*body.EaseFactor < minEaseFactor || *body.EaseFactor > maxEaseFactor) {
+		jsonError(w, "ease_factor out of range", http.StatusBadRequest)
+		return
+	}
+	// Atomic guarded update: no read-modify-write, deleted_at IS NULL guard prevents
+	// resurrection, change predicate skips no-op bumps to updated_at.
+	c, err := h.repo.UpdateFields(r.Context(), id, uid,
+		body.Front, body.Back, body.Interval, body.EaseFactor, body.Repetitions, body.NextReviewTime)
 	if errors.Is(err, repository.ErrNotFound) {
 		jsonError(w, "not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		internalError(w, err)
-		return
-	}
-	if body.Front != nil {
-		c.Front = *body.Front
-	}
-	if body.Back != nil {
-		c.Back = *body.Back
-	}
-	if body.Interval != nil {
-		c.Interval = *body.Interval
-	}
-	if body.EaseFactor != nil {
-		c.EaseFactor = *body.EaseFactor
-	}
-	if body.Repetitions != nil {
-		c.Repetitions = *body.Repetitions
-	}
-	if body.NextReviewTime != nil {
-		c.NextReviewTime = *body.NextReviewTime
-	}
-	c.UpdatedAt = time.Now().UTC()
-	if err := h.repo.Upsert(r.Context(), c); err != nil {
 		internalError(w, err)
 		return
 	}

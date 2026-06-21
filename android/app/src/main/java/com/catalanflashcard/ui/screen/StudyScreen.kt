@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
 import com.catalanflashcard.domain.Quality
@@ -247,8 +249,11 @@ fun ReviewButton(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color),
+        // Reduce horizontal padding (default 24dp) so longer localized labels
+        // (e.g. Russian "Трудно", "Хорошо") fit on one line across 4 buttons.
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
         enabled = enabled
     ) {
-        Text(label, color = Color.White)
+        Text(label, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }

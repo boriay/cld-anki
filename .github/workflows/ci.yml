@@ -99,6 +99,14 @@ jobs:
           go-version: '1.25'
           cache-dependency-path: backend/go.sum
 
+      # The seed card data (data.go) is generated from the Android source. Catch a
+      # drift where someone edits the Kotlin seed but forgets to regenerate, which
+      # would silently desync the web/backend default decks from Android.
+      - name: Verify generated seed is up to date
+        run: |
+          python3 backend/scripts/gen_seed.py
+          git diff --exit-code backend/internal/seed/data.go
+
       - name: Build and vet
         working-directory: backend
         run: |
@@ -113,3 +121,44 @@ jobs:
         env:
           TEST_DATABASE_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
         run: go test -tags=integration ./...
+
+  web-build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      # Validate the real deploy artifact: the multi-stage Docker build (with the
+      # required VITE_* args + fail-fast check) and the nginx config that serves it.
+      # Dummy values are fine — this only exercises the build path, nothing is shipped.
+      - name: Docker image build (deploy path)
+        run: |
+          docker build \
+            --build-arg VITE_API_BASE_URL=https://api.example.com \
+            --build-arg VITE_FIREBASE_API_KEY=ci-dummy \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN=ci.example.com \
+            --build-arg VITE_FIREBASE_PROJECT_ID=ci-dummy \
+            --build-arg VITE_FIREBASE_APP_ID=ci-dummy \
+            -t web-static:ci .
+
+      - name: Validate nginx config
+        run: docker run --rm web-static:ci nginx -t

@@ -20,6 +20,14 @@ class FakeSyncController : SyncController {
         private set
     var toggleCount = 0
         private set
+    var syncNowCount = 0
+        private set
+    var prepareAccountSwitchCount = 0
+        private set
+    var applyAccountSwitchCount = 0
+        private set
+    var abortAccountSwitchCount = 0
+        private set
 
     override fun requestSync() {
         requestSyncCount++
@@ -28,5 +36,21 @@ class FakeSyncController : SyncController {
     override fun toggle() {
         toggleCount++
         enabled.value = !enabled.value
+    }
+
+    override fun syncNow() {
+        syncNowCount++
+    }
+
+    override suspend fun prepareAccountSwitch() {
+        prepareAccountSwitchCount++
+    }
+
+    override suspend fun applyAccountSwitch(wipeLocal: Boolean, reseedIfEmpty: Boolean) {
+        applyAccountSwitchCount++
+    }
+
+    override fun abortAccountSwitch() {
+        abortAccountSwitchCount++
     }
 }

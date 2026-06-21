@@ -116,6 +116,53 @@ func (r *CardRepo) GetByID(ctx context.Context, id, userID string) (*model.Card,
 	))
 }
 
+// UpdateFields applies a partial SM-2 state update in a single guarded statement.
+// Only non-nil fields are changed. `deleted_at IS NULL` prevents resurrecting a
+// soft-deleted card, and the change predicate skips a no-op write so an idempotent
+// review doesn't bump updated_at or re-emit the card in the sync delta. Returns
+// the current row unchanged on a no-op, or ErrNotFound if the card is
+// absent/tombstoned.
+func (r *CardRepo) UpdateFields(
+	ctx context.Context,
+	id, userID string,
+	front, back *string,
+	interval *int,
+	easeFactor *float64,
+	repetitions *int,
+	nextReviewTime *time.Time,
+) (*model.Card, error) {
+	c, err := scanCard(r.db.QueryRow(ctx, `
+		UPDATE cards
+		-- Explicit casts on all nullable params: when a param is NULL Postgres
+		-- cannot infer its type from context alone and raises 42P08.
+		SET front            = COALESCE($3::text,        front),
+		    back             = COALESCE($4::text,        back),
+		    interval         = COALESCE($5::int,         interval),
+		    ease_factor      = COALESCE($6::float8,      ease_factor),
+		    repetitions      = COALESCE($7::int,         repetitions),
+		    next_review_time = COALESCE($8::timestamptz, next_review_time),
+		    updated_at       = now()
+		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+		  AND (
+		    ($3::text        IS NOT NULL AND front            IS DISTINCT FROM $3::text)        OR
+		    ($4::text        IS NOT NULL AND back             IS DISTINCT FROM $4::text)        OR
+		    ($5::int         IS NOT NULL AND interval         IS DISTINCT FROM $5::int)         OR
+		    ($6::float8      IS NOT NULL AND ease_factor      IS DISTINCT FROM $6::float8)      OR
+		    ($7::int         IS NOT NULL AND repetitions      IS DISTINCT FROM $7::int)         OR
+		    ($8::timestamptz IS NOT NULL AND next_review_time IS DISTINCT FROM $8::timestamptz)
+		  )
+		RETURNING `+cardCols,
+		id, userID, front, back, interval, easeFactor, repetitions, nextReviewTime))
+	if errors.Is(err, ErrNotFound) {
+		// No row updated: no-op on existing card, or card is absent/tombstoned.
+		c, err = r.GetByID(ctx, id, userID)
+		if err == nil && c.DeletedAt != nil {
+			return nil, ErrNotFound
+		}
+	}
+	return c, err
+}
+
 // ChangedSince returns all cards (including soft-deleted) modified after the given time.
 func (r *CardRepo) ChangedSince(ctx context.Context, userID string, since time.Time) ([]*model.Card, error) {
 	rows, err := r.db.Query(ctx,

@@ -87,6 +87,11 @@ spec:
                 configMapKeyRef:
                   name: cld-anki-config
                   key: FIREBASE_PROJECT_ID
+            - name: CORS_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: cld-anki-config
+                  key: CORS_ALLOWED_ORIGINS
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
