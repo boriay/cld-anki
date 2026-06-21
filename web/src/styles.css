@@ -393,3 +393,7 @@ button[disabled] {
 .bg-night input::placeholder { color: #7a8a97; }
 .bg-night .link { color: #7ab3ff; }
 .bg-night a { color: #7ab3ff; }
+/* Weather strip has its own light background — keep text dark inside it */
+.bg-night .weather-strip { color: #1a1a1a; }
+.bg-night .weather-strip .weather-label,
+.bg-night .weather-strip .weather-meta { color: #5a6472; }
