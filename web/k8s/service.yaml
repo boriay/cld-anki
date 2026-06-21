@@ -1,0 +1,18 @@
+# ClusterIP behind the shared GCE Ingress. The cloud.google.com/neg annotation
+# makes GKE create an Ingress-managed NEG so the L7 LB targets the nginx pods
+# directly (container-native LB on this VPC-native cluster), mirroring the
+# backend Service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-static
+  namespace: cld-anki
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  selector:
+    app: web-static
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
