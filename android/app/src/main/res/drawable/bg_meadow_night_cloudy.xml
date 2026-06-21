@@ -24,8 +24,8 @@
   <path android:pathData="M895,560 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 Z" android:fillColor="#FFFFFF" android:fillAlpha="0.9"/>
   <path android:pathData="M516,120 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z" android:fillColor="#FFFFFF" android:fillAlpha="0.9"/>
   <path android:pathData="M736,460 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z" android:fillColor="#FFFFFF" android:fillAlpha="0.9"/>
-  <path android:pathData="M690,320 a150,150 0 1,0 300,0 a150,150 0 1,0 -300,0 Z" android:fillColor="#FFFFFF" android:fillAlpha="0.12"/>
-  <path android:pathData="M730,320 a110,110 0 1,0 220,0 a110,110 0 1,0 -220,0 Z" android:fillColor="#C9CEDC"/>
+  <path android:pathData="M690,320 a150,150 0 1,0 300,0 a150,150 0 1,0 -300,0 Z" android:fillColor="#F7EFD2" android:fillAlpha="0.12"/>
+  <path android:pathData="M730,320 a110,110 0 1,0 220,0 a110,110 0 1,0 -220,0 Z" android:fillColor="#CBBF97"/>
   <path android:pathData="M263,380 a117,117 0 1,0 234,0 a117,117 0 1,0 -234,0 Z" android:fillColor="#3A4866"/>
   <path android:pathData="M133,419 a91,91 0 1,0 182,0 a91,91 0 1,0 -182,0 Z" android:fillColor="#3A4866"/>
   <path android:pathData="M439,419 a97,97 0 1,0 194,0 a97,97 0 1,0 -194,0 Z" android:fillColor="#3A4866"/>
