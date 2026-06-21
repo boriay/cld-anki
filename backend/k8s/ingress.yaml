@@ -1,10 +1,13 @@
-# GKE uses the GCE Ingress controller by default.
-# Replace HOST with your domain (e.g. api.example.com).
-# For HTTPS: provision a ManagedCertificate or use cert-manager.
+# GKE uses the GCE Ingress controller by default. On this VPC-native cluster it
+# provisions a container-native (NEG-backed) HTTP(S) load balancer that routes
+# straight to the pods behind the ClusterIP Service (service.yaml).
 #
-# NOTE: This is the future entrypoint and is NOT applied yet (no domain).
-# It is mutually exclusive with the LoadBalancer Service (service.yaml). Before
-# applying this, set the Service to `type: ClusterIP` to avoid double exposure.
+# NOTE: mutually exclusive with a LoadBalancer-type Service. The Service must be
+# ClusterIP (see service.yaml) so the API isn't exposed twice.
+#
+# The LB uses the reserved global static IP `cld-anki-api-ip` (34.160.37.42);
+# DNS A record api.catflashcards.com -> that IP must exist before applying, or
+# the ManagedCertificate can't be provisioned.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -14,10 +17,11 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/ingress.global-static-ip-name: "cld-anki-api-ip"
     networking.gke.io/managed-certificates: "cld-anki-cert"
 spec:
   rules:
-    - host: api.YOUR_DOMAIN.com
+    - host: api.catflashcards.com
       http:
         paths:
           - path: /
@@ -35,4 +39,4 @@ metadata:
   namespace: cld-anki
 spec:
   domains:
-    - api.YOUR_DOMAIN.com
+    - api.catflashcards.com
