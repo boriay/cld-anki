@@ -30,8 +30,13 @@ func Seed(ctx context.Context, pool *pgxpool.Pool, userID string) (bool, error) 
 
 	// Serialize concurrent seeds for the same user (e.g. two browser tabs on a
 	// fresh account) so the EXISTS check below can't race into a double insert.
-	// The lock is released at transaction end.
-	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext($1))`, userID); err != nil {
+	// Two-argument form uses independent int4 hashes as (classid, objid) so a
+	// collision requires both to match simultaneously (~2^-64 probability vs
+	// ~2^-32 for single hashtext). The lock is released at transaction end.
+	if _, err := tx.Exec(ctx,
+		`SELECT pg_advisory_xact_lock(hashtext($1), hashtext($1 || ':seed'))`,
+		userID,
+	); err != nil {
 		return false, err
 	}
 
