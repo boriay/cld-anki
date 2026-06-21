@@ -364,43 +364,28 @@ button[disabled] {
   font-size: 1.2rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f0f0f0;
-  }
-  h1, h2, h3, h4 {
-    color: #f0f0f0;
-  }
-  .muted {
-    color: #9aabb8;
-  }
-  .deck-open {
-    color: #f0f0f0;
-  }
-  .deck-item,
-  .card-item {
-    background: rgba(255, 255, 255, 0.10);
-  }
-  .lang-select {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #f0f0f0;
-  }
-  input {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #f0f0f0;
-  }
-  input::placeholder {
-    color: #7a8a97;
-  }
-  .modal {
-    background: #1e2d45;
-    color: #f0f0f0;
-  }
-  .google-btn {
-    background: rgba(255, 255, 255, 0.12) !important;
-    color: #f0f0f0 !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
-  }
+/* Night weather background: switch all text to light so it's readable on
+   the dark gradient. Triggered by .bg-night on WeatherBackground —
+   not by prefers-color-scheme (dark sky is app-driven, not OS-driven). */
+.bg-night { color: #f0f0f0; }
+.bg-night h1,
+.bg-night h2,
+.bg-night h3,
+.bg-night h4 { color: #f0f0f0; }
+.bg-night .muted { color: #9aabb8; }
+.bg-night .deck-open { color: #f0f0f0; }
+.bg-night .deck-item,
+.bg-night .card-item { background: rgba(255, 255, 255, 0.10); }
+.bg-night .lang-select {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f0f0f0;
 }
+.bg-night input {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f0f0f0;
+}
+.bg-night input::placeholder { color: #7a8a97; }
+.bg-night .link { color: #7ab3ff; }
+.bg-night a { color: #7ab3ff; }
