@@ -38,6 +38,8 @@ class FakeSyncController : SyncController {
         syncNowCount++
     }
 
+    override suspend fun prepareAccountSwitch() {}
+
     override suspend fun resyncFromScratch() {
         resyncFromScratchCount++
     }

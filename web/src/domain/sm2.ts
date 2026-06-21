@@ -36,8 +36,10 @@ export function calculateReview(
   quality: Quality,
 ): ReviewResult {
   const delta = 5 - quality; // how far below ideal (0 = Easy)
+  // Math.fround matches Android's .toFloat() — both compute in double precision
+  // then truncate to Float32, so easeFactor stays bit-identical across clients.
   const newEaseFactor = clamp(
-    easeFactor + 0.1 - delta * (0.08 + delta * 0.02),
+    Math.fround(easeFactor + 0.1 - delta * (0.08 + delta * 0.02)),
     EASE_MIN,
     EASE_MAX,
   );

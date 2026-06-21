@@ -16,6 +16,11 @@ import (
 // when it did. It is a no-op (false) when the user already has any deck row —
 // including soft-deleted ones — so it never re-seeds after the user clears their
 // decks, and never duplicates decks an Android client already synced up.
+//
+// Deck and card IDs are UUID v5 (SHA-1) derived from the userID and content key
+// (language, card front). The same user always gets the same IDs regardless of
+// which client seeds first, so a concurrent push from the Android client upserts
+// idempotently instead of inserting duplicate rows.
 func Seed(ctx context.Context, pool *pgxpool.Pool, userID string) (bool, error) {
 	tx, err := pool.Begin(ctx)
 	if err != nil {
@@ -43,18 +48,23 @@ func Seed(ctx context.Context, pool *pgxpool.Pool, userID string) (bool, error) 
 	now := time.Now().UTC()
 	batch := &pgx.Batch{}
 	for _, d := range seedDecks {
-		deckID := uuid.NewString()
+		// UUID v5: deterministic per (user, language) so the same user always
+		// gets the same deck ID on every client that seeds, making concurrent
+		// pushes from Android upsert idempotently.
+		deckID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(userID+":seed:deck:"+d.Language)).String()
 		batch.Queue(
 			`INSERT INTO decks (id, user_id, name, language, pinned, created_at, updated_at)
 			 VALUES ($1, $2, $3, $4, FALSE, $5, $5)`,
 			deckID, userID, d.Name, d.Language, now,
 		)
 		for _, c := range seedCards {
+			// UUID v5: deterministic per (user, language, front).
+			cardID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(userID+":seed:card:"+d.Language+":"+c.Front)).String()
 			batch.Queue(
 				`INSERT INTO cards
 				   (id, deck_id, user_id, front, back, interval, ease_factor, repetitions, next_review_time, created_at, updated_at)
 				 VALUES ($1, $2, $3, $4, $5, 1, 2.5, 0, $6, $6, $6)`,
-				uuid.NewString(), deckID, userID, c.Front, c.backFor(d.Language), now,
+				cardID, deckID, userID, c.Front, c.backFor(d.Language), now,
 			)
 		}
 	}

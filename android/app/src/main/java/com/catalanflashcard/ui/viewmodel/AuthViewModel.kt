@@ -39,9 +39,9 @@ class AuthViewModel(
         viewModelScope.launch {
             _busy.value = true
             try {
+                // Cancel in-flight sync before Firebase changes the current user.
+                syncController.prepareAccountSwitch()
                 authManager.signOut()
-                // New anonymous session — pull nothing, but reset so a later
-                // sign-in starts clean.
                 syncController.resyncFromScratch()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Sign-out failed"
@@ -63,10 +63,16 @@ class AuthViewModel(
             _busy.value = true
             _error.value = null
             try {
+                // Cancel any in-flight sync BEFORE Firebase changes the current
+                // user so no running sync can pick up the new UID's token while
+                // still carrying the old account's data in the local DB.
+                syncController.prepareAccountSwitch()
                 val res = block()
                 if (res.uidChanged) syncController.resyncFromScratch() else syncController.syncNow()
             } catch (e: Exception) {
                 _error.value = e.message ?: "Authentication failed"
+                // Auth failed — restart sync (it was cancelled above).
+                syncController.syncNow()
             } finally {
                 _busy.value = false
             }

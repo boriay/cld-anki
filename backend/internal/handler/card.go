@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/boriay/cld-anki/backend/internal/auth"
@@ -105,6 +106,22 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		body.EaseFactor == nil && body.Repetitions == nil && body.NextReviewTime == nil {
 		jsonError(w, "no fields to update", http.StatusBadRequest)
 		return
+	}
+	if body.Front != nil {
+		f := strings.TrimSpace(*body.Front)
+		if f == "" {
+			jsonError(w, "front cannot be empty", http.StatusBadRequest)
+			return
+		}
+		body.Front = &f
+	}
+	if body.Back != nil {
+		b := strings.TrimSpace(*body.Back)
+		if b == "" {
+			jsonError(w, "back cannot be empty", http.StatusBadRequest)
+			return
+		}
+		body.Back = &b
 	}
 	// Validate SM-2 invariants so a buggy/malicious client can't store
 	// out-of-range state or overflow the INTEGER interval column.

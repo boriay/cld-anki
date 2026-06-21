@@ -6,10 +6,13 @@ import com.catalanflashcard.data.preferences.AutoSyncSettings
 import com.catalanflashcard.data.preferences.SyncPreferences
 import com.catalanflashcard.data.repository.SyncRepository
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +53,13 @@ interface SyncController {
     fun syncNow()
 
     /**
+     * Cancel any in-flight regular sync and invalidate pending ones. Must be
+     * called BEFORE Firebase sign-in so no running sync can acquire the new
+     * UID's token while still holding the old account's data in the local DB.
+     */
+    suspend fun prepareAccountSwitch()
+
+    /**
      * Wipe local data, reset the sync cursor, and pull the current account's
      * data from scratch. Suspends until the full re-pull completes so the
      * caller (AuthViewModel) can keep the busy indicator up the whole time.
@@ -87,12 +97,18 @@ class SyncManager internal constructor(
     // waits and re-syncs, picking up rows changed during the in-flight sync.
     private val mutex = Mutex()
 
-    // Incremented on every resyncFromScratch(). A regular sync captures the
-    // generation before acquiring the lock; if the generation has advanced by
-    // the time the lock is acquired, the sync is stale and is dropped. This
-    // prevents a debounce tick from pushing old-account data under the new UID
-    // when a resync races with a pending auto-sync.
+    // Incremented by prepareAccountSwitch() and resyncFromScratch(). A regular
+    // sync captures the generation before the lock; if it changed by the time
+    // the lock is acquired, the sync is stale and is dropped.
     private val syncGeneration = AtomicInteger(0)
+
+    // Tracks the Job of the most recently launched regular (non-resync) sync so
+    // prepareAccountSwitch() can cancel it before Firebase switches the UID.
+    private val regularSyncJob = AtomicReference<Job?>(null)
+
+    private fun launchRegularSync(gen: Int) {
+        regularSyncJob.set(scope.launch { runSync(gen) })
+    }
 
     @OptIn(FlowPreview::class)
     private fun startDebounceLoop() {
@@ -105,7 +121,7 @@ class SyncManager internal constructor(
                 .collect {
                     if (_enabled.value) {
                         val gen = syncGeneration.get()
-                        runSync(gen)
+                        regularSyncJob.set(scope.launch { runSync(gen) })
                     }
                 }
         }
@@ -116,10 +132,7 @@ class SyncManager internal constructor(
         // If auto-sync was left enabled, pull/push on startup. Direct launch rather
         // than emitting into `requests`: with replay=0 the startup emit could be
         // missed if the collector hasn't subscribed yet.
-        if (_enabled.value) {
-            val gen = syncGeneration.get()
-            scope.launch { runSync(gen) }
-        }
+        if (_enabled.value) launchRegularSync(syncGeneration.get())
     }
 
     override fun requestSync() {
@@ -132,15 +145,20 @@ class SyncManager internal constructor(
         _enabled.value = next
         settings.autoSyncEnabled = next
         // Enabling: sync immediately, bypassing debounce, for instant feedback.
-        if (next) {
-            val gen = syncGeneration.get()
-            scope.launch { runSync(gen) }
-        }
+        if (next) launchRegularSync(syncGeneration.get())
     }
 
     override fun syncNow() {
-        val gen = syncGeneration.get()
-        scope.launch { runSync(gen) }
+        launchRegularSync(syncGeneration.get())
+    }
+
+    override suspend fun prepareAccountSwitch() {
+        // Invalidate any pending sync that hasn't acquired the lock yet.
+        syncGeneration.incrementAndGet()
+        // Cancel and await the in-flight sync (if any). Kotlin's Mutex.withLock
+        // re-throws CancellationException after releasing the lock, so this
+        // suspends until the sync coroutine has fully stopped and the mutex is free.
+        regularSyncJob.getAndSet(null)?.cancelAndJoin()
     }
 
     override suspend fun resyncFromScratch() {
