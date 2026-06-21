@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useStrings } from "../domain/i18n";
 
-// Modal deck-name prompt opened from the "+" button, mirroring the Android
-// AddDeckDialog (a create button that then asks for the name) instead of an
-// always-visible inline form.
 export function AddDeckDialog({
+  language,
   onCancel,
   onCreate,
 }: {
+  language: string;
   onCancel: () => void;
   onCreate: (name: string) => void | Promise<void>;
 }) {
+  const s = useStrings(language);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -25,24 +26,23 @@ export function AddDeckDialog({
     }
   }
 
-  // Clicking the backdrop dismisses; clicks inside the card don't bubble to it.
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Create New Deck</h3>
+        <h3>{s.createNewDeck}</h3>
         <form onSubmit={submit}>
           <input
             autoFocus
-            placeholder="Deck Name"
+            placeholder={s.deckName}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <div className="modal-actions">
             <button type="button" className="link" onClick={onCancel}>
-              Cancel
+              {s.cancel}
             </button>
             <button type="submit" disabled={!name.trim() || busy}>
-              Create
+              {s.create}
             </button>
           </div>
         </form>

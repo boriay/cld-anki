@@ -6,9 +6,9 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
+import { useLanguage } from "../language/LanguageContext";
+import { useStrings } from "../domain/i18n";
 
-// Map Firebase auth error codes to friendly copy instead of surfacing raw
-// "Firebase: Error (auth/...)" strings. Unknown codes fall back to a generic line.
 function authErrorMessage(e: unknown): string {
   const code = typeof e === "object" && e !== null && "code" in e ? String((e as { code: unknown }).code) : "";
   switch (code) {
@@ -16,7 +16,7 @@ function authErrorMessage(e: unknown): string {
       return "That email is already registered. Try signing in instead.";
     case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
     case AuthErrorCodes.INVALID_PASSWORD:
-    case AuthErrorCodes.USER_DELETED: // user-not-found
+    case AuthErrorCodes.USER_DELETED:
       return "Wrong email or password.";
     case AuthErrorCodes.INVALID_EMAIL:
       return "That email address looks invalid.";
@@ -28,21 +28,18 @@ function authErrorMessage(e: unknown): string {
     case AuthErrorCodes.NETWORK_REQUEST_FAILED:
       return "Network error — check your connection and try again.";
     default:
-      return "Sign-in failed. Please try again.";
+      return `Sign-in failed (${code || "unknown"}). Please try again.`;
   }
 }
 
-// Login offers email/password (sign-in or sign-up) and Google. Apple is planned
-// — add an Apple provider button here once it's enabled in the Firebase console.
 export function Login() {
+  const { language } = useLanguage();
+  const s = useStrings(language);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // Synchronous in-flight guard: setBusy(true) only takes effect on the next
-  // render, so two fast submits/clicks could both pass `disabled={busy}`. The
-  // ref flips immediately, blocking a duplicate auth call.
   const inFlight = useRef(false);
 
   async function withBusy(fn: () => Promise<unknown>) {
@@ -78,7 +75,7 @@ export function Login() {
         <form onSubmit={onSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder={s.email}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
@@ -86,7 +83,7 @@ export function Login() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder={s.password}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={mode === "signin" ? "current-password" : "new-password"}
@@ -94,7 +91,7 @@ export function Login() {
             required
           />
           <button type="submit" disabled={busy}>
-            {mode === "signin" ? "Sign in" : "Create account"}
+            {mode === "signin" ? s.signIn : s.createAccount}
           </button>
         </form>
 
@@ -103,7 +100,7 @@ export function Login() {
           disabled={busy}
           onClick={() => void withBusy(() => signInWithPopup(auth, googleProvider))}
         >
-          Continue with Google
+          {s.continueWithGoogle}
         </button>
 
         {error && <p className="error">{error}</p>}
@@ -112,9 +109,7 @@ export function Login() {
           className="link"
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
         >
-          {mode === "signin"
-            ? "Need an account? Sign up"
-            : "Have an account? Sign in"}
+          {mode === "signin" ? s.needAccount : s.haveAccount}
         </button>
       </div>
     </div>
