@@ -1,22 +1,26 @@
-# NOTE: Service and Ingress are mutually exclusive entrypoints — apply only one.
-# Currently active: LoadBalancer (direct external IP, no domain required).
-# When a domain + TLS are provisioned, switch to Ingress (ingress.yaml) and
-# change this Service back to `type: ClusterIP` so the API isn't exposed twice.
+# Entrypoint is the GCE Ingress (ingress.yaml). This Service is ClusterIP: the
+# Ingress' container-native load balancer targets the pods directly via a NEG
+# (this is a VPC-native cluster), so no external LB is needed here.
+#
+# Source IP for weather geolocation is preserved by the L7 LB via the
+# X-Forwarded-For header, which chi's RealIP middleware resolves into
+# RemoteAddr (see internal/handler/weather.go clientIP). No externalTrafficPolicy
+# is needed/valid for ClusterIP.
 apiVersion: v1
 kind: Service
 metadata:
   name: cld-anki-backend
   namespace: cld-anki
+  annotations:
+    # Container-native load balancing: create an Ingress-managed NEG that the
+    # Ingress backend binds to (not a standalone NEG — that would be
+    # '{"exposed_ports": ...}'). On VPC-native clusters GKE infers "ingress": true
+    # when an Ingress references a ClusterIP Service; we declare it explicitly.
+    cloud.google.com/neg: '{"ingress": true}'
 spec:
   selector:
     app: cld-anki-backend
   ports:
     - port: 80
       targetPort: 8080
-  type: LoadBalancer
-  # Preserve the client's real source IP. With the default "Cluster" policy GKE
-  # SNATs the source to a node IP, and an L4 passthrough LB sets no
-  # X-Forwarded-For, so the backend would see a private IP for every request and
-  # geolocate the weather to the cluster's own region instead of the user's.
-  # "Local" routes only to nodes running a ready pod and keeps the source IP.
-  externalTrafficPolicy: Local
+  type: ClusterIP

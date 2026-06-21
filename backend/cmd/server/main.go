@@ -14,6 +14,7 @@ import (
 	"github.com/boriay/cld-anki/backend/internal/config"
 	"github.com/boriay/cld-anki/backend/internal/db"
 	"github.com/boriay/cld-anki/backend/internal/handler"
+	"github.com/boriay/cld-anki/backend/internal/httpmw"
 	"github.com/boriay/cld-anki/backend/internal/repository"
 	"github.com/boriay/cld-anki/backend/internal/weather"
 	"github.com/go-chi/chi/v5"
@@ -68,7 +69,9 @@ func main() {
 	weatherH := handler.NewWeatherHandler(weatherSvc)
 
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP)
+	// Trusted XFF parsing (second-to-last entry behind the single GCE LB) instead
+	// of chi's middleware.RealIP, which trusts the spoofable leftmost value.
+	r.Use(httpmw.RealIP)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)

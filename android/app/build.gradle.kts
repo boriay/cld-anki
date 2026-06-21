@@ -11,7 +11,7 @@ plugins {
 // Sync backend URL — override per environment via -PsyncBaseUrl=... or
 // gradle.properties, instead of hard-coding it in the build types.
 // Retrofit's baseUrl requires a trailing slash, so normalize it here.
-val syncBaseUrl = ((project.findProperty("syncBaseUrl") as String?) ?: "http://34.62.20.204/")
+val syncBaseUrl = ((project.findProperty("syncBaseUrl") as String?) ?: "https://api.catflashcards.com/")
     .let { if (it.endsWith("/")) it else "$it/" }
 
 // Release uses the HTTPS-only network-security-config, so a cleartext base URL
