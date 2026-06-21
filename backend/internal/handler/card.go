@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -124,16 +123,18 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		body.Back = &b
 	}
 	// Validate SM-2 invariants so a buggy/malicious client can't store
-	// out-of-range state or overflow the INTEGER interval column.
-	if body.Interval != nil && (*body.Interval < 1 || *body.Interval > math.MaxInt32) {
+	// out-of-range state or overflow the INTEGER interval column. Bounds are
+	// shared with the /sync sanitiser (see sm2.go) — here a single edit is
+	// rejected outright; /sync clamps bulk deltas instead.
+	if body.Interval != nil && (*body.Interval < minInterval || *body.Interval > maxInterval) {
 		jsonError(w, "interval out of range", http.StatusBadRequest)
 		return
 	}
-	if body.Repetitions != nil && *body.Repetitions < 0 {
+	if body.Repetitions != nil && *body.Repetitions < minRepetitions {
 		jsonError(w, "repetitions out of range", http.StatusBadRequest)
 		return
 	}
-	if body.EaseFactor != nil && (*body.EaseFactor < 1.3 || *body.EaseFactor > 5.0) {
+	if body.EaseFactor != nil && (*body.EaseFactor < minEaseFactor || *body.EaseFactor > maxEaseFactor) {
 		jsonError(w, "ease_factor out of range", http.StatusBadRequest)
 		return
 	}

@@ -79,19 +79,24 @@ class AuthManager private constructor(private val appContext: Context) {
      * "Create account" would lose unsynced anonymous decks without user consent.
      */
     suspend fun signUpEmail(email: String, password: String): AuthResult {
-        val credential = EmailAuthProvider.getCredential(email, password)
         val before = auth.currentUser?.uid
         val current = auth.currentUser
         if (current != null && current.isAnonymous) {
             try {
-                current.linkWithCredential(credential).await()
+                current.linkWithCredential(EmailAuthProvider.getCredential(email, password)).await()
                 return result(before)
             } catch (_: FirebaseAuthUserCollisionException) {
                 throw EmailAlreadyInUseException(email)
             }
         }
-        // No anonymous session: sign in directly (same path as signInEmail).
-        auth.signInWithCredential(credential).await()
+        // No anonymous session to upgrade: create a brand-new account. (Using
+        // signInWithCredential here would fail for an unregistered email — it
+        // only signs into existing accounts, never creates them.)
+        try {
+            auth.createUserWithEmailAndPassword(email, password).await()
+        } catch (_: FirebaseAuthUserCollisionException) {
+            throw EmailAlreadyInUseException(email)
+        }
         return result(before)
     }
 

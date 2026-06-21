@@ -7,3 +7,7 @@ data:
   PORT: "8080"
   FIREBASE_PROJECT_ID: "cld-anki-3505c"
   CLOUD_SQL_INSTANCE: "cld-anki:europe-west1:cld-anki-db"
+  # Explicit production CORS allow-list. Set here (not relying on the code default,
+  # which includes http://localhost:5173 for local dev) so prod never advertises a
+  # localhost origin.
+  CORS_ALLOWED_ORIGINS: "https://catflashcards.com"

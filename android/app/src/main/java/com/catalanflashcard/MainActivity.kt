@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,6 +37,7 @@ import com.catalanflashcard.ui.viewmodel.DeckViewModel
 import com.catalanflashcard.ui.viewmodel.StudyViewModel
 import com.catalanflashcard.ui.viewmodel.ViewModelFactory
 import com.catalanflashcard.ui.viewmodel.WeatherViewModel
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +63,10 @@ class MainActivity : AppCompatActivity() {
         // real login that shares decks with the web client.
         val authManager = AuthManager.getInstance(applicationContext)
         val authViewModelFactory = ViewModelFactory { AuthViewModel(authManager, syncManager) }
+        // Guarantee an anonymous session up front so a later sign-up links to it
+        // (preserving on-device decks under the same UID) instead of having to
+        // create a fresh account from scratch.
+        lifecycleScope.launch { authManager.ensureSession() }
 
         setContent {
             CatalanFlashcardTheme {

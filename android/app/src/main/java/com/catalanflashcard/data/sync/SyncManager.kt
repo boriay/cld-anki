@@ -153,12 +153,18 @@ class SyncManager internal constructor(
     }
 
     override suspend fun prepareAccountSwitch() {
-        // Invalidate any pending sync that hasn't acquired the lock yet.
+        // Invalidate any pending sync that hasn't acquired the lock yet: when it
+        // finally takes the lock it will see the bumped generation and abort
+        // before fetching a (now new-account) token.
         syncGeneration.incrementAndGet()
-        // Cancel and await the in-flight sync (if any). Kotlin's Mutex.withLock
-        // re-throws CancellationException after releasing the lock, so this
-        // suspends until the sync coroutine has fully stopped and the mutex is free.
+        // Speed up the common case by cancelling the most recent regular sync.
         regularSyncJob.getAndSet(null)?.cancelAndJoin()
+        // Guarantee no sync is *inside* the lock: acquiring (then releasing) the
+        // mutex blocks until any in-flight sync — even one not tracked by
+        // regularSyncJob — has fully drained. After this returns, no sync holds
+        // the lock and every queued sync is invalidated by the generation bump,
+        // so the upcoming Firebase UID change can't be observed mid-sync.
+        mutex.withLock { }
     }
 
     override suspend fun resyncFromScratch() {

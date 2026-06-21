@@ -90,6 +90,9 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 		if c.UpdatedAt.After(syncedAt) {
 			c.UpdatedAt = syncedAt
 		}
+		// Sanitise SM-2 fields (shared bounds with PUT /cards/{id}) so a buggy
+		// client can't overflow the INTEGER interval column via the sync path.
+		clampCardSM2(c)
 		if err := cardsTx.Upsert(ctx, c); err != nil {
 			// Orphan card (deck missing/soft-deleted) — skip it rather than
 			// aborting the whole batch, so one bad row can't block the client's

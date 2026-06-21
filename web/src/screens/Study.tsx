@@ -26,9 +26,20 @@ export function Study() {
 
   useEffect(() => {
     if (!deckId) return;
+    // Reset per-deck state so a deck switch never shows/grades a card from the
+    // previous deck (and pinned resets so the new deck pins on its own first use).
+    setQueue([]);
+    setRevealed(false);
+    setError(null);
+    setLoading(true);
+    pinned.current = false;
+    // Guard against a stale response: if deckId changes before listCards
+    // resolves, `cancelled` short-circuits the late setState.
+    let cancelled = false;
     (async () => {
       try {
         const cards = await api.listCards(deckId);
+        if (cancelled) return;
         const now = Date.now();
         // Due = next review time in the past (new cards default to "now").
         const due = cards
@@ -42,11 +53,15 @@ export function Study() {
           );
         setQueue(due);
       } catch (e) {
+        if (cancelled) return;
         setError(e instanceof Error ? e.message : "Failed to load cards");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [deckId]);
 
   const current = queue[0];

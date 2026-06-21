@@ -20,6 +20,9 @@ spec:
     spec:
       containers:
         - name: nginx
+          # :latest is the bootstrap manifest only. Deploys pin an immutable tag
+          # (commit SHA) via `kubectl set image deployment/web-static nginx=...:<sha>`
+          # so rollouts/rollbacks are reproducible — see web/README.md.
           image: europe-west1-docker.pkg.dev/cld-anki/cld-anki/web-static:latest
           ports:
             - containerPort: 80

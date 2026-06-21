@@ -12,20 +12,27 @@ export function DeckDetail() {
   const [back, setBack] = useState("");
   const [saving, setSaving] = useState(false);
 
-  async function load() {
-    if (!deckId) return;
-    setError(null);
-    try {
-      setCards(await api.listCards(deckId));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load cards");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    void load();
+    if (!deckId) return;
+    // Reset + stale-response guard: a deck switch must not leave the previous
+    // deck's cards on screen if its load resolves after the new deck's.
+    setCards([]);
+    setError(null);
+    setLoading(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        const loaded = await api.listCards(deckId);
+        if (!cancelled) setCards(loaded);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load cards");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [deckId]);
 
   async function addCard(e: React.FormEvent) {
