@@ -66,7 +66,14 @@ class MainActivity : AppCompatActivity() {
         // Guarantee an anonymous session up front so a later sign-up links to it
         // (preserving on-device decks under the same UID) instead of having to
         // create a fresh account from scratch.
-        lifecycleScope.launch { authManager.ensureSession() }
+        lifecycleScope.launch {
+            try {
+                authManager.ensureSession()
+            } catch (_: Exception) {
+                // Network/Firebase unavailable at startup — app continues in
+                // offline mode; sign-up will retry ensureSession() before linking.
+            }
+        }
 
         setContent {
             CatalanFlashcardTheme {

@@ -62,10 +62,15 @@ export function calculateReview(
   return { interval: newInterval, easeFactor: newEaseFactor, repetitions: repetitions + 1 };
 }
 
+// JS Date supports ±8_640_000_000_000_000 ms from epoch; above that toISOString
+// throws RangeError. INT32_MAX days (≈5.8M years) vastly exceeds that limit, so
+// clamp to the last representable date (~year 275 760) rather than crashing.
+const MAX_DATE_DAYS = Math.floor(8_640_000_000_000_000 / DAY_MS); // 100_000_000
+
 // nextReviewTime returns an RFC3339 string `interval` days from now, matching
 // the next_review_time the backend stores.
 export function nextReviewTime(intervalDays: number): string {
   // Fixed 24h days (not setDate, which shifts by calendar days and drifts ±1h
   // across DST) so scheduling matches the Android interval * 24h arithmetic.
-  return new Date(Date.now() + intervalDays * DAY_MS).toISOString();
+  return new Date(Date.now() + Math.min(intervalDays, MAX_DATE_DAYS) * DAY_MS).toISOString();
 }
