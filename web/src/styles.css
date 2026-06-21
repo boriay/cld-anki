@@ -325,6 +325,7 @@ button[disabled] {
 .flashcard-text {
   font-size: 1.7rem;
   font-weight: 600;
+  color: #1a1a1a;
 }
 .reveal-btn {
   padding: 0.8rem;
