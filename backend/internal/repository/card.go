@@ -133,21 +133,23 @@ func (r *CardRepo) UpdateFields(
 ) (*model.Card, error) {
 	c, err := scanCard(r.db.QueryRow(ctx, `
 		UPDATE cards
-		SET front            = COALESCE($3, front),
-		    back             = COALESCE($4, back),
-		    interval         = COALESCE($5, interval),
-		    ease_factor      = COALESCE($6, ease_factor),
-		    repetitions      = COALESCE($7, repetitions),
-		    next_review_time = COALESCE($8, next_review_time),
+		-- Explicit casts on all nullable params: when a param is NULL Postgres
+		-- cannot infer its type from context alone and raises 42P08.
+		SET front            = COALESCE($3::text,        front),
+		    back             = COALESCE($4::text,        back),
+		    interval         = COALESCE($5::int,         interval),
+		    ease_factor      = COALESCE($6::float8,      ease_factor),
+		    repetitions      = COALESCE($7::int,         repetitions),
+		    next_review_time = COALESCE($8::timestamptz, next_review_time),
 		    updated_at       = now()
 		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
 		  AND (
-		    ($3 IS NOT NULL AND front IS DISTINCT FROM $3) OR
-		    ($4 IS NOT NULL AND back IS DISTINCT FROM $4) OR
-		    ($5 IS NOT NULL AND interval IS DISTINCT FROM $5) OR
-		    ($6 IS NOT NULL AND ease_factor IS DISTINCT FROM $6) OR
-		    ($7 IS NOT NULL AND repetitions IS DISTINCT FROM $7) OR
-		    ($8 IS NOT NULL AND next_review_time IS DISTINCT FROM $8)
+		    ($3::text        IS NOT NULL AND front            IS DISTINCT FROM $3::text)        OR
+		    ($4::text        IS NOT NULL AND back             IS DISTINCT FROM $4::text)        OR
+		    ($5::int         IS NOT NULL AND interval         IS DISTINCT FROM $5::int)         OR
+		    ($6::float8      IS NOT NULL AND ease_factor      IS DISTINCT FROM $6::float8)      OR
+		    ($7::int         IS NOT NULL AND repetitions      IS DISTINCT FROM $7::int)         OR
+		    ($8::timestamptz IS NOT NULL AND next_review_time IS DISTINCT FROM $8::timestamptz)
 		  )
 		RETURNING `+cardCols,
 		id, userID, front, back, interval, easeFactor, repetitions, nextReviewTime))
