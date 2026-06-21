@@ -23,9 +23,14 @@ export function Study() {
   // Pin the deck once per session on the first review, so it stays visible
   // across UI-language switches (mirrors Android pinning a deck on first use).
   const pinned = useRef(false);
+  // The deck currently in view. grade() captures the deckId it started with and
+  // compares against this after its PUT resolves, so a review that completes
+  // after the user navigated to another deck can't mutate the new deck's queue.
+  const activeDeckId = useRef(deckId);
 
   useEffect(() => {
     if (!deckId) return;
+    activeDeckId.current = deckId;
     // Reset per-deck state so a deck switch never shows/grades a card from the
     // previous deck (and pinned resets so the new deck pins on its own first use).
     setQueue([]);
@@ -69,6 +74,7 @@ export function Study() {
 
   async function grade(quality: Quality) {
     if (!current || saving) return;
+    const gradedDeckId = deckId;
     const r = calculateReview(
       current.interval,
       current.ease_factor,
@@ -86,6 +92,9 @@ export function Study() {
         repetitions: r.repetitions,
         next_review_time: nextReviewTime(r.interval),
       });
+      // The user navigated to another deck while the PUT was in flight — the
+      // review was saved, but don't touch the now-current deck's queue/state.
+      if (activeDeckId.current !== gradedDeckId) return;
       setQueue((q) => q.slice(1));
       setRevealed(false);
       // Pin the deck once on first use — fire-and-forget so a transient failure

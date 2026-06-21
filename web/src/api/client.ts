@@ -1,5 +1,5 @@
 import { auth } from "../firebase";
-import type { Card, Deck, Weather } from "./types";
+import type { Card, CardUpdatePatch, Deck, Weather } from "./types";
 
 const BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -59,7 +59,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ front, back }),
     }),
-  updateCard: (id: string, patch: Partial<Card>) =>
+  updateCard: (id: string, patch: CardUpdatePatch) =>
     request<Card>(`/cards/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
   deleteCard: (id: string) => request<void>(`/cards/${id}`, { method: "DELETE" }),
 

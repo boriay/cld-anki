@@ -73,6 +73,9 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 
 	// Apply client decks first (cards depend on them via FK).
 	for _, d := range req.Decks {
+		if d == nil { // a JSON null in the array would otherwise nil-deref
+			continue
+		}
 		d.UserID = uid // enforce ownership regardless of payload
 		// Don't let a client with a fast/forged clock set a far-future
 		// updated_at to win last-write-wins forever; cap it at server time.
@@ -86,13 +89,21 @@ func (h *SyncHandler) Sync(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	for _, c := range req.Cards {
+		if c == nil { // a JSON null in the array would otherwise nil-deref
+			continue
+		}
 		c.UserID = uid
 		if c.UpdatedAt.After(syncedAt) {
 			c.UpdatedAt = syncedAt
 		}
 		// Sanitise SM-2 fields (shared bounds with PUT /cards/{id}) so a buggy
-		// client can't overflow the INTEGER interval column via the sync path.
-		clampCardSM2(c)
+		// client can't overflow the INTEGER interval column via the sync path. If
+		// clamping changed a value, bump updated_at so the corrected card outranks
+		// the client's row (last-write-wins) and isn't echo-suppressed on the
+		// client — otherwise the local store would keep the out-of-range value.
+		if clampCardSM2(c) {
+			c.UpdatedAt = syncedAt
+		}
 		if err := cardsTx.Upsert(ctx, c); err != nil {
 			// Orphan card (deck missing/soft-deleted) — skip it rather than
 			// aborting the whole batch, so one bad row can't block the client's

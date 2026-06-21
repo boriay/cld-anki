@@ -130,7 +130,7 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "interval out of range", http.StatusBadRequest)
 		return
 	}
-	if body.Repetitions != nil && *body.Repetitions < minRepetitions {
+	if body.Repetitions != nil && (*body.Repetitions < minRepetitions || *body.Repetitions > maxRepetitions) {
 		jsonError(w, "repetitions out of range", http.StatusBadRequest)
 		return
 	}

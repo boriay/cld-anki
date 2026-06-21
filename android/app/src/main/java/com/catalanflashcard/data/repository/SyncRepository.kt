@@ -38,18 +38,10 @@ class SyncRepository(
     // Clear the sync cursor so the next sync re-pulls everything and re-pushes
     // all local rows. Used after switching accounts, where the previous cursor
     // belongs to a different user and would otherwise skip the new account's data.
+    // The local row wipe itself lives in LocalSeeder.wipe() (atomic, FK-safe).
     fun resetSyncCursor() {
         syncPreferences.lastSyncedAt = 0L
         syncPreferences.lastPushedAt = 0L
-    }
-
-    // Wipe all local rows so the previous account's decks/cards aren't re-pushed
-    // under a new UID after switching accounts. Cards first (they reference a
-    // deck). The data still lives on the server under the old UID; the following
-    // full sync pulls the new account's data into the now-empty store.
-    suspend fun clearLocalData() = withContext(Dispatchers.IO) {
-        cardDao.deleteAll()
-        deckDao.deleteAll()
     }
 
     suspend fun sync(): Result<Unit> = withContext(Dispatchers.IO) {

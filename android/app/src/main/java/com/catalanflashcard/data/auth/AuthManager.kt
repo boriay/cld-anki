@@ -79,6 +79,11 @@ class AuthManager private constructor(private val appContext: Context) {
      * "Create account" would lose unsynced anonymous decks without user consent.
      */
     suspend fun signUpEmail(email: String, password: String): AuthResult {
+        // Guarantee an anonymous session to link to, closing the race where the
+        // user signs up before MainActivity's fire-and-forget ensureSession()
+        // completes — otherwise we'd create a brand-new UID and the resync would
+        // wipe the on-device decks instead of carrying them over.
+        ensureSession()
         val before = auth.currentUser?.uid
         val current = auth.currentUser
         if (current != null && current.isAnonymous) {

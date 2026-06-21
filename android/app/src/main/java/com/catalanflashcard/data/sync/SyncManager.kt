@@ -2,9 +2,11 @@ package com.catalanflashcard.data.sync
 
 import android.content.Context
 import com.catalanflashcard.data.database.FlashcardDatabase
+import com.catalanflashcard.data.database.LocalSeeder
 import com.catalanflashcard.data.preferences.AutoSyncSettings
 import com.catalanflashcard.data.preferences.SyncPreferences
 import com.catalanflashcard.data.repository.SyncRepository
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
@@ -53,23 +55,30 @@ interface SyncController {
     fun syncNow()
 
     /**
-     * Cancel any in-flight regular sync and invalidate pending ones. Must be
-     * called BEFORE Firebase sign-in so no running sync can acquire the new
-     * UID's token while still holding the old account's data in the local DB.
+     * Begin an account switch. Cancels any in-flight regular sync, invalidates
+     * pending ones, and blocks all regular syncs from starting until
+     * [applyAccountSwitch] or [abortAccountSwitch] is called. MUST run BEFORE the
+     * Firebase sign-in/out so no sync can acquire the new UID's token while still
+     * holding the old account's data in the local DB.
      */
     suspend fun prepareAccountSwitch()
 
     /**
-     * Wipe local data, reset the sync cursor, and pull the current account's
-     * data from scratch. Suspends until the full re-pull completes so the
-     * caller (AuthViewModel) can keep the busy indicator up the whole time.
+     * Finish an account switch after the Firebase UID has changed. Optionally
+     * wipes the local store (when the UID actually changed) and re-pulls, then
+     * re-seeds the default decks if the result is empty (used on sign-out to a
+     * fresh anonymous account). Suspends until done; always re-enables syncing.
      */
-    suspend fun resyncFromScratch()
+    suspend fun applyAccountSwitch(wipeLocal: Boolean, reseedIfEmpty: Boolean)
+
+    /** Abort an account switch (e.g. auth failed): re-enable syncing and resync. */
+    fun abortAccountSwitch()
 }
 
 class SyncManager internal constructor(
     private val syncRepository: SyncRepository,
     private val settings: AutoSyncSettings,
+    private val localSeeder: LocalSeeder,
     // Application scope: survives Activity recreation (e.g. a locale change).
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) : SyncController {
@@ -97,12 +106,19 @@ class SyncManager internal constructor(
     // waits and re-syncs, picking up rows changed during the in-flight sync.
     private val mutex = Mutex()
 
-    // Incremented by prepareAccountSwitch() and resyncFromScratch(). A regular
-    // sync captures the generation before the lock; if it changed by the time
-    // the lock is acquired, the sync is stale and is dropped.
+    // Bumped on every prepareAccountSwitch(): a regular sync captures the
+    // generation before the lock; if it changed by the time the lock is acquired,
+    // the sync is stale and is dropped.
     private val syncGeneration = AtomicInteger(0)
 
-    // Tracks the Job of the most recently launched regular (non-resync) sync so
+    // True between prepareAccountSwitch() and applyAccountSwitch()/abortAccountSwitch().
+    // While set, every regular sync aborts at the top of the lock — this is what
+    // stops a debounce tick that fires mid-switch (and would read the *latest*
+    // generation, slipping past the generation guard) from pushing the old
+    // account's local rows under the new UID.
+    private val accountSwitchInProgress = AtomicBoolean(false)
+
+    // Tracks the Job of the most recently launched regular sync so
     // prepareAccountSwitch() can cancel it before Firebase switches the UID.
     private val regularSyncJob = AtomicReference<Job?>(null)
 
@@ -119,10 +135,7 @@ class SyncManager internal constructor(
                 // waiting out the debounce window, drop the pending request instead
                 // of pushing it to the server.
                 .collect {
-                    if (_enabled.value) {
-                        val gen = syncGeneration.get()
-                        regularSyncJob.set(scope.launch { runSync(gen) })
-                    }
+                    if (_enabled.value) launchRegularSync(syncGeneration.get())
                 }
         }
     }
@@ -153,35 +166,55 @@ class SyncManager internal constructor(
     }
 
     override suspend fun prepareAccountSwitch() {
-        // Invalidate any pending sync that hasn't acquired the lock yet: when it
-        // finally takes the lock it will see the bumped generation and abort
-        // before fetching a (now new-account) token.
+        // Block new regular syncs from running for the whole switch...
+        accountSwitchInProgress.set(true)
+        // ...and invalidate any already-queued sync via the generation bump.
         syncGeneration.incrementAndGet()
         // Speed up the common case by cancelling the most recent regular sync.
         regularSyncJob.getAndSet(null)?.cancelAndJoin()
         // Guarantee no sync is *inside* the lock: acquiring (then releasing) the
-        // mutex blocks until any in-flight sync — even one not tracked by
-        // regularSyncJob — has fully drained. After this returns, no sync holds
-        // the lock and every queued sync is invalidated by the generation bump,
+        // mutex blocks until any in-flight sync has fully drained. After this
+        // returns, no regular sync holds the lock and none can start (flag set),
         // so the upcoming Firebase UID change can't be observed mid-sync.
         mutex.withLock { }
     }
 
-    override suspend fun resyncFromScratch() {
-        val gen = syncGeneration.incrementAndGet()
-        // Clear + reset run inside the sync mutex so a concurrent sync can't
-        // push the old account's rows between the wipe and the pull.
-        runSync(gen) {
-            syncRepository.clearLocalData()
-            syncRepository.resetSyncCursor()
+    override suspend fun applyAccountSwitch(wipeLocal: Boolean, reseedIfEmpty: Boolean) {
+        try {
+            // prepare runs under the lock, before the pull: wipe the old account's
+            // rows (atomic, FK-safe) and reset the cursor so the pull is full.
+            runSync(syncGeneration.incrementAndGet()) {
+                if (wipeLocal) {
+                    localSeeder.wipe()
+                    syncRepository.resetSyncCursor()
+                }
+            }
+            // After the pull, restore the default decks for a brand-new empty store
+            // (e.g. the fresh anonymous account after sign-out) so it isn't blank.
+            // Still under the lock + flag, so no concurrent sync interferes.
+            if (reseedIfEmpty) {
+                mutex.withLock {
+                    if (localSeeder.isEmpty()) localSeeder.seedDefaults()
+                }
+            }
+        } finally {
+            accountSwitchInProgress.set(false)
         }
     }
 
-    // gen: the generation this sync was scheduled for. Non-resync syncs (prepare==null)
-    // abort if a resync has been requested since scheduling (gen < current generation).
+    override fun abortAccountSwitch() {
+        accountSwitchInProgress.set(false)
+        // The UID never changed (auth failed), so the local data is still the
+        // current account's — a normal sync re-converges it.
+        launchRegularSync(syncGeneration.get())
+    }
+
+    // gen: the generation this sync was scheduled for. Regular syncs (prepare==null)
+    // abort if an account switch is in progress or a newer switch was requested
+    // since scheduling. The switch's own prepare (prepare!=null) always runs.
     private suspend fun runSync(gen: Int, prepare: (suspend () -> Unit)? = null) {
         mutex.withLock {
-            if (prepare == null && syncGeneration.get() != gen) return
+            if (prepare == null && (accountSwitchInProgress.get() || syncGeneration.get() != gen)) return
             prepare?.invoke()
             _isSyncing.value = true
             try {
@@ -207,7 +240,8 @@ class SyncManager internal constructor(
                     val prefs = SyncPreferences(appContext)
                     SyncManager(
                         SyncRepository(db.deckDao(), db.cardDao(), prefs),
-                        prefs
+                        prefs,
+                        LocalSeeder(db)
                     ).also { instance = it }
                 }
             }

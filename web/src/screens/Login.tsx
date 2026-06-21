@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -14,8 +14,14 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Synchronous in-flight guard: setBusy(true) only takes effect on the next
+  // render, so two fast submits/clicks could both pass `disabled={busy}`. The
+  // ref flips immediately, blocking a duplicate auth call.
+  const inFlight = useRef(false);
 
   async function withBusy(fn: () => Promise<unknown>) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setError(null);
     setBusy(true);
     try {
@@ -23,6 +29,7 @@ export function Login() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign-in failed");
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }

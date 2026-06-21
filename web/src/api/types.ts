@@ -25,6 +25,17 @@ export interface Card {
   deleted_at?: string | null;
 }
 
+// Fields a client may PUT to /cards/{id}. Narrower than Partial<Card>: server-
+// owned fields (id, deck_id, created_at, updated_at) are not client-settable.
+export interface CardUpdatePatch {
+  front?: string;
+  back?: string;
+  interval?: number;
+  ease_factor?: number;
+  repetitions?: number;
+  next_review_time?: string;
+}
+
 export type WeatherCondition = "sunny" | "cloudy" | "rain" | "snow";
 
 export interface DailyForecast {

@@ -22,7 +22,11 @@ class FakeSyncController : SyncController {
         private set
     var syncNowCount = 0
         private set
-    var resyncFromScratchCount = 0
+    var prepareAccountSwitchCount = 0
+        private set
+    var applyAccountSwitchCount = 0
+        private set
+    var abortAccountSwitchCount = 0
         private set
 
     override fun requestSync() {
@@ -38,9 +42,15 @@ class FakeSyncController : SyncController {
         syncNowCount++
     }
 
-    override suspend fun prepareAccountSwitch() {}
+    override suspend fun prepareAccountSwitch() {
+        prepareAccountSwitchCount++
+    }
 
-    override suspend fun resyncFromScratch() {
-        resyncFromScratchCount++
+    override suspend fun applyAccountSwitch(wipeLocal: Boolean, reseedIfEmpty: Boolean) {
+        applyAccountSwitchCount++
+    }
+
+    override fun abortAccountSwitch() {
+        abortAccountSwitchCount++
     }
 }

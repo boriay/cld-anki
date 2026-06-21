@@ -1,4 +1,4 @@
-// Code generated from android InitialDataCallback.kt. DO NOT EDIT.
+// Code generated from android DefaultSeedData.kt. DO NOT EDIT.
 // Regenerate with: python3 backend/scripts/gen_seed.py
 package seed
 

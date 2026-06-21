@@ -41,19 +41,21 @@ class AuthViewModel(
         if (_busy.value) return // guard against double-submit
         viewModelScope.launch {
             _busy.value = true
+            _error.value = null
             try {
-                // NonCancellable: the UID change + local wipe + resync must run as
-                // an atomic unit. If the user leaves the screen mid-switch, the
-                // viewModelScope is cancelled, but tearing down between sign-out and
-                // the wipe would leave the previous account's rows to be pushed
-                // under the new (anonymous) UID. Run it to completion regardless.
+                // NonCancellable: leaving the screen must not tear down the switch
+                // between the Firebase UID change and the local wipe/reseed.
                 withContext(NonCancellable) {
                     syncController.prepareAccountSwitch()
-                    authManager.signOut()
-                    syncController.resyncFromScratch()
+                    authManager.signOut() // new anonymous UID
+                    // Wipe the previous account's rows, pull (nothing for a fresh
+                    // anonymous account), then re-seed the defaults so the app isn't
+                    // left blank — matching the offline first-launch experience.
+                    syncController.applyAccountSwitch(wipeLocal = true, reseedIfEmpty = true)
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Sign-out failed"
+                syncController.abortAccountSwitch()
             } finally {
                 _busy.value = false
             }
@@ -64,9 +66,9 @@ class AuthViewModel(
         _error.value = null
     }
 
-    // Shared wrapper: toggles busy, surfaces errors, and kicks off a sync so the
-    // account's decks arrive right after auth. A changed UID means a different
-    // account, so pull from scratch; a link keeps the UID and only needs a push.
+    // Shared wrapper: toggles busy, surfaces errors, and reconciles sync after
+    // auth. A changed UID means a different account → wipe + pull from scratch; a
+    // link keeps the UID and only needs a push (wipeLocal = false).
     private fun runAuth(block: suspend () -> AuthResult) {
         if (_busy.value) return // guard against double-submit while a run is active
         viewModelScope.launch {
@@ -74,22 +76,21 @@ class AuthViewModel(
             _error.value = null
             try {
                 // NonCancellable: leaving the screen must not tear down the switch
-                // between the Firebase UID change and the local wipe/resync. Cancel
-                // any in-flight sync BEFORE the UID change so no running sync can
-                // pick up the new token while still holding the old account's data.
+                // between the Firebase UID change and the local wipe/resync. The
+                // switch begins (cancelling in-flight syncs, blocking new ones)
+                // BEFORE block() changes the UID.
                 withContext(NonCancellable) {
                     syncController.prepareAccountSwitch()
                     val res = block()
-                    if (res.uidChanged) {
-                        syncController.resyncFromScratch()
-                    } else {
-                        syncController.syncNow()
-                    }
+                    syncController.applyAccountSwitch(
+                        wipeLocal = res.uidChanged,
+                        reseedIfEmpty = false,
+                    )
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Authentication failed"
-                // Auth failed — restart sync (it was cancelled in prepareAccountSwitch).
-                syncController.syncNow()
+                // Auth failed — UID unchanged; re-enable syncing and re-converge.
+                syncController.abortAccountSwitch()
             } finally {
                 _busy.value = false
             }

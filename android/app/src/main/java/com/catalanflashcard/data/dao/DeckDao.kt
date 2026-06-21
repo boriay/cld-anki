@@ -55,4 +55,9 @@ interface DeckDao {
     // purpose — these deletions are local-only and never synced.
     @Query("DELETE FROM decks")
     suspend fun deleteAll()
+
+    // Total deck rows (including tombstones). Used to detect a brand-new/empty
+    // store that needs re-seeding after a sign-out wipe.
+    @Query("SELECT COUNT(*) FROM decks")
+    suspend fun countAll(): Int
 }
