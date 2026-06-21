@@ -1,10 +1,36 @@
 import { useRef, useState, type FormEvent } from "react";
 import {
+  AuthErrorCodes,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
+
+// Map Firebase auth error codes to friendly copy instead of surfacing raw
+// "Firebase: Error (auth/...)" strings. Unknown codes fall back to a generic line.
+function authErrorMessage(e: unknown): string {
+  const code = typeof e === "object" && e !== null && "code" in e ? String((e as { code: unknown }).code) : "";
+  switch (code) {
+    case AuthErrorCodes.EMAIL_EXISTS:
+      return "That email is already registered. Try signing in instead.";
+    case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
+    case AuthErrorCodes.INVALID_PASSWORD:
+    case AuthErrorCodes.USER_DELETED: // user-not-found
+      return "Wrong email or password.";
+    case AuthErrorCodes.INVALID_EMAIL:
+      return "That email address looks invalid.";
+    case AuthErrorCodes.WEAK_PASSWORD:
+      return "Password is too weak (use at least 6 characters).";
+    case AuthErrorCodes.POPUP_CLOSED_BY_USER:
+    case AuthErrorCodes.EXPIRED_POPUP_REQUEST:
+      return "Sign-in was cancelled.";
+    case AuthErrorCodes.NETWORK_REQUEST_FAILED:
+      return "Network error — check your connection and try again.";
+    default:
+      return "Sign-in failed. Please try again.";
+  }
+}
 
 // Login offers email/password (sign-in or sign-up) and Google. Apple is planned
 // — add an Apple provider button here once it's enabled in the Firebase console.
@@ -27,7 +53,7 @@ export function Login() {
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Sign-in failed");
+      setError(authErrorMessage(e));
     } finally {
       inFlight.current = false;
       setBusy(false);

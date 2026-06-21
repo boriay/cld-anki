@@ -16,6 +16,11 @@ function visibleForLanguage(decks: Deck[], lang: string): Deck[] {
   return decks.filter((d) => d.pinned || !d.language || d.language === lang);
 }
 
+// The account we've already issued /seed for this session. DeckList remounts on
+// every navigation back to "/", and /seed is a no-op once decks exist, so the
+// extra round-trip is pure waste — skip it unless the signed-in user changed.
+let seededForUid: string | null = null;
+
 export function DeckList() {
   const { logout, user } = useAuth();
   const { language } = useLanguage();
@@ -30,9 +35,12 @@ export function DeckList() {
   async function load() {
     setError(null);
     try {
-      // Seed the default decks on a brand-new account before listing (no-op
-      // for existing accounts). Keeps web parity with the Android initial set.
-      await api.seed();
+      // Seed the default decks on a brand-new account before listing (no-op for
+      // existing accounts). Only once per signed-in user — see seededForUid.
+      if (user && seededForUid !== user.uid) {
+        await api.seed();
+        seededForUid = user.uid;
+      }
       setAllDecks(await api.listDecks());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load decks");
@@ -43,7 +51,8 @@ export function DeckList() {
 
   useEffect(() => {
     void load();
-  }, []);
+    // Re-run if the signed-in user changes (sign-out → different account).
+  }, [user?.uid]);
 
   const decks = useMemo(
     () => visibleForLanguage(allDecks, language),
