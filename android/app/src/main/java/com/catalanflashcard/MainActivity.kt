@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.catalanflashcard.data.auth.AuthManager
 import com.catalanflashcard.data.database.FlashcardDatabase
 import com.catalanflashcard.data.preferences.WeatherPreferences
 import com.catalanflashcard.data.repository.FlashcardRepository
@@ -27,8 +28,10 @@ import com.catalanflashcard.ui.navigation.Screen
 import com.catalanflashcard.ui.screen.AddDeckDialog
 import com.catalanflashcard.ui.screen.DeckDetailScreen
 import com.catalanflashcard.ui.screen.DeckListScreen
+import com.catalanflashcard.ui.screen.LoginScreen
 import com.catalanflashcard.ui.screen.StudyScreen
 import com.catalanflashcard.ui.theme.CatalanFlashcardTheme
+import com.catalanflashcard.ui.viewmodel.AuthViewModel
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
 import com.catalanflashcard.ui.viewmodel.StudyViewModel
 import com.catalanflashcard.ui.viewmodel.ViewModelFactory
@@ -53,6 +56,11 @@ class MainActivity : AppCompatActivity() {
         val deckViewModelFactory = ViewModelFactory { DeckViewModel(repository, syncManager) }
         val studyViewModelFactory = ViewModelFactory { StudyViewModel(repository, syncManager) }
         val weatherViewModelFactory = ViewModelFactory { WeatherViewModel(weatherRepository) }
+
+        // Optional account: anonymous by default; the account screen upgrades to a
+        // real login that shares decks with the web client.
+        val authManager = AuthManager.getInstance(applicationContext)
+        val authViewModelFactory = ViewModelFactory { AuthViewModel(authManager, syncManager) }
 
         setContent {
             CatalanFlashcardTheme {
@@ -89,7 +97,16 @@ class MainActivity : AppCompatActivity() {
                             onDeckClick = { deckId ->
                                 navController.navigate(Screen.DeckDetail.createRoute(deckId))
                             },
-                            onAddDeckClick = { showAddDeckDialog = true }
+                            onAddDeckClick = { showAddDeckDialog = true },
+                            onAccountClick = { navController.navigate(Screen.Login.route) }
+                        )
+                    }
+
+                    composable(Screen.Login.route) {
+                        val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
+                        LoginScreen(
+                            viewModel = authViewModel,
+                            onBack = { navController.navigateUp() }
                         )
                     }
 

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Language
@@ -71,7 +72,8 @@ fun DeckListScreen(
     viewModel: DeckViewModel,
     weather: WeatherState,
     onDeckClick: (String) -> Unit,
-    onAddDeckClick: () -> Unit
+    onAddDeckClick: () -> Unit,
+    onAccountClick: () -> Unit
 ) {
     val decks by viewModel.decks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -135,6 +137,12 @@ fun DeckListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.deck_title)) },
                 actions = {
+                    IconButton(onClick = onAccountClick) {
+                        Icon(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = stringResource(R.string.account)
+                        )
+                    }
                     LanguageMenu()
                     // Auto-sync toggle that doubles as the indicator. A tap flips
                     // on/off (enabling forces a sync); it spins while syncing.

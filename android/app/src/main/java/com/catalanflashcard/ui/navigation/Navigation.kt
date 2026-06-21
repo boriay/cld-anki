@@ -2,6 +2,7 @@ package com.catalanflashcard.ui.navigation
 
 sealed class Screen(val route: String) {
     object DeckList : Screen("deck_list")
+    object Login : Screen("login")
     object Study : Screen("study/{deckId}") {
         fun createRoute(deckId: String) = "study/$deckId"
     }

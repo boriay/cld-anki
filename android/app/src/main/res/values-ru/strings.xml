@@ -7,7 +7,7 @@
     <string name="sync_auto_on">Авто-синхронизация включена</string>
     <string name="sync_auto_off">Авто-синхронизация выключена</string>
     <string name="sync_in_progress">Синхронизация…</string>
-    <string name="sync_caption">Синхронизация с сервером хранит карточки не только на этом телефоне — редактируйте и учитесь на других устройствах и на сайте.</string>
+    <string name="sync_caption">Синхронизация с сервером хранит карточки не только на этом телефоне — редактируйте и учитесь на других устройствах и на сайте catflashcards.com.</string>
     <string name="study">Учить</string>
     <string name="front">Лицо</string>
     <string name="back">Оборот</string>
@@ -30,6 +30,20 @@
     <string name="deck_name_hint">Название колоды</string>
     <string name="create">Создать</string>
     <string name="cancel">Отмена</string>
+
+    <!-- Account / login -->
+    <string name="account">Аккаунт</string>
+    <string name="sign_in">Войти</string>
+    <string name="sign_up">Создать аккаунт</string>
+    <string name="sign_out">Выйти</string>
+    <string name="email">Эл. почта</string>
+    <string name="password">Пароль</string>
+    <string name="google_sign_in">Войти через Google</string>
+    <string name="no_account_sign_up">Нет аккаунта? Создайте</string>
+    <string name="have_account_sign_in">Уже есть аккаунт? Войдите</string>
+    <string name="signed_in_as">Вы вошли как %1$s</string>
+    <string name="account_anonymous">Войдите, чтобы синхронизировать колоды с сайтом.</string>
+
     <string name="due_count">К повторению: %d</string>
     <string name="delete_deck_confirm_title">Удалить колоду</string>
     <string name="delete_deck_confirm_message">Удалить \"%1$s\"? Это действие необратимо.</string>

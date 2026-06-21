@@ -7,7 +7,7 @@
     <string name="sync_auto_on">Sincronización automática activada</string>
     <string name="sync_auto_off">Sincronización automática desactivada</string>
     <string name="sync_in_progress">Sincronizando…</string>
-    <string name="sync_caption">La sincronización con el servidor guarda tus tarjetas más allá de este teléfono: edita y estudia en otros dispositivos y en la web.</string>
+    <string name="sync_caption">La sincronización con el servidor guarda tus tarjetas más allá de este teléfono: edita y estudia en otros dispositivos y en la web catflashcards.com.</string>
     <string name="study">Estudiar</string>
     <string name="front">Anverso</string>
     <string name="back">Reverso</string>
@@ -30,6 +30,20 @@
     <string name="deck_name_hint">Nombre del mazo</string>
     <string name="create">Crear</string>
     <string name="cancel">Cancelar</string>
+
+    <!-- Account / login -->
+    <string name="account">Cuenta</string>
+    <string name="sign_in">Iniciar sesión</string>
+    <string name="sign_up">Crear cuenta</string>
+    <string name="sign_out">Cerrar sesión</string>
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="google_sign_in">Continuar con Google</string>
+    <string name="no_account_sign_up">¿No tienes cuenta? Crea una</string>
+    <string name="have_account_sign_in">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="signed_in_as">Sesión iniciada como %1$s</string>
+    <string name="account_anonymous">Inicia sesión para sincronizar tus mazos con el sitio web.</string>
+
     <string name="due_count">Pendientes: %d</string>
     <string name="delete_deck_confirm_title">Eliminar mazo</string>
     <string name="delete_deck_confirm_message">¿Eliminar \"%1$s\"? Esto no se puede deshacer.</string>

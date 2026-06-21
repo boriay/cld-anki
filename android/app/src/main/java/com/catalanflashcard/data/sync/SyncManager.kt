@@ -44,6 +44,15 @@ interface SyncController {
 
     /** Toggle auto-sync. Enabling forces an immediate sync. */
     fun toggle()
+
+    /** Force a one-off sync now, regardless of the auto-sync toggle. */
+    fun syncNow()
+
+    /**
+     * Reset the sync cursor and force a full re-sync. Used after switching to a
+     * different account so the new account's data is pulled from scratch.
+     */
+    fun resyncFromScratch()
 }
 
 class SyncManager internal constructor(
@@ -107,6 +116,17 @@ class SyncManager internal constructor(
         settings.autoSyncEnabled = next
         // Enabling: sync immediately, bypassing debounce, for instant feedback.
         if (next) scope.launch { runSync() }
+    }
+
+    override fun syncNow() {
+        scope.launch { runSync() }
+    }
+
+    override fun resyncFromScratch() {
+        scope.launch {
+            syncRepository.resetSyncCursor()
+            runSync()
+        }
     }
 
     private suspend fun runSync() {

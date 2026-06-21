@@ -35,6 +35,14 @@ class SyncRepository(
     private val syncApi: SyncApi = ApiClient.syncApi,
     private val tokenProvider: TokenProvider = FirebaseTokenProvider()
 ) {
+    // Clear the sync cursor so the next sync re-pulls everything and re-pushes
+    // all local rows. Used after switching accounts, where the previous cursor
+    // belongs to a different user and would otherwise skip the new account's data.
+    fun resetSyncCursor() {
+        syncPreferences.lastSyncedAt = 0L
+        syncPreferences.lastPushedAt = 0L
+    }
+
     suspend fun sync(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val token = tokenProvider.idToken()

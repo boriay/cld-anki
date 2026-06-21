@@ -20,6 +20,10 @@ class FakeSyncController : SyncController {
         private set
     var toggleCount = 0
         private set
+    var syncNowCount = 0
+        private set
+    var resyncFromScratchCount = 0
+        private set
 
     override fun requestSync() {
         requestSyncCount++
@@ -28,5 +32,13 @@ class FakeSyncController : SyncController {
     override fun toggle() {
         toggleCount++
         enabled.value = !enabled.value
+    }
+
+    override fun syncNow() {
+        syncNowCount++
+    }
+
+    override fun resyncFromScratch() {
+        resyncFromScratchCount++
     }
 }
