@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import type { DailyForecast, WeatherCondition } from "../api/types";
-import { currentAppLanguage } from "../domain/language";
+import { useLanguage } from "../language/LanguageContext";
 import { useWeather } from "../weather/WeatherContext";
 
 const EMOJI: Record<WeatherCondition, string> = {
@@ -33,7 +33,8 @@ function isoDate(offsetDays: number): string {
 // until a forecast with a matching day has been fetched (mirrors Android).
 export function WeatherStrip() {
   const weather = useWeather();
-  const labels = LABELS[currentAppLanguage()] ?? LABELS.en;
+  const { language } = useLanguage();
+  const labels = LABELS[language] ?? LABELS.en;
 
   // Label by actual date, not array position: a cache stale across local
   // midnight could leave daily[0] as yesterday. Missing days are skipped.

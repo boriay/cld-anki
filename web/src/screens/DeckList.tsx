@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { Deck } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
-import { currentAppLanguage } from "../domain/language";
+import { useLanguage } from "../language/LanguageContext";
 import { WeatherStrip } from "../components/WeatherStrip";
+import { LanguageMenu } from "../components/LanguageMenu";
+import { AddDeckDialog } from "../components/AddDeckDialog";
 
 // Decks visible for the current UI language: seeded decks tagged with the
 // current language, plus user-created decks (no language) and any deck pinned
@@ -16,10 +18,14 @@ function visibleForLanguage(decks: Deck[], lang: string): Deck[] {
 
 export function DeckList() {
   const { logout, user } = useAuth();
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const { language } = useLanguage();
+  const navigate = useNavigate();
+  // Keep every deck; the visible subset is derived so switching language
+  // re-filters instantly without a refetch.
+  const [allDecks, setAllDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
 
   async function load() {
     setError(null);
@@ -27,8 +33,7 @@ export function DeckList() {
       // Seed the default decks on a brand-new account before listing (no-op
       // for existing accounts). Keeps web parity with the Android initial set.
       await api.seed();
-      const all = await api.listDecks();
-      setDecks(visibleForLanguage(all, currentAppLanguage()));
+      setAllDecks(await api.listDecks());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load decks");
     } finally {
@@ -40,19 +45,21 @@ export function DeckList() {
     void load();
   }, []);
 
-  async function addDeck(e: React.FormEvent) {
-    e.preventDefault();
-    const name = newName.trim();
-    if (!name) return;
+  const decks = useMemo(
+    () => visibleForLanguage(allDecks, language),
+    [allDecks, language],
+  );
+
+  async function createDeck(name: string) {
     const created = await api.createDeck(name);
-    setDecks((d) => [...d, created]);
-    setNewName("");
+    setAllDecks((d) => [...d, created]);
+    setAdding(false);
   }
 
   async function removeDeck(id: string) {
     if (!confirm("Delete this deck and its cards?")) return;
     await api.deleteDeck(id);
-    setDecks((d) => d.filter((x) => x.id !== id));
+    setAllDecks((d) => d.filter((x) => x.id !== id));
   }
 
   return (
@@ -60,6 +67,7 @@ export function DeckList() {
       <header className="topbar">
         <h2>Decks</h2>
         <div className="topbar-right">
+          <LanguageMenu />
           <span className="muted">{user?.email ?? "Account"}</span>
           <button className="link" onClick={() => void logout()}>
             Sign out
@@ -69,37 +77,44 @@ export function DeckList() {
 
       <WeatherStrip />
 
-      <form className="add-row" onSubmit={addDeck}>
-        <input
-          placeholder="New deck name"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-        />
-        <button type="submit">Add</button>
-      </form>
-
       {loading && <p className="muted">Loading…</p>}
       {error && <p className="error">{error}</p>}
 
       <ul className="deck-list">
         {decks.map((deck) => (
           <li key={deck.id} className="deck-item">
-            <Link to={`/decks/${deck.id}`} className="deck-link">
+            {/* The whole plaque opens the deck (study starts inside), like Android. */}
+            <button className="deck-open" onClick={() => navigate(`/decks/${deck.id}`)}>
               {deck.pinned && <span title="Pinned">📌 </span>}
               {deck.name}
-            </Link>
-            <div className="deck-actions">
-              <Link to={`/decks/${deck.id}/study`}>Study</Link>
-              <button className="link danger" onClick={() => void removeDeck(deck.id)}>
-                Delete
-              </button>
-            </div>
+            </button>
+            <button
+              className="icon-btn danger"
+              title="Delete deck"
+              aria-label="Delete deck"
+              onClick={() => void removeDeck(deck.id)}
+            >
+              🗑
+            </button>
           </li>
         ))}
       </ul>
 
       {!loading && decks.length === 0 && (
-        <p className="muted">No decks yet — create one above.</p>
+        <p className="muted">No decks yet — tap ＋ to create one.</p>
+      )}
+
+      <button
+        className="fab"
+        title="Create deck"
+        aria-label="Create deck"
+        onClick={() => setAdding(true)}
+      >
+        ＋
+      </button>
+
+      {adding && (
+        <AddDeckDialog onCancel={() => setAdding(false)} onCreate={createDeck} />
       )}
     </div>
   );
