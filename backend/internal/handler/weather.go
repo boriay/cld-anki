@@ -35,8 +35,8 @@ func (h *WeatherHandler) Current(w http.ResponseWriter, r *http.Request) {
 
 // clientIP returns the caller's public IP, or "" when the address is loopback
 // or private — in which case the geolocation provider falls back to the
-// request's own source IP. chi's RealIP middleware has already resolved
-// X-Forwarded-For / X-Real-IP into RemoteAddr upstream.
+// request's own source IP. httpmw.RealIP has already resolved the trusted
+// X-Forwarded-For entry into RemoteAddr upstream (not spoofable behind the LB).
 func clientIP(r *http.Request) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
