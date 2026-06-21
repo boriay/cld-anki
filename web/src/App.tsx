@@ -19,11 +19,12 @@ function Gate() {
     );
   }
 
-  if (!user) return <Login />;
+  // LanguageProvider wraps both Login and the authenticated app so any screen
+  // can call useLanguage() regardless of auth state.
+  if (!user) return <LanguageProvider><Login /></LanguageProvider>;
 
   // WeatherProvider fetches once and feeds both the background and the strip;
   // it lives inside the auth gate because /weather requires a bearer token.
-  // LanguageProvider drives the deck-list language filter and the menu.
   return (
     <LanguageProvider>
       <WeatherProvider>
