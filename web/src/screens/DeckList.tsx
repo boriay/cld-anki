@@ -76,7 +76,10 @@ export function DeckList() {
   return (
     <div className="screen">
       <header className="topbar">
-        <h2>{s.decks}</h2>
+        <div className="topbar-left">
+          <span className="logo-link">🐱</span>
+          <h2>{s.decks}</h2>
+        </div>
         <div className="topbar-right">
           <LanguageMenu />
           <span className="muted">{user?.email ?? "Account"}</span>

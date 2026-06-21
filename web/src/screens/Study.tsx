@@ -99,11 +99,14 @@ export function Study() {
   const header = useMemo(
     () => (
       <header className="topbar">
-        <h2>
-          <Link to={`/decks/${deckId}`} className="link">
-            {s.backToDeck}
-          </Link>
-        </h2>
+        <div className="topbar-left">
+          <Link to="/" className="logo-link">🐱</Link>
+          <h2>
+            <Link to={`/decks/${deckId}`} className="link">
+              {s.backToDeck}
+            </Link>
+          </h2>
+        </div>
         <span className="muted">{remaining} {s.due}</span>
       </header>
     ),

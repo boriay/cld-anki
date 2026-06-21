@@ -68,11 +68,14 @@ export function DeckDetail() {
   return (
     <div className="screen">
       <header className="topbar">
-        <h2>
-          <Link to="/" className="link">
-            ← {s.decks}
-          </Link>
-        </h2>
+        <div className="topbar-left">
+          <Link to="/" className="logo-link">🐱</Link>
+          <h2>
+            <Link to="/" className="link">
+              ← {s.decks}
+            </Link>
+          </h2>
+        </div>
         <Link to={`/decks/${deckId}/study`}>{s.study}</Link>
       </header>
 

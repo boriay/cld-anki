@@ -108,10 +108,20 @@ input {
 .topbar h2 {
   margin: 0;
 }
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+}
+.logo-link {
+  font-size: 1.5rem;
+  line-height: 1;
+  text-decoration: none;
 }
 
 .add-row {
