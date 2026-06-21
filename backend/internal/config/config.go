@@ -34,6 +34,11 @@ func Load() (*Config, error) {
 	if cfg.FirebaseProjectID == "" {
 		return nil, fmt.Errorf("FIREBASE_PROJECT_ID is required")
 	}
+	// The default is non-empty, so an empty list means CORS_ALLOWED_ORIGINS was
+	// explicitly set to whitespace — almost certainly a misconfiguration.
+	if len(cfg.AllowedOrigins) == 0 {
+		return nil, fmt.Errorf("CORS_ALLOWED_ORIGINS resolved to an empty list")
+	}
 	return cfg, nil
 }
 

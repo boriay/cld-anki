@@ -38,7 +38,7 @@ class FakeSyncController : SyncController {
         syncNowCount++
     }
 
-    override fun resyncFromScratch() {
+    override suspend fun resyncFromScratch() {
         resyncFromScratchCount++
     }
 }

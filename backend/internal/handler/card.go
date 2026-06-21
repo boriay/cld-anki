@@ -101,6 +101,11 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if !decodeBody(w, r, &body) {
 		return
 	}
+	if body.Front == nil && body.Back == nil && body.Interval == nil &&
+		body.EaseFactor == nil && body.Repetitions == nil && body.NextReviewTime == nil {
+		jsonError(w, "no fields to update", http.StatusBadRequest)
+		return
+	}
 	// Validate SM-2 invariants so a buggy/malicious client can't store
 	// out-of-range state or overflow the INTEGER interval column.
 	if body.Interval != nil && (*body.Interval < 1 || *body.Interval > math.MaxInt32) {
@@ -115,35 +120,15 @@ func (h *CardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "ease_factor out of range", http.StatusBadRequest)
 		return
 	}
-	c, err := h.repo.GetByID(r.Context(), id, uid)
+	// Atomic guarded update: no read-modify-write, deleted_at IS NULL guard prevents
+	// resurrection, change predicate skips no-op bumps to updated_at.
+	c, err := h.repo.UpdateFields(r.Context(), id, uid,
+		body.Front, body.Back, body.Interval, body.EaseFactor, body.Repetitions, body.NextReviewTime)
 	if errors.Is(err, repository.ErrNotFound) {
 		jsonError(w, "not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		internalError(w, err)
-		return
-	}
-	if body.Front != nil {
-		c.Front = *body.Front
-	}
-	if body.Back != nil {
-		c.Back = *body.Back
-	}
-	if body.Interval != nil {
-		c.Interval = *body.Interval
-	}
-	if body.EaseFactor != nil {
-		c.EaseFactor = *body.EaseFactor
-	}
-	if body.Repetitions != nil {
-		c.Repetitions = *body.Repetitions
-	}
-	if body.NextReviewTime != nil {
-		c.NextReviewTime = *body.NextReviewTime
-	}
-	c.UpdatedAt = time.Now().UTC()
-	if err := h.repo.Upsert(r.Context(), c); err != nil {
 		internalError(w, err)
 		return
 	}

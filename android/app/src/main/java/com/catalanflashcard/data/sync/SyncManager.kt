@@ -5,6 +5,7 @@ import com.catalanflashcard.data.database.FlashcardDatabase
 import com.catalanflashcard.data.preferences.AutoSyncSettings
 import com.catalanflashcard.data.preferences.SyncPreferences
 import com.catalanflashcard.data.repository.SyncRepository
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -49,10 +50,11 @@ interface SyncController {
     fun syncNow()
 
     /**
-     * Reset the sync cursor and force a full re-sync. Used after switching to a
-     * different account so the new account's data is pulled from scratch.
+     * Wipe local data, reset the sync cursor, and pull the current account's
+     * data from scratch. Suspends until the full re-pull completes so the
+     * caller (AuthViewModel) can keep the busy indicator up the whole time.
      */
-    fun resyncFromScratch()
+    suspend fun resyncFromScratch()
 }
 
 class SyncManager internal constructor(
@@ -85,6 +87,13 @@ class SyncManager internal constructor(
     // waits and re-syncs, picking up rows changed during the in-flight sync.
     private val mutex = Mutex()
 
+    // Incremented on every resyncFromScratch(). A regular sync captures the
+    // generation before acquiring the lock; if the generation has advanced by
+    // the time the lock is acquired, the sync is stale and is dropped. This
+    // prevents a debounce tick from pushing old-account data under the new UID
+    // when a resync races with a pending auto-sync.
+    private val syncGeneration = AtomicInteger(0)
+
     @OptIn(FlowPreview::class)
     private fun startDebounceLoop() {
         scope.launch {
@@ -93,7 +102,12 @@ class SyncManager internal constructor(
                 // Re-check enabled: if auto-sync was turned off while the tick was
                 // waiting out the debounce window, drop the pending request instead
                 // of pushing it to the server.
-                .collect { if (_enabled.value) runSync() }
+                .collect {
+                    if (_enabled.value) {
+                        val gen = syncGeneration.get()
+                        runSync(gen)
+                    }
+                }
         }
     }
 
@@ -102,7 +116,10 @@ class SyncManager internal constructor(
         // If auto-sync was left enabled, pull/push on startup. Direct launch rather
         // than emitting into `requests`: with replay=0 the startup emit could be
         // missed if the collector hasn't subscribed yet.
-        if (_enabled.value) scope.launch { runSync() }
+        if (_enabled.value) {
+            val gen = syncGeneration.get()
+            scope.launch { runSync(gen) }
+        }
     }
 
     override fun requestSync() {
@@ -115,26 +132,32 @@ class SyncManager internal constructor(
         _enabled.value = next
         settings.autoSyncEnabled = next
         // Enabling: sync immediately, bypassing debounce, for instant feedback.
-        if (next) scope.launch { runSync() }
-    }
-
-    override fun syncNow() {
-        scope.launch { runSync() }
-    }
-
-    override fun resyncFromScratch() {
-        scope.launch {
-            // Clear + reset run inside the sync mutex so a concurrent sync can't
-            // push the old account's rows between the wipe and the pull.
-            runSync {
-                syncRepository.clearLocalData()
-                syncRepository.resetSyncCursor()
-            }
+        if (next) {
+            val gen = syncGeneration.get()
+            scope.launch { runSync(gen) }
         }
     }
 
-    private suspend fun runSync(prepare: (suspend () -> Unit)? = null) {
+    override fun syncNow() {
+        val gen = syncGeneration.get()
+        scope.launch { runSync(gen) }
+    }
+
+    override suspend fun resyncFromScratch() {
+        val gen = syncGeneration.incrementAndGet()
+        // Clear + reset run inside the sync mutex so a concurrent sync can't
+        // push the old account's rows between the wipe and the pull.
+        runSync(gen) {
+            syncRepository.clearLocalData()
+            syncRepository.resetSyncCursor()
+        }
+    }
+
+    // gen: the generation this sync was scheduled for. Non-resync syncs (prepare==null)
+    // abort if a resync has been requested since scheduling (gen < current generation).
+    private suspend fun runSync(gen: Int, prepare: (suspend () -> Unit)? = null) {
         mutex.withLock {
+            if (prepare == null && syncGeneration.get() != gen) return
             prepare?.invoke()
             _isSyncing.value = true
             try {

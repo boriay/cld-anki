@@ -116,6 +116,51 @@ func (r *CardRepo) GetByID(ctx context.Context, id, userID string) (*model.Card,
 	))
 }
 
+// UpdateFields applies a partial SM-2 state update in a single guarded statement.
+// Only non-nil fields are changed. `deleted_at IS NULL` prevents resurrecting a
+// soft-deleted card, and the change predicate skips a no-op write so an idempotent
+// review doesn't bump updated_at or re-emit the card in the sync delta. Returns
+// the current row unchanged on a no-op, or ErrNotFound if the card is
+// absent/tombstoned.
+func (r *CardRepo) UpdateFields(
+	ctx context.Context,
+	id, userID string,
+	front, back *string,
+	interval *int,
+	easeFactor *float64,
+	repetitions *int,
+	nextReviewTime *time.Time,
+) (*model.Card, error) {
+	c, err := scanCard(r.db.QueryRow(ctx, `
+		UPDATE cards
+		SET front            = COALESCE($3, front),
+		    back             = COALESCE($4, back),
+		    interval         = COALESCE($5, interval),
+		    ease_factor      = COALESCE($6, ease_factor),
+		    repetitions      = COALESCE($7, repetitions),
+		    next_review_time = COALESCE($8, next_review_time),
+		    updated_at       = now()
+		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+		  AND (
+		    ($3 IS NOT NULL AND front IS DISTINCT FROM $3) OR
+		    ($4 IS NOT NULL AND back IS DISTINCT FROM $4) OR
+		    ($5 IS NOT NULL AND interval IS DISTINCT FROM $5) OR
+		    ($6 IS NOT NULL AND ease_factor IS DISTINCT FROM $6) OR
+		    ($7 IS NOT NULL AND repetitions IS DISTINCT FROM $7) OR
+		    ($8 IS NOT NULL AND next_review_time IS DISTINCT FROM $8)
+		  )
+		RETURNING `+cardCols,
+		id, userID, front, back, interval, easeFactor, repetitions, nextReviewTime))
+	if errors.Is(err, ErrNotFound) {
+		// No row updated: no-op on existing card, or card is absent/tombstoned.
+		c, err = r.GetByID(ctx, id, userID)
+		if err == nil && c.DeletedAt != nil {
+			return nil, ErrNotFound
+		}
+	}
+	return c, err
+}
+
 // ChangedSince returns all cards (including soft-deleted) modified after the given time.
 func (r *CardRepo) ChangedSince(ctx context.Context, userID string, since time.Time) ([]*model.Card, error) {
 	rows, err := r.db.Query(ctx,

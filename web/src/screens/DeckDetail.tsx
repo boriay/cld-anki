@@ -10,6 +10,7 @@ export function DeckDetail() {
   const [error, setError] = useState<string | null>(null);
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function load() {
     if (!deckId) return;
@@ -29,14 +30,21 @@ export function DeckDetail() {
 
   async function addCard(e: React.FormEvent) {
     e.preventDefault();
-    if (!deckId) return;
+    if (!deckId || saving) return;
     const f = front.trim();
     const b = back.trim();
     if (!f || !b) return;
-    const created = await api.createCard(deckId, f, b);
-    setCards((c) => [...c, created]);
-    setFront("");
-    setBack("");
+    setSaving(true);
+    try {
+      const created = await api.createCard(deckId, f, b);
+      setCards((c) => [...c, created]);
+      setFront("");
+      setBack("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add card");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function removeCard(id: string) {
@@ -66,7 +74,7 @@ export function DeckDetail() {
           value={back}
           onChange={(e) => setBack(e.target.value)}
         />
-        <button type="submit">Add card</button>
+        <button type="submit" disabled={saving}>Add card</button>
       </form>
 
       {loading && <p className="muted">Loading…</p>}

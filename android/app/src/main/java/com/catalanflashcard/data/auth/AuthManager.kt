@@ -32,13 +32,18 @@ data class AuthUser(
  */
 data class AuthResult(val user: AuthUser, val uidChanged: Boolean)
 
+/** Thrown by [AuthManager.signUpEmail] when the email is already registered. */
+class EmailAlreadyInUseException(email: String) :
+    Exception("$email is already registered. Sign in instead.")
+
 /**
  * Wraps FirebaseAuth for the optional account model: the app runs anonymously by
  * default, and the user can upgrade to a real account. Signing up links the
- * anonymous account (preserving on-device decks under the same UID); on a
- * collision (the account already exists, e.g. created on the web) it falls back
- * to signing into that account. Provider-agnostic against the same backend as
- * the web client.
+ * anonymous account (preserving on-device decks under the same UID). For Google
+ * sign-in, a collision (account already exists) falls back to a plain sign-in,
+ * matching the expected "Continue with Google" UX. For email sign-up, a collision
+ * surfaces [EmailAlreadyInUseException] so the user can make an informed choice
+ * rather than silently losing their anonymous decks.
  */
 class AuthManager private constructor(private val appContext: Context) {
 
@@ -69,11 +74,25 @@ class AuthManager private constructor(private val appContext: Context) {
 
     /**
      * Create an email/password account, linking the current anonymous session so
-     * existing decks carry over. If the email is already registered, signs into
-     * it instead.
+     * existing decks carry over. Throws [EmailAlreadyInUseException] if the email
+     * is already registered — unlike Google sign-in, silently switching accounts on
+     * "Create account" would lose unsynced anonymous decks without user consent.
      */
     suspend fun signUpEmail(email: String, password: String): AuthResult {
-        return linkOrSignIn(EmailAuthProvider.getCredential(email, password))
+        val credential = EmailAuthProvider.getCredential(email, password)
+        val before = auth.currentUser?.uid
+        val current = auth.currentUser
+        if (current != null && current.isAnonymous) {
+            try {
+                current.linkWithCredential(credential).await()
+                return result(before)
+            } catch (_: FirebaseAuthUserCollisionException) {
+                throw EmailAlreadyInUseException(email)
+            }
+        }
+        // No anonymous session: sign in directly (same path as signInEmail).
+        auth.signInWithCredential(credential).await()
+        return result(before)
     }
 
     /** Google sign-in via Credential Manager, linking the anonymous session. */
@@ -89,7 +108,8 @@ class AuthManager private constructor(private val appContext: Context) {
     }
 
     // Link the credential to the anonymous account to keep its UID (and synced
-    // data); if that account is already taken, sign into it instead.
+    // data); if that account is already taken, sign into it instead. Used for
+    // Google only — email sign-up uses its own method with explicit collision handling.
     private suspend fun linkOrSignIn(credential: AuthCredential): AuthResult {
         val before = auth.currentUser?.uid
         val current = auth.currentUser
