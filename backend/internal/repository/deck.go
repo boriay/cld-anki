@@ -85,11 +85,13 @@ func (r *DeckRepo) GetByID(ctx context.Context, id, userID string) (*model.Deck,
 func (r *DeckRepo) UpdateFields(ctx context.Context, id, userID string, name *string, pin bool) (*model.Deck, error) {
 	d, err := scanDeck(r.db.QueryRow(ctx, `
 		UPDATE decks
-		SET name = COALESCE($3, name),
+		-- $3 (name) is cast explicitly: a nil Go *string becomes an untyped NULL,
+		-- and Postgres raises 42P08 when it cannot infer the param type. ::text fixes it.
+		SET name = COALESCE($3::text, name),
 			pinned = (pinned OR $4),
 			updated_at = now()
 		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
-		  AND (($3 IS NOT NULL AND name IS DISTINCT FROM $3) OR ($4 AND NOT pinned))
+		  AND (($3::text IS NOT NULL AND name IS DISTINCT FROM $3::text) OR ($4 AND NOT pinned))
 		RETURNING `+deckCols, id, userID, name, pin))
 	if errors.Is(err, ErrNotFound) {
 		// No row updated: a no-op on an existing deck, or the deck is absent /
