@@ -13,10 +13,10 @@ package com.catalanflashcard.domain
  */
 object SpacedRepetition {
 
-    // Easy bonus: separates Easy from Good even on short intervals where the
-    // ease-factor difference alone doesn't add a full day. Matches Anki default.
-    // On the float32 lattice so the multiplication stays bit-identical with web.
-    private const val EASY_BONUS = 1.3f
+    // Hard/Easy multipliers (Anki defaults). On the float32 lattice so
+    // multiplications stay bit-identical with the web client.
+    private const val EASY_BONUS  = 1.3f
+    private const val HARD_FACTOR = 1.2f
 
     data class ReviewResult(
         val interval: Int,
@@ -42,10 +42,22 @@ object SpacedRepetition {
                 0 -> 1
                 1 -> 3
                 else -> {
-                    // Compute in Double and clamp to avoid Int overflow on long-learned cards.
-                    val bonus = if (quality == 5) EASY_BONUS else 1f
-                    val raw = interval.toDouble() * newEaseFactor * bonus
-                    raw.coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
+                    // Good baseline — other grades are anchored to this so ordering is guaranteed.
+                    val goodInterval = (interval.toDouble() * newEaseFactor)
+                        .coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
+                    when (quality) {
+                        5 -> { // Easy: always strictly above Good
+                            val raw = (interval.toDouble() * newEaseFactor * EASY_BONUS)
+                                .coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
+                            maxOf(goodInterval + 1, raw)
+                        }
+                        3 -> { // Hard: always strictly below Good
+                            val raw = (interval.toDouble() * newEaseFactor * HARD_FACTOR)
+                                .coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
+                            minOf(maxOf(1, goodInterval - 1), raw)
+                        }
+                        else -> goodInterval
+                    }
                 }
             }
             ReviewResult(

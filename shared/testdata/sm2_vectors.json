@@ -143,7 +143,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 6,
+            "interval": 5,
             "easeFactor": 2.0799996852874756,
             "repetitions": 3
           }
@@ -151,7 +151,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 11,
+            "interval": 8,
             "easeFactor": 1.9399996995925903,
             "repetitions": 4
           }
@@ -159,7 +159,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 19,
+            "interval": 13,
             "easeFactor": 1.799999713897705,
             "repetitions": 5
           }
@@ -167,7 +167,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 31,
+            "interval": 20,
             "easeFactor": 1.6599997282028198,
             "repetitions": 6
           }
@@ -175,7 +175,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 47,
+            "interval": 29,
             "easeFactor": 1.5199997425079346,
             "repetitions": 7
           }
@@ -183,7 +183,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 64,
+            "interval": 39,
             "easeFactor": 1.3799997568130493,
             "repetitions": 8
           }
@@ -191,7 +191,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 83,
+            "interval": 49,
             "easeFactor": 1.2999999523162842,
             "repetitions": 9
           }
@@ -199,7 +199,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 107,
+            "interval": 62,
             "easeFactor": 1.2999999523162842,
             "repetitions": 10
           }
@@ -207,7 +207,7 @@
         {
           "quality": 4,
           "expected": {
-            "interval": 139,
+            "interval": 80,
             "easeFactor": 1.2999999523162842,
             "repetitions": 11
           }
@@ -215,7 +215,7 @@
         {
           "quality": 4,
           "expected": {
-            "interval": 180,
+            "interval": 103,
             "easeFactor": 1.2999999523162842,
             "repetitions": 12
           }
@@ -339,7 +339,7 @@
         {
           "quality": 3,
           "expected": {
-            "interval": 5,
+            "interval": 4,
             "easeFactor": 1.8799997568130493,
             "repetitions": 3
           }
