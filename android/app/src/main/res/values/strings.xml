@@ -57,6 +57,15 @@
     <string name="edit_card_title">Edit Card</string>
     <string name="save">Save</string>
     <string name="no_cards_in_deck">No cards yet. Add one to start studying.</string>
+    <!-- Short, non-inflecting interval unit suffixes (Anki-style: 3d, 2mo, 1.5y). -->
+    <string name="unit_minute">min</string>
+    <string name="unit_hour">h</string>
+    <string name="unit_day">d</string>
+    <string name="unit_month">mo</string>
+    <string name="unit_year">y</string>
+    <string name="due_now">now</string>
+    <!-- Prefix for the per-card next-review label in the deck list ("↻ 3d"). -->
+    <string name="next_review_prefix" translatable="false">↻</string>
     <string name="delete_card_confirm_title">Delete Card</string>
     <string name="delete_card_confirm_message">Delete this card? This cannot be undone.</string>
     <string name="weather_today">Today</string>

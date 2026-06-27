@@ -43,7 +43,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
+import com.catalanflashcard.domain.IntervalFormat
+import com.catalanflashcard.domain.IntervalUnits
 import com.catalanflashcard.domain.Quality
+import com.catalanflashcard.domain.SpacedRepetition
 import com.catalanflashcard.ui.theme.Blue
 import com.catalanflashcard.ui.theme.Green
 import com.catalanflashcard.ui.theme.Orange
@@ -155,6 +158,17 @@ fun StudyScreen(
                         )
                     }
 
+                    val units = intervalUnits()
+                    // Preview where each grade moves this card, shown under the button.
+                    fun preview(quality: Quality): String = IntervalFormat.interval(
+                        SpacedRepetition.calculate(
+                            card.interval,
+                            card.easeFactor,
+                            card.repetitions,
+                            quality.value
+                        ).interval,
+                        units
+                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -163,6 +177,7 @@ fun StudyScreen(
                     ) {
                         ReviewButton(
                             label = stringResource(R.string.again),
+                            caption = preview(Quality.AGAIN),
                             color = Red,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(Quality.AGAIN) },
@@ -170,6 +185,7 @@ fun StudyScreen(
                         )
                         ReviewButton(
                             label = stringResource(R.string.hard),
+                            caption = preview(Quality.HARD),
                             color = Orange,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(Quality.HARD) },
@@ -177,6 +193,7 @@ fun StudyScreen(
                         )
                         ReviewButton(
                             label = stringResource(R.string.good),
+                            caption = preview(Quality.GOOD),
                             color = Green,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(Quality.GOOD) },
@@ -184,6 +201,7 @@ fun StudyScreen(
                         )
                         ReviewButton(
                             label = stringResource(R.string.easy),
+                            caption = preview(Quality.EASY),
                             color = Blue,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.answerCard(Quality.EASY) },
@@ -242,7 +260,8 @@ fun ReviewButton(
     color: Color,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    caption: String? = null
 ) {
     Button(
         onClick = onClick,
@@ -251,9 +270,31 @@ fun ReviewButton(
         colors = ButtonDefaults.buttonColors(containerColor = color),
         // Reduce horizontal padding (default 24dp) so longer localized labels
         // (e.g. Russian "Трудно", "Хорошо") fit on one line across 4 buttons.
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
         enabled = enabled
     ) {
-        Text(label, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(label, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (caption != null) {
+                Text(
+                    caption,
+                    color = Color.White.copy(alpha = 0.85f),
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
     }
 }
+
+/** Reads the localized interval unit suffixes for [IntervalFormat]. */
+@Composable
+fun intervalUnits(): IntervalUnits = IntervalUnits(
+    minute = stringResource(R.string.unit_minute),
+    hour = stringResource(R.string.unit_hour),
+    day = stringResource(R.string.unit_day),
+    month = stringResource(R.string.unit_month),
+    year = stringResource(R.string.unit_year),
+    now = stringResource(R.string.due_now)
+)

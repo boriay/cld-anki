@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.catalanflashcard.R
+import com.catalanflashcard.domain.IntervalFormat
 import com.catalanflashcard.data.entity.Card as CardEntity
 import com.catalanflashcard.ui.viewmodel.DeckViewModel
 import androidx.compose.material3.AlertDialog
@@ -212,6 +213,9 @@ fun DeckDetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
+                    val units = intervalUnits()
+                    // Single "now" for the whole list so all relative labels are consistent.
+                    val now = remember(cards) { System.currentTimeMillis() }
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -221,6 +225,7 @@ fun DeckDetailScreen(
                         items(cards, key = { it.id }) { card ->
                             CardListItem(
                                 card = card,
+                                nextReview = IntervalFormat.nextReview(card.nextReviewTime, now, units),
                                 onClick = { cardToEdit = card },
                                 onDeleteClick = { cardToDelete = card }
                             )
@@ -235,6 +240,7 @@ fun DeckDetailScreen(
 @Composable
 private fun CardListItem(
     card: CardEntity,
+    nextReview: String,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -255,6 +261,11 @@ private fun CardListItem(
                 Text(
                     text = card.back,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "${stringResource(R.string.next_review_prefix)} $nextReview",
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

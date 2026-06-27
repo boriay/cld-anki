@@ -9,9 +9,15 @@ import (
 // SM-2 field bounds, shared by the strict PUT /cards/{id} validation and the
 // lenient /sync sanitisation so both paths agree on what a storable card is.
 const (
-	minInterval    = 1
-	maxInterval    = math.MaxInt32 // backend stores interval as a 32-bit INTEGER
-	minEaseFactor  = 1.3
+	minInterval = 1
+	maxInterval = math.MaxInt32 // backend stores interval as a 32-bit INTEGER
+	// The clients compute ease_factor on a float32 lattice (Android stores it as
+	// a 32-bit Float; web matches via Math.fround). Their floor is therefore
+	// float32(1.3) = 1.2999999523…, not the double 1.3. Using 1.3 here would
+	// reject a legitimately-floored card on strict PUT (400) and clamp it upward
+	// on every /sync — churning updated_at and re-diverging the clients. Keep the
+	// bound on the same lattice so a floored card round-trips untouched.
+	minEaseFactor  = float64(float32(1.3)) // 1.2999999523162842
 	maxEaseFactor  = 5.0
 	minRepetitions = 0
 	maxRepetitions = math.MaxInt32 // repetitions is a 32-bit INTEGER column too

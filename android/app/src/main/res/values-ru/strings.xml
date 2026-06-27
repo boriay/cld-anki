@@ -52,6 +52,12 @@
     <string name="edit_card_title">Редактировать карточку</string>
     <string name="save">Сохранить</string>
     <string name="no_cards_in_deck">Карточек пока нет. Добавьте первую, чтобы начать.</string>
+    <string name="unit_minute">мин</string>
+    <string name="unit_hour">ч</string>
+    <string name="unit_day">д</string>
+    <string name="unit_month">мес</string>
+    <string name="unit_year">г</string>
+    <string name="due_now">сейчас</string>
     <string name="delete_card_confirm_title">Удалить карточку</string>
     <string name="delete_card_confirm_message">Удалить эту карточку? Это действие необратимо.</string>
     <string name="weather_today">Сегодня</string>

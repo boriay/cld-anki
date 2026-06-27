@@ -18,8 +18,14 @@ export interface ReviewResult {
   repetitions: number;
 }
 
-const EASE_MIN = 1.3;
-const EASE_MAX = 5.0;
+// Clamp bounds live on the float32 lattice (Math.fround) because the Android
+// client stores ease_factor as a 32-bit Float. Using the plain double 1.3 here
+// would clamp web ease slightly higher than Android's 1.3f floor, and on
+// low-ease cards that one-ULP gap flips trunc(interval * ease) to a different
+// integer interval — i.e. web and Android would schedule the same card to
+// different days. fround keeps both clients on identical representable values.
+const EASE_MIN = Math.fround(1.3); // 1.2999999523162842
+const EASE_MAX = Math.fround(5.0); // 5.0
 // Match the Android Int.MAX_VALUE cap: the backend stores interval as a 32-bit
 // INTEGER, so a long review streak must not overflow it.
 const INT32_MAX = 2_147_483_647;

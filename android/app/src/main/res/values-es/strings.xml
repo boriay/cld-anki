@@ -52,6 +52,12 @@
     <string name="edit_card_title">Editar tarjeta</string>
     <string name="save">Guardar</string>
     <string name="no_cards_in_deck">Aún no hay tarjetas. Añade una para empezar a estudiar.</string>
+    <string name="unit_minute">min</string>
+    <string name="unit_hour">h</string>
+    <string name="unit_day">d</string>
+    <string name="unit_month">mes</string>
+    <string name="unit_year">a</string>
+    <string name="due_now">ahora</string>
     <string name="delete_card_confirm_title">Eliminar tarjeta</string>
     <string name="delete_card_confirm_message">¿Eliminar esta tarjeta? Esto no se puede deshacer.</string>
     <string name="weather_today">Hoy</string>

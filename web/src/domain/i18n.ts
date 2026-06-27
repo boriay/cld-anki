@@ -31,6 +31,15 @@ export interface Strings {
   allDone: string;
   due: string;
   backToDeck: string;
+  // Next-review label shown per card in the deck list ("↻ {when}").
+  nextReviewPrefix: string;
+  // Short interval unit suffixes (non-inflecting) + "due now".
+  unitMinute: string;
+  unitHour: string;
+  unitDay: string;
+  unitMonth: string;
+  unitYear: string;
+  dueNow: string;
   // Login
   signIn: string;
   createAccount: string;
@@ -66,6 +75,13 @@ const en: Strings = {
   allDone: "🎉 All caught up!",
   due: "due",
   backToDeck: "← Deck",
+  nextReviewPrefix: "↻",
+  unitMinute: "min",
+  unitHour: "h",
+  unitDay: "d",
+  unitMonth: "mo",
+  unitYear: "y",
+  dueNow: "now",
   signIn: "Sign in",
   createAccount: "Create account",
   continueWithGoogle: "Continue with Google",
@@ -100,6 +116,13 @@ const es: Strings = {
   allDone: "🎉 ¡Todo al día!",
   due: "pendientes",
   backToDeck: "← Mazo",
+  nextReviewPrefix: "↻",
+  unitMinute: "min",
+  unitHour: "h",
+  unitDay: "d",
+  unitMonth: "mes",
+  unitYear: "a",
+  dueNow: "ahora",
   signIn: "Iniciar sesión",
   createAccount: "Crear cuenta",
   continueWithGoogle: "Continuar con Google",
@@ -134,6 +157,13 @@ const ru: Strings = {
   allDone: "🎉 Всё повторено!",
   due: "к повторению",
   backToDeck: "← Колода",
+  nextReviewPrefix: "↻",
+  unitMinute: "мин",
+  unitHour: "ч",
+  unitDay: "д",
+  unitMonth: "мес",
+  unitYear: "г",
+  dueNow: "сейчас",
   signIn: "Войти",
   createAccount: "Создать аккаунт",
   continueWithGoogle: "Войти через Google",

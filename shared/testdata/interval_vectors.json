@@ -1,0 +1,106 @@
+{
+  "units": {
+    "minute": "min",
+    "hour": "h",
+    "day": "d",
+    "month": "mo",
+    "year": "y",
+    "now": "now"
+  },
+  "interval": [
+    {
+      "days": 0,
+      "expected": "1d"
+    },
+    {
+      "days": 1,
+      "expected": "1d"
+    },
+    {
+      "days": 7,
+      "expected": "7d"
+    },
+    {
+      "days": 29,
+      "expected": "29d"
+    },
+    {
+      "days": 30,
+      "expected": "1mo"
+    },
+    {
+      "days": 45,
+      "expected": "2mo"
+    },
+    {
+      "days": 75,
+      "expected": "3mo"
+    },
+    {
+      "days": 364,
+      "expected": "12mo"
+    },
+    {
+      "days": 365,
+      "expected": "1y"
+    },
+    {
+      "days": 547,
+      "expected": "1.5y"
+    },
+    {
+      "days": 730,
+      "expected": "2y"
+    },
+    {
+      "days": 2000,
+      "expected": "5.5y"
+    }
+  ],
+  "nextReview": [
+    {
+      "diffMs": -1000,
+      "expected": "now"
+    },
+    {
+      "diffMs": 0,
+      "expected": "now"
+    },
+    {
+      "diffMs": 30000,
+      "expected": "1min"
+    },
+    {
+      "diffMs": 1800000,
+      "expected": "30min"
+    },
+    {
+      "diffMs": 5400000,
+      "expected": "2h"
+    },
+    {
+      "diffMs": 18000000,
+      "expected": "5h"
+    },
+    {
+      "diffMs": 90000000,
+      "expected": "1d"
+    },
+    {
+      "diffMs": 259200000,
+      "expected": "3d"
+    },
+    {
+      "diffMs": 3456000000,
+      "expected": "1mo"
+    },
+    {
+      "diffMs": 31536000000,
+      "expected": "1y"
+    },
+    {
+      "diffMs": 69120000000,
+      "expected": "2.2y"
+    }
+  ]
+}

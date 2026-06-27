@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { Card } from "../api/types";
 import { calculateReview, nextReviewTime, Quality } from "../domain/sm2";
+import { formatInterval, type IntervalUnits } from "../domain/interval";
 import { useLanguage } from "../language/LanguageContext";
 import { useStrings } from "../domain/i18n";
 
@@ -24,6 +25,15 @@ export function Study() {
     { label: s.good,  quality: Quality.Good,  cls: "good"  },
     { label: s.easy,  quality: Quality.Easy,  cls: "easy"  },
   ], [s]);
+
+  const units = useMemo<IntervalUnits>(() => ({
+    minute: s.unitMinute,
+    hour: s.unitHour,
+    day: s.unitDay,
+    month: s.unitMonth,
+    year: s.unitYear,
+    now: s.dueNow,
+  }), [s]);
 
   useEffect(() => {
     if (!deckId) return;
@@ -141,16 +151,25 @@ export function Study() {
         </button>
       ) : (
         <div className="grade-row">
-          {GRADES.map((g) => (
-            <button
-              key={g.quality}
-              className={`grade ${g.cls}`}
-              disabled={saving}
-              onClick={() => void grade(g.quality)}
-            >
-              {g.label}
-            </button>
-          ))}
+          {GRADES.map((g) => {
+            const preview = calculateReview(
+              current.interval,
+              current.ease_factor,
+              current.repetitions,
+              g.quality,
+            );
+            return (
+              <button
+                key={g.quality}
+                className={`grade ${g.cls}`}
+                disabled={saving}
+                onClick={() => void grade(g.quality)}
+              >
+                <span className="grade-label">{g.label}</span>
+                <span className="grade-interval">{formatInterval(preview.interval, units)}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { Card } from "../api/types";
+import { formatNextReview, type IntervalUnits } from "../domain/interval";
 import { useLanguage } from "../language/LanguageContext";
 import { useStrings } from "../domain/i18n";
 
@@ -16,6 +17,15 @@ export function DeckDetail() {
   const [back, setBack] = useState("");
   const [saving, setSaving] = useState(false);
   const activeDeckId = useRef(deckId);
+
+  const units = useMemo<IntervalUnits>(() => ({
+    minute: s.unitMinute,
+    hour: s.unitHour,
+    day: s.unitDay,
+    month: s.unitMonth,
+    year: s.unitYear,
+    now: s.dueNow,
+  }), [s]);
 
   useEffect(() => {
     if (!deckId) return;
@@ -102,6 +112,9 @@ export function DeckDetail() {
             <div>
               <strong>{card.front}</strong>
               <span className="muted"> — {card.back}</span>
+              <span className="card-next-review">
+                {s.nextReviewPrefix} {formatNextReview(new Date(card.next_review_time).getTime(), units)}
+              </span>
             </div>
             <button className="link danger" onClick={() => void removeCard(card.id)}>
               {s.delete}

@@ -1,0 +1,680 @@
+{
+  "review": [
+    {
+      "name": "all_good",
+      "start": {
+        "interval": 1,
+        "easeFactor": 2.5,
+        "repetitions": 0
+      },
+      "steps": [
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 2.5,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.5,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 7,
+            "easeFactor": 2.5,
+            "repetitions": 3
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 17,
+            "easeFactor": 2.5,
+            "repetitions": 4
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 42,
+            "easeFactor": 2.5,
+            "repetitions": 5
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 105,
+            "easeFactor": 2.5,
+            "repetitions": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "good_then_again",
+      "start": {
+        "interval": 1,
+        "easeFactor": 2.5,
+        "repetitions": 0
+      },
+      "steps": [
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 2.5,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.5,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 7,
+            "easeFactor": 2.5,
+            "repetitions": 3
+          }
+        },
+        {
+          "quality": 1,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 1.9600000381469727,
+            "repetitions": 0
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 1.9600000381469727,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 1.9600000381469727,
+            "repetitions": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "hard_to_floor",
+      "start": {
+        "interval": 1,
+        "easeFactor": 2.5,
+        "repetitions": 0
+      },
+      "steps": [
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 2.359999895095825,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.2199997901916504,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 6,
+            "easeFactor": 2.0799996852874756,
+            "repetitions": 3
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 11,
+            "easeFactor": 1.9399996995925903,
+            "repetitions": 4
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 19,
+            "easeFactor": 1.799999713897705,
+            "repetitions": 5
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 31,
+            "easeFactor": 1.6599997282028198,
+            "repetitions": 6
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 47,
+            "easeFactor": 1.5199997425079346,
+            "repetitions": 7
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 64,
+            "easeFactor": 1.3799997568130493,
+            "repetitions": 8
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 83,
+            "easeFactor": 1.2999999523162842,
+            "repetitions": 9
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 107,
+            "easeFactor": 1.2999999523162842,
+            "repetitions": 10
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 139,
+            "easeFactor": 1.2999999523162842,
+            "repetitions": 11
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 180,
+            "easeFactor": 1.2999999523162842,
+            "repetitions": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "easy_climb",
+      "start": {
+        "interval": 1,
+        "easeFactor": 2.5,
+        "repetitions": 0
+      },
+      "steps": [
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 2.5999999046325684,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.6999998092651367,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 8,
+            "easeFactor": 2.799999713897705,
+            "repetitions": 3
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 23,
+            "easeFactor": 2.8999996185302734,
+            "repetitions": 4
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 68,
+            "easeFactor": 2.999999523162842,
+            "repetitions": 5
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 210,
+            "easeFactor": 3.09999942779541,
+            "repetitions": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "mixed",
+      "start": {
+        "interval": 1,
+        "easeFactor": 2.5,
+        "repetitions": 0
+      },
+      "steps": [
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 2.5,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.359999895095825,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 7,
+            "easeFactor": 2.4599997997283936,
+            "repetitions": 3
+          }
+        },
+        {
+          "quality": 1,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 1.9199998378753662,
+            "repetitions": 0
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 1.9199998378753662,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 5,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.0199997425079346,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 3,
+          "expected": {
+            "interval": 5,
+            "easeFactor": 1.8799997568130493,
+            "repetitions": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "overflow",
+      "start": {
+        "interval": 1,
+        "easeFactor": 2.5,
+        "repetitions": 0
+      },
+      "steps": [
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1,
+            "easeFactor": 2.5,
+            "repetitions": 1
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 3,
+            "easeFactor": 2.5,
+            "repetitions": 2
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 7,
+            "easeFactor": 2.5,
+            "repetitions": 3
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 17,
+            "easeFactor": 2.5,
+            "repetitions": 4
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 42,
+            "easeFactor": 2.5,
+            "repetitions": 5
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 105,
+            "easeFactor": 2.5,
+            "repetitions": 6
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 262,
+            "easeFactor": 2.5,
+            "repetitions": 7
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 655,
+            "easeFactor": 2.5,
+            "repetitions": 8
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1637,
+            "easeFactor": 2.5,
+            "repetitions": 9
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 4092,
+            "easeFactor": 2.5,
+            "repetitions": 10
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 10230,
+            "easeFactor": 2.5,
+            "repetitions": 11
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 25575,
+            "easeFactor": 2.5,
+            "repetitions": 12
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 63937,
+            "easeFactor": 2.5,
+            "repetitions": 13
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 159842,
+            "easeFactor": 2.5,
+            "repetitions": 14
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 399605,
+            "easeFactor": 2.5,
+            "repetitions": 15
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 999012,
+            "easeFactor": 2.5,
+            "repetitions": 16
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2497530,
+            "easeFactor": 2.5,
+            "repetitions": 17
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 6243825,
+            "easeFactor": 2.5,
+            "repetitions": 18
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 15609562,
+            "easeFactor": 2.5,
+            "repetitions": 19
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 39023905,
+            "easeFactor": 2.5,
+            "repetitions": 20
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 97559762,
+            "easeFactor": 2.5,
+            "repetitions": 21
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 243899405,
+            "easeFactor": 2.5,
+            "repetitions": 22
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 609748512,
+            "easeFactor": 2.5,
+            "repetitions": 23
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 1524371280,
+            "easeFactor": 2.5,
+            "repetitions": 24
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 25
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 26
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 27
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 28
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 29
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 30
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 31
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 32
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 33
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 34
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 35
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 36
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 37
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 38
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 39
+          }
+        },
+        {
+          "quality": 4,
+          "expected": {
+            "interval": 2147483647,
+            "easeFactor": 2.5,
+            "repetitions": 40
+          }
+        }
+      ]
+    }
+  ]
+}

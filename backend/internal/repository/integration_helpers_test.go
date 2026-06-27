@@ -55,6 +55,26 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("ping test db: %v", err)
 	}
 
+	// Safety net: setup TRUNCATEs cards/decks on every run, so refuse to touch
+	// anything that isn't an obvious throwaway test database. current_database()
+	// must equal the expected name (default "testdb" — what the Makefile, the
+	// scripts/test-integration.sh container, and CI all use). A stray
+	// TEST_DATABASE_URL pointing at prod then fails loudly here instead of
+	// wiping it. Override the name with TEST_DB_NAME if you must.
+	wantDB := os.Getenv("TEST_DB_NAME")
+	if wantDB == "" {
+		wantDB = "testdb"
+	}
+	var dbName string
+	if err := pool.QueryRow(ctx, "SELECT current_database()").Scan(&dbName); err != nil {
+		t.Fatalf("check test db name: %v", err)
+	}
+	if dbName != wantDB {
+		t.Fatalf("refusing to run destructive integration tests against database %q "+
+			"(expected %q). TEST_DATABASE_URL must point at a throwaway test DB; "+
+			"set TEST_DB_NAME to override.", dbName, wantDB)
+	}
+
 	applyMigrations(ctx, t, pool)
 
 	// Clean slate for each test. RESTART IDENTITY is harmless (no serials) but
