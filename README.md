@@ -1,169 +1,128 @@
-# Catalan Flashcard
+# Cat Flashcards
 
-An Android flashcard application for learning Catalan language, designed for Russian speakers. Built with Anki-style spaced repetition algorithm.
+A multi-platform flashcard app for learning Catalan, designed for Russian speakers.
+Available as an **Android app** and at **[catflashcards.com](https://catflashcards.com)**.
+Built with an Anki-style spaced repetition algorithm and a Go sync backend so your decks
+follow you across devices.
 
-> 🤖 **AI-generated project.** This codebase was primarily written with the assistance of AI tools — mainly Claude Code by Anthropic and GitHub Copilot, with other tools used as needed. All code has been reviewed, tested, and integrated by the maintainer. See [NOTICE.md](NOTICE.md) for details.
+> 🤖 **AI-generated project.** This codebase was primarily written with the assistance of
+> AI tools — mainly Claude Code by Anthropic, with other tools used as needed. All code
+> has been reviewed, tested, and integrated by the maintainer. See [NOTICE.md](NOTICE.md)
+> for details.
 
 ## Features
 
-- 📚 **Deck Management**: Create, manage, and organize multiple decks
-- 🎓 **Spaced Repetition**: Implements SM-2 algorithm for optimal learning
-- 🗂️ **Flashcard System**: Flip cards between front (Catalan) and back (Russian)
-- 📊 **Study Sessions**: Track your progress and due cards
-- 💾 **Local Storage**: All data stored locally using Room database
-- 🎨 **Modern UI**: Built with Jetpack Compose for smooth user experience
+- 📚 **Deck management** — create and manage multiple decks
+- 🎓 **Spaced repetition** — SM-2 algorithm with Hard/Good/Easy grading, guaranteeing
+  Hard < Good < Easy intervals at every review (Hard ×1.2, Easy ×1.3 modifiers)
+- 📱 **Android app** — offline-first with Room; background sync to the server
+- 🌐 **Web app** — online client at [catflashcards.com](https://catflashcards.com)
+- 🔄 **Cross-device sync** — shared Firebase account keeps Android and web in sync
+- ☁️ **Go backend** — REST API with Postgres, Firebase Auth ID-token verification
+- 🌤️ **Weather background** — live weather from Open-Meteo drives the animated background
 
-## Project Structure
+## Project structure
 
 ```
 cld-anki/
-├── android/                                        # Android app (Kotlin/Compose)
-│   ├── app/
-│   │   ├── src/
-│   │   │   ├── main/
-│   │   │   │   ├── java/com/catalanflashcard/
-│   │   │   │   │   ├── MainActivity.kt                 # Main entry point
-│   │   │   │   │   ├── data/
-│   │   │   │   │   │   ├── database/
-│   │   │   │   │   │   │   ├── FlashcardDatabase.kt   # Room database
-│   │   │   │   │   │   │   └── InitialDataCallback.kt # Initial data setup
-│   │   │   │   │   │   ├── dao/
-│   │   │   │   │   │   │   ├── CardDao.kt             # Card data access
-│   │   │   │   │   │   │   └── DeckDao.kt             # Deck data access
-│   │   │   │   │   │   ├── entity/
-│   │   │   │   │   │   │   ├── Card.kt                # Card entity
-│   │   │   │   │   │   │   └── Deck.kt                # Deck entity
-│   │   │   │   │   │   └── repository/
-│   │   │   │   │   │       └── FlashcardRepository.kt # Data repository
-│   │   │   │   │   └── ui/
-│   │   │   │   │       ├── screen/                    # Compose screens
-│   │   │   │   │       ├── viewmodel/                 # ViewModels
-│   │   │   │   │       ├── navigation/                # Navigation routes
-│   │   │   │   │       └── theme/                     # Material theme
-│   │   │   │   ├── res/                               # Resources
-│   │   │   │   └── AndroidManifest.xml
-│   │   │   └── test/ & androidTest/                   # Testing
-│   │   ├── build.gradle.kts                           # App-level build config
-│   │   └── proguard-rules.pro                         # ProGuard rules
-│   ├── build.gradle.kts                               # Root build config
-│   ├── settings.gradle.kts                            # Gradle settings
-│   └── gradle.properties                              # Gradle properties
-├── backend/                                        # Go sync backend
-├── design/                                         # Design assets
-└── README.md                                       # This file
+├── android/          # Android app (Kotlin, Jetpack Compose, Room)
+├── web/              # Web SPA (React 18, Vite, TypeScript) — see web/README.md
+├── backend/          # Go sync backend (chi, pgx/v5, Firebase Admin)
+├── shared/testdata/  # Cross-platform SM-2 golden fixtures (see below)
+└── design/           # Design assets
 ```
 
-## Architecture
+## Getting started
 
-The app follows **MVVM** (Model-View-ViewModel) pattern:
+### Android
 
-- **Model**: Entities (Card, Deck) and Room Database
-- **View**: Compose UI screens and components
-- **ViewModel**: DeckViewModel and StudyViewModel for business logic
-- **Repository**: FlashcardRepository handles data operations
+Prerequisites: Android Studio Narwhal (2025.1.1+), JDK 21, Android SDK 37.
 
-## Technology Stack
+```bash
+cd android
+./gradlew installDebug     # build + install on connected device/emulator
+./gradlew test             # unit tests
+```
 
-- **Language**: Kotlin
-- **UI Framework**: Jetpack Compose
-- **Database**: Room (Android Architecture Components)
-- **Navigation**: Jetpack Navigation Compose
-- **Architecture**: MVVM + Repository Pattern
-- **Build System**: Gradle
+### Web
 
-## Getting Started
+```bash
+cd web
+npm install
+cp .env.example .env.local   # fill VITE_FIREBASE_* + VITE_API_BASE_URL
+npm run dev                  # http://localhost:5173
+npm test                     # parity + unit tests (no extra deps, uses node --test)
+```
 
-### Prerequisites
-
-- Android Studio Narwhal (2025.1.1) or later (required for AGP 9.2)
-- Gradle 9.4+ (included via wrapper)
-- Android SDK 37 (compileSdk 37, targetSdk 36)
-- JDK 21+
-
-### Building
-
-Detailed build instructions are in [BUILD.md](BUILD.md)
-
-Quick start:
-
-1. Clone the repository
-2. Install Android SDK and set `ANDROID_HOME`
-3. Build and run (from the `android/` directory):
-   ```bash
-   cd android
-   ./gradlew build              # Build APK
-   ./gradlew installDebug       # Install on emulator/device
-   ```
-
-For complete setup guide, see [BUILD.md](BUILD.md)
-
-## Backend
-
-The Go sync backend lives in [`backend/`](backend/) (chi, pgx/v5, Firebase Admin).
-
-### Tests
+### Backend
 
 ```bash
 cd backend
-go test ./...              # unit tests (no database needed)
-make test-integration      # integration tests against a throwaway Postgres
+go build ./...
+go test ./...                           # unit tests (no database needed)
+make test-integration                   # integration tests against a throwaway Postgres
+make test-integration ARGS="-v -run X"  # pass flags to go test
 ```
 
 `make test-integration` runs [`scripts/test-integration.sh`](backend/scripts/test-integration.sh):
-it starts a `postgres:16-alpine` container in Docker, applies the migrations, runs the
-build-tagged integration tests (`go test -tags=integration ./...`), and removes the
-container afterwards — the same flow as the `backend-tests` CI job. Requires Docker.
+starts a `postgres:16-alpine` Docker container, applies migrations, runs
+`go test -tags=integration ./...`, then removes the container.
 
-Pass extra `go test` flags via `ARGS`, e.g. `make test-integration ARGS="-v"`. Override
-the host port or keep the container with env vars: `PG_PORT=5432 KEEP_DB=1 make test-integration`.
+## Architecture
 
-## Learning Algorithm
+### Android — offline-first MVVM
 
-The app implements SM-2 (Spaced Repetition) algorithm with four quality ratings:
+- **Room** stores decks and cards locally; every card has SM-2 fields
+  (`interval`, `easeFactor`, `repetitions`, `nextReviewTime`).
+- **SyncManager** runs background delta-sync (dual-cursor, soft-delete tombstones).
+- **Firebase Auth** is optional — anonymous by default, linkable to Google/email
+  so decks sync with the web account.
 
-- **Again** (1): Failed the card, interval resets to 1 day
-- **Hard** (3): Correct but difficult, reduces interval growth
-- **Good** (4): Correct answer, normal spacing applied
-- **Easy** (5): Very easy, longest interval applied
+### Web — online SPA
 
-Each card tracks:
-- `interval`: Days until next review
-- `easeFactor`: Difficulty multiplier (1.3-5.0)
-- `repetitions`: Number of correct reviews
-- `nextReviewTime`: When to show next
+React 18 + Vite SPA hosted as an nginx Deployment on GKE, served by the same L7 LB
+as the backend. Firebase Auth (email/password + Google). Direct REST calls to the
+backend; SM-2 logic is ported 1:1 from Android.
 
-## Initial Data
+### Backend — Go REST API
 
-The app comes with a basic Catalan-Russian vocabulary deck containing ~50 essential words and phrases:
+`chi` router, `pgx/v5` Postgres pool, Firebase Admin SDK for ID-token verification.
+Sync endpoint (`POST /api/v1/sync`) accepts a client delta and returns a server delta;
+the SM-2 calculation is done entirely on the clients — the backend only stores and
+validates the results.
 
-- Greetings (Hola, Adiós, etc.)
-- Basic verbs
-- Numbers (1-10)
-- Common nouns
-- Common phrases
+Deployed on GKE (GCE Ingress, ManagedCertificate TLS):
+- `https://api.catflashcards.com` — backend
+- `https://catflashcards.com` — web static
 
-Users can create additional custom decks.
+## SM-2 algorithm
 
-## Future Features
+Standard SM-2 with three Anki-style extensions applied symmetrically on Android and web:
 
-- Server synchronization for multi-device support
-- iOS app
-- Web interface
-- Custom deck import/export
-- Audio pronunciation
-- Image support for cards
-- Deck sharing with other users
-- Statistics and analytics
+| Grade  | ease_factor change | interval formula            |
+|--------|--------------------|-----------------------------|
+| Again  | −0.54              | reset to 1 day, reps → 0   |
+| Hard   | −0.14              | Good×1.2, capped at Good−1 |
+| Good   | 0                  | interval × ease             |
+| Easy   | +0.10              | Good×1.3, floored at Good+1 |
+
+`reps=0` → interval 1; `reps=1` → interval 3; `reps≥2` → formula above.
+
+**Cross-platform parity** is enforced by shared golden fixtures in
+[`shared/testdata/`](shared/testdata/): the web parity suite (`npm test`) and the
+Android `CrossPlatformParityTest` both assert against the same JSON files. Regenerate
+after algorithm changes with `npm run test:gen` (from `web/`), then re-run both suites.
+
+## Initial data
+
+New accounts get a seed of **259 cards across 3 decks** (Catalan–Russian,
+Catalan–Spanish, Catalan–English), covering greetings, numbers, verbs, nouns,
+and common phrases. Generated from
+[`backend/internal/seed/data.go`](backend/internal/seed/data.go) via
+`POST /api/v1/seed` (idempotent; no-op if the account already has any decks).
 
 ## License
 
-Licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
+Licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file.
 
 Copyright 2026 Boris Yusupov
-
-## Development Notes
-
-- All database operations use coroutines for non-blocking IO
-- UI state is managed through StateFlow for reactive updates
-- Navigation uses Jetpack Navigation Compose
-- Theming supports Material Design 3

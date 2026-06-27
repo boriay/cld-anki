@@ -46,6 +46,8 @@ ConfigMap for production. Android sends no `Origin` header and is unaffected.
 ## Build & deploy
 
 ```bash
+npm test          # cross-platform parity + unit tests (node --test, no extra deps)
+npm run test:gen  # regenerate shared/testdata/*.json after SM-2 algorithm changes
 npm run build     # → dist/  (static assets)
 ```
 
