@@ -4,6 +4,10 @@
 // Quality scale:
 //   1 = Again (reset)   3 = Hard   4 = Good   5 = Easy
 // Quality < 3 resets repetitions and sets interval to 1 day.
+//
+// Extension: EASY_BONUS multiplier (1.3×, Anki default) applied to the
+// interval when quality == Easy. Separates Easy from Good even on short
+// intervals where the ease-factor difference alone doesn't add a full day.
 
 export enum Quality {
   Again = 1,
@@ -26,6 +30,9 @@ export interface ReviewResult {
 // different days. fround keeps both clients on identical representable values.
 const EASE_MIN = Math.fround(1.3); // 1.2999999523162842
 const EASE_MAX = Math.fround(5.0); // 5.0
+// Easy bonus: on the same float32 lattice as EASE_MIN so the multiplication
+// interval * newEaseFactor * EASY_BONUS stays bit-identical with Android.
+const EASY_BONUS = Math.fround(1.3);
 // Match the Android Int.MAX_VALUE cap: the backend stores interval as a 32-bit
 // INTEGER, so a long review streak must not overflow it.
 const INT32_MAX = 2_147_483_647;
@@ -62,7 +69,8 @@ export function calculateReview(
   } else {
     // Round to match the Android Int conversion (truncation toward zero) and
     // cap at INT32_MAX so the backend's INTEGER column can't overflow.
-    newInterval = Math.trunc(clamp(interval * newEaseFactor, 1, INT32_MAX));
+    const bonus = quality === Quality.Easy ? EASY_BONUS : 1;
+    newInterval = Math.trunc(clamp(interval * newEaseFactor * bonus, 1, INT32_MAX));
   }
 
   return { interval: newInterval, easeFactor: newEaseFactor, repetitions: repetitions + 1 };

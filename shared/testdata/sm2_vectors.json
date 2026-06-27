@@ -249,7 +249,7 @@
         {
           "quality": 5,
           "expected": {
-            "interval": 8,
+            "interval": 10,
             "easeFactor": 2.799999713897705,
             "repetitions": 3
           }
@@ -257,7 +257,7 @@
         {
           "quality": 5,
           "expected": {
-            "interval": 23,
+            "interval": 37,
             "easeFactor": 2.8999996185302734,
             "repetitions": 4
           }
@@ -265,7 +265,7 @@
         {
           "quality": 5,
           "expected": {
-            "interval": 68,
+            "interval": 144,
             "easeFactor": 2.999999523162842,
             "repetitions": 5
           }
@@ -273,7 +273,7 @@
         {
           "quality": 5,
           "expected": {
-            "interval": 210,
+            "interval": 580,
             "easeFactor": 3.09999942779541,
             "repetitions": 6
           }
@@ -307,7 +307,7 @@
         {
           "quality": 5,
           "expected": {
-            "interval": 7,
+            "interval": 9,
             "easeFactor": 2.4599997997283936,
             "repetitions": 3
           }

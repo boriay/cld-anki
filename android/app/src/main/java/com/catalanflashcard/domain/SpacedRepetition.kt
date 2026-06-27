@@ -13,6 +13,11 @@ package com.catalanflashcard.domain
  */
 object SpacedRepetition {
 
+    // Easy bonus: separates Easy from Good even on short intervals where the
+    // ease-factor difference alone doesn't add a full day. Matches Anki default.
+    // On the float32 lattice so the multiplication stays bit-identical with web.
+    private const val EASY_BONUS = 1.3f
+
     data class ReviewResult(
         val interval: Int,
         val easeFactor: Float,
@@ -38,7 +43,8 @@ object SpacedRepetition {
                 1 -> 3
                 else -> {
                     // Compute in Double and clamp to avoid Int overflow on long-learned cards.
-                    val raw = interval.toDouble() * newEaseFactor
+                    val bonus = if (quality == 5) EASY_BONUS else 1f
+                    val raw = interval.toDouble() * newEaseFactor * bonus
                     raw.coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
                 }
             }
